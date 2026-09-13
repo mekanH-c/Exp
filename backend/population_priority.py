@@ -163,6 +163,10 @@ def get_population_priority_geojson(
             critical_infra_flag=crit_flag,
         )
 
+        # Operational filter: Only waterlogged roads requiring emergency priority response
+        if water_depth_cm <= 10.0 or priority_level == "LOW":
+            continue
+
         p_feature = {
             "type": "Feature",
             "geometry": f["geometry"],
@@ -183,6 +187,11 @@ def get_population_priority_geojson(
             },
         }
         priority_features.append(p_feature)
+
+    # Sort descending by priority_score and retain top 350 critical corridors for 60 FPS performance
+    priority_features.sort(key=lambda x: x["properties"]["priority_score"], reverse=True)
+    if len(priority_features) > 350:
+        priority_features = priority_features[:350]
 
     exec_ms = round((time.time() - t_start) * 1000.0, 1)
 

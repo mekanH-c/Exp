@@ -213,6 +213,9 @@ def predict(payload: FeatureInput) -> PredictResponse:
     return predict_severity(payload)
 
 
+_ZONES_CACHE: List[ZoneResponse] | None = None
+
+
 @app.get(
     "/zones",
     response_model=List[ZoneResponse],
@@ -220,6 +223,10 @@ def predict(payload: FeatureInput) -> PredictResponse:
     tags=["GIS & Zones"],
 )
 def zones() -> List[ZoneResponse]:
+    global _ZONES_CACHE
+    if _ZONES_CACHE is not None:
+        return _ZONES_CACHE
+
     if ZONE_DATA.empty:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Zone dataset not found"
@@ -239,6 +246,7 @@ def zones() -> List[ZoneResponse]:
                 severity=severity,
             )
         )
+    _ZONES_CACHE = results
     return results
 
 

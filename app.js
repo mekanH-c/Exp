@@ -1791,8 +1791,9 @@ async function loadPopulationPriorityLayer(signal) {
     topPriorityFeatureGlobal = null;
   }
 
-  // Render Polylines directly onto Hardware Canvas (Zero DOM Thrashing)
+  // Render Polylines directly onto Hardware Canvas in a single batch (60 FPS, zero UI lag)
   const lineOpts = sharedCanvasRenderer ? { renderer: sharedCanvasRenderer } : {};
+  const layersBatch = [];
 
   priorityFeatures.forEach((feature) => {
     if (!feature.geometry || !feature.geometry.coordinates) return;
@@ -1807,56 +1808,30 @@ async function loadPopulationPriorityLayer(signal) {
     const level = (p.priority_level || "MEDIUM").toUpperCase();
     const depth = typeof p.water_depth_cm === "number" ? p.water_depth_cm : parseFloat(p.water_depth_cm || 0);
 
-    // Outer glow style
-    let outerColor = "#818cf8";
-    let outerWeight = 5.5;
-    let outerOpacity = 0.65;
+    // High-visibility vivid priority styling
+    const color = level === "CRITICAL" ? "#a855f7" : level === "HIGH" ? "#c084fc" : "#818cf8";
+    const weight = level === "CRITICAL" ? 5.5 : level === "HIGH" ? 4.2 : 3.2;
 
-    if (level === "CRITICAL") {
-      outerColor = "#a855f7";
-      outerWeight = 9.5;
-      outerOpacity = 0.85;
-    } else if (level === "HIGH") {
-      outerColor = "#c084fc";
-      outerWeight = 7.5;
-      outerOpacity = 0.75;
-    }
-
-    let innerColor = "#eab308";
-    let innerWeight = 3.0;
-    if (depth > 100.0) {
-      innerColor = "#ef4444";
-      innerWeight = 4.0;
-    } else if (depth > 25.0) {
-      innerColor = "#f97316";
-      innerWeight = 3.5;
-    }
-
-    const popupHtml = createPriorityPopupContent(p);
-
-    const outerLine = L.polyline(latlngs, {
+    const priorityLine = L.polyline(latlngs, {
       ...lineOpts,
-      color: outerColor,
-      weight: outerWeight,
-      opacity: outerOpacity,
-      lineCap: "round",
-      lineJoin: "round",
-      interactive: false
-    });
-
-    const innerLine = L.polyline(latlngs, {
-      ...lineOpts,
-      color: innerColor,
-      weight: innerWeight,
-      opacity: 0.95,
+      color: color,
+      weight: weight,
+      opacity: 0.92,
       lineCap: "round",
       lineJoin: "round",
       interactive: true
     });
-    innerLine.bindPopup(popupHtml, { className: "dark-leaflet-popup" });
 
-    populationPriorityLayer.addLayer(outerLine);
-    populationPriorityLayer.addLayer(innerLine);
+    // Lazy popup on click (zero upfront DOM string thrashing)
+    priorityLine.on("click", (e) => {
+      const popupHtml = createPriorityPopupContent(p);
+      L.popup({ className: "dark-leaflet-popup" })
+        .setLatLng(e.latlng)
+        .setContent(popupHtml)
+        .openOn(map);
+    });
+
+    layersBatch.push(priorityLine);
   });
 
   // Add compact priority badges ONLY for top 12 highest-priority locations
@@ -1884,11 +1859,20 @@ async function loadPopulationPriorityLayer(signal) {
     });
 
     const badgeMarker = L.marker(center, { icon: customIcon });
-    const popupHtml = createPriorityPopupContent(p);
-    badgeMarker.bindPopup(popupHtml, { className: "dark-leaflet-popup" });
+    badgeMarker.on("click", (e) => {
+      const popupHtml = createPriorityPopupContent(p);
+      L.popup({ className: "dark-leaflet-popup" })
+        .setLatLng(e.latlng)
+        .setContent(popupHtml)
+        .openOn(map);
+    });
 
-    populationPriorityLayer.addLayer(badgeMarker);
+    layersBatch.push(badgeMarker);
   });
+
+  // Batch insert into populationPriorityLayer in one atomic operation
+  const batchFeatureGroup = L.featureGroup(layersBatch);
+  populationPriorityLayer.addLayer(batchFeatureGroup);
 }
 
 // --------------------------------------------------------------------------
@@ -2729,7 +2713,9 @@ function initLayerToggles() {
     zCheck.addEventListener("change", (e) => {
       if (e.target.checked) {
         if (!map.hasLayer(zonesLayer)) map.addLayer(zonesLayer);
-        loadZoneLayer();
+        if (zonesLayer.getLayers().length === 0) {
+          loadZoneLayer();
+        }
       } else {
         if (map.hasLayer(zonesLayer)) map.removeLayer(zonesLayer);
       }
@@ -2748,7 +2734,9 @@ function initLayerToggles() {
     popCheck.addEventListener("change", (e) => {
       if (e.target.checked) {
         if (!map.hasLayer(populationPriorityLayer)) map.addLayer(populationPriorityLayer);
-        loadPopulationPriorityLayer();
+        if (populationPriorityLayer.getLayers().length === 0) {
+          loadPopulationPriorityLayer();
+        }
       } else {
         if (map.hasLayer(populationPriorityLayer)) map.removeLayer(populationPriorityLayer);
       }
@@ -3357,54 +3345,64 @@ const DELHI_ZONE_CENTROIDS = [
   { name: "Narela (North)", lat: 28.850, lon: 77.095 }
 ];
 
+let cachedZonesData = null;
+
+function renderZoneFeatures(zones) {
+  if (!zonesLayer) return;
+  zonesLayer.clearLayers();
+  const circleOpts = sharedCanvasRenderer ? { renderer: sharedCanvasRenderer } : {};
+
+  zones.forEach((zone, idx) => {
+    const color =
+      zone.severity === "High" ? "#ef4444" :
+      zone.severity === "Medium" ? "#f59e0b" : "#10b981";
+
+    let lat = zone.latitude;
+    let lon = zone.longitude;
+    let zoneName = `Zone ${zone.zone_id}`;
+
+    if (!lat || !lon || (lat === 0.0 && lon === 0.0)) {
+      const centroid = DELHI_ZONE_CENTROIDS[idx % DELHI_ZONE_CENTROIDS.length];
+      lat = centroid.lat;
+      lon = centroid.lon;
+      zoneName = `${zone.zone_id} (${centroid.name})`;
+    }
+
+    L.circle([lat, lon], {
+      ...circleOpts,
+      radius: 1200,
+      color: color,
+      fillColor: color,
+      fillOpacity: 0.28,
+      weight: 2,
+      dashArray: "6, 6"
+    })
+      .bindPopup(`
+        <div class="waterlogging-popup">
+          <div class="wl-popup-title">Flood Risk Zone ${zoneName}</div>
+          <div class="wl-popup-row"><span>Severity:</span> <span class="sev-tag ${zone.severity.toLowerCase()}">${zone.severity}</span></div>
+          <div class="wl-popup-row"><span>Model Version:</span> <strong>AquaG Model V2</strong></div>
+          <div class="wl-popup-footer">Model-derived zone severity (GET /zones)</div>
+        </div>
+      `, { className: "dark-leaflet-popup" })
+      .addTo(zonesLayer);
+  });
+}
+
 async function loadZoneLayer() {
   const zCheck = document.getElementById("layer-zones-check");
   if (zCheck && !zCheck.checked) return;
 
+  if (cachedZonesData) {
+    renderZoneFeatures(cachedZonesData);
+    return;
+  }
+
   try {
     const res = await apiFetch("/zones", {}, 8000);
     if (!res.ok) return;
-    const zones = await res.json();
-
-    if (zonesLayer) zonesLayer.clearLayers();
-
-    const circleOpts = sharedCanvasRenderer ? { renderer: sharedCanvasRenderer } : {};
-
-    zones.forEach((zone, idx) => {
-      const color =
-        zone.severity === "High" ? "#ef4444" :
-        zone.severity === "Medium" ? "#f59e0b" : "#10b981";
-
-      let lat = zone.latitude;
-      let lon = zone.longitude;
-      let zoneName = `Zone ${zone.zone_id}`;
-
-      if (!lat || !lon || (lat === 0.0 && lon === 0.0)) {
-        const centroid = DELHI_ZONE_CENTROIDS[idx % DELHI_ZONE_CENTROIDS.length];
-        lat = centroid.lat;
-        lon = centroid.lon;
-        zoneName = `${zone.zone_id} (${centroid.name})`;
-      }
-
-      L.circle([lat, lon], {
-        ...circleOpts,
-        radius: 1200,
-        color: color,
-        fillColor: color,
-        fillOpacity: 0.28,
-        weight: 2,
-        dashArray: "6, 6"
-      })
-        .bindPopup(`
-          <div class="waterlogging-popup">
-            <div class="wl-popup-title">Flood Risk Zone ${zoneName}</div>
-            <div class="wl-popup-row"><span>Severity:</span> <span class="sev-tag ${zone.severity.toLowerCase()}">${zone.severity}</span></div>
-            <div class="wl-popup-row"><span>Model Version:</span> <strong>AquaG Model V2</strong></div>
-            <div class="wl-popup-footer">Model-derived zone severity (GET /zones)</div>
-          </div>
-        `, { className: "dark-leaflet-popup" })
-        .addTo(zonesLayer);
-    });
+    cachedZonesData = await res.json();
+    renderZoneFeatures(cachedZonesData);
   } catch (err) {
     console.log("Zone layer skipped:", err.message);
   }
