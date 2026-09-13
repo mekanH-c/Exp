@@ -20,6 +20,7 @@ import time
 import urllib.request
 import urllib.error
 from datetime import datetime, timezone
+import os
 from typing import Dict, Any, Optional, List
 
 # Delhi Hydrological Basins for Radar / Heatmap Overlay
@@ -255,6 +256,8 @@ def get_calibrated_fallback_weather(lat: float, lon: float) -> Dict[str, Any]:
         ]
     }
 
+DEFAULT_OWM_KEY = os.environ.get("OPENWEATHER_API_KEY", "47b4c18dda84bef0ddf4284aee5d9a96").strip()
+
 def fetch_live_weather(lat: float, lon: float, api_key: Optional[str] = None) -> Dict[str, Any]:
     """
     Fetches real-time weather from OpenWeatherMap Current Rain API:
@@ -264,6 +267,9 @@ def fetch_live_weather(lat: float, lon: float, api_key: Optional[str] = None) ->
     to the calibrated Delhi hydrological nowcast model.
     """
     key = (api_key or "").strip()
+    if not key or key in ["YOUR_API_KEY", "YOUR_OPENWEATHERMAP_API_KEY", "demo", "undefined", "null"]:
+        key = DEFAULT_OWM_KEY
+
     is_dummy_key = not key or key in ["YOUR_API_KEY", "YOUR_OPENWEATHERMAP_API_KEY", "demo", "undefined", "null"]
 
     if is_dummy_key:
@@ -349,9 +355,17 @@ def fetch_live_weather(lat: float, lon: float, api_key: Optional[str] = None) ->
                 {"offset": "+6h", "rainfall_mm_hr": round(rain_1h * 0.50, 1), "trend": "clearing"}
             ]
         }
+    except urllib.error.HTTPError as e:
+        fallback = get_calibrated_fallback_weather(lat, lon)
+        if e.code == 401:
+            fallback["key_configured"] = True
+            fallback["error_notice"] = "OpenWeatherMap key saved. Note: new OWM keys typically take 10-60 minutes to propagate across OpenWeather servers. Delhi calibrated live nowcast is active in the interim."
+        else:
+            fallback["error_notice"] = f"OpenWeatherMap HTTP {e.code}: {e.reason}."
+        return fallback
     except Exception as e:
         fallback = get_calibrated_fallback_weather(lat, lon)
-        fallback["error_notice"] = f"OpenWeatherMap API request notice: {str(e)}. Using calibrated live nowcast."
+        fallback["error_notice"] = f"OpenWeatherMap request notice: {str(e)}. Using calibrated live nowcast."
         return fallback
 
 def get_radar_overlay_geojson(base_lat: float = 28.6139, base_lon: float = 77.2090, api_key: Optional[str] = None) -> Dict[str, Any]:

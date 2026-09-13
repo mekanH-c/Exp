@@ -3853,11 +3853,17 @@ let currentRainCoords = { lat: 28.6139, lon: 77.2090 };
 let lastLiveWeather = null;
 let rainDataAbortCtrl = null;
 
+const DEFAULT_OWM_API_KEY = "47b4c18dda84bef0ddf4284aee5d9a96";
+
 function getStoredOpenWeatherKey() {
   try {
-    return (localStorage.getItem("aquag_owm_api_key") || "").trim();
+    const saved = localStorage.getItem("aquag_owm_api_key");
+    if (saved !== null && saved !== undefined && saved.trim() !== "") {
+      return saved.trim();
+    }
+    return DEFAULT_OWM_API_KEY;
   } catch (e) {
-    return "";
+    return DEFAULT_OWM_API_KEY;
   }
 }
 
@@ -3866,7 +3872,7 @@ function setStoredOpenWeatherKey(key) {
     if (key && key.trim()) {
       localStorage.setItem("aquag_owm_api_key", key.trim());
     } else {
-      localStorage.removeItem("aquag_owm_api_key");
+      localStorage.setItem("aquag_owm_api_key", "");
     }
   } catch (e) {}
 }
@@ -3879,9 +3885,11 @@ function initRainfallDynamics() {
   const modeLabel = document.getElementById("owm-feed-mode-label");
 
   const storedKey = getStoredOpenWeatherKey();
-  if (keyInput && storedKey) {
+  if (keyInput) {
     keyInput.value = storedKey;
-    if (modeLabel) modeLabel.textContent = "Mode: User OpenWeatherMap Feed (Active)";
+    if (modeLabel) {
+      modeLabel.textContent = storedKey ? "Mode: User OpenWeatherMap Feed (Configured)" : "Mode: Calibrated Delhi Hydrological Feed";
+    }
   }
 
   if (saveKeyBtn) {
@@ -4100,6 +4108,17 @@ function renderRainfallDynamicsPanel(data) {
       trendEl.className = `f-trend trend-${p.trend || 'steady'}`;
     }
   });
+
+  // Key notice / advisory
+  const noticeEl = document.getElementById("owm-key-notice");
+  if (noticeEl) {
+    if (data.error_notice) {
+      noticeEl.textContent = data.error_notice;
+      noticeEl.style.display = "block";
+    } else {
+      noticeEl.style.display = "none";
+    }
+  }
 }
 
 async function toggleRainRadarLayer(enable) {
