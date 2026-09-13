@@ -51,17 +51,17 @@
 
 /* Dual Theme System Variables */
 body.theme-bright {
-  --bg-main: #e8f2fa;
-  --bg-workspace: #dbe8f5;
-  --bg-glass: rgba(244, 249, 255, 0.95);
-  --bg-glass-solid: #f0f6fc;
-  --bg-card: #f2f7fd;
-  --border-glass: #b6d5f2;
-  --border-glass-light: #cde4f9;
+  --bg-main: #dbeaf7;
+  --bg-workspace: #cee2f2;
+  --bg-glass: rgba(222, 239, 254, 0.97);
+  --bg-glass-solid: #d4eafc;
+  --bg-card: #dbeefd;
+  --border-glass: #93c5fd;
+  --border-glass-light: #bfdbfe;
   --border-cyan: #38bdf8;
-  --text-main: #0a2540;
-  --text-muted: #1e4265;
-  --text-dim: #436e96;
+  --text-main: #07223d;
+  --text-muted: #143d63;
+  --text-dim: #326491;
   --accent-cyan-bright: #0284c7;
   --accent-cyan: #0284c7;
   --accent-cyan-light: #0369a1;
@@ -148,13 +148,13 @@ body.theme-bright .theme-toggle-btn.active {
 
 /* 1. Top Command Navigation Bar */
 body.theme-bright .command-nav {
-  background: linear-gradient(180deg, #f0f7ff 0%, #e0effd 100%);
-  border-color: #b6d6f5;
-  box-shadow: 0 4px 20px rgba(10, 60, 110, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  background: linear-gradient(180deg, #dceffe 0%, #cce6fc 100%);
+  border-bottom: 1.5px solid #93c5fd;
+  box-shadow: 0 4px 20px rgba(10, 60, 110, 0.1);
 }
 
 body.theme-bright .app-name {
-  color: #0a2540;
+  color: #07223d;
 }
 
 body.theme-bright .brand-icon {
@@ -164,24 +164,24 @@ body.theme-bright .brand-icon {
 }
 
 body.theme-bright .sih-badge {
-  background: #dbeafe;
+  background: #d4eafc;
   color: #0284c7;
-  border-color: #bfdbfe;
+  border-color: #93c5fd;
 }
 
 body.theme-bright .nav-modules {
-  background: rgba(224, 239, 254, 0.85);
-  border-color: #b8daf8;
+  background: rgba(198, 226, 252, 0.95);
+  border: 1.5px solid #93c5fd;
 }
 
 body.theme-bright .nav-module-btn {
-  color: #1e4265;
-  font-weight: 600;
+  color: #0c3866;
+  font-weight: 700;
 }
 
 body.theme-bright .nav-module-btn:hover {
-  color: #0a2540;
-  background: rgba(255, 255, 255, 0.7);
+  color: #034575;
+  background: #cae4fc;
 }
 
 body.theme-bright .nav-module-btn.active {
@@ -191,73 +191,73 @@ body.theme-bright .nav-module-btn.active {
 }
 
 body.theme-bright .telemetry-item {
-  background: rgba(235, 245, 255, 0.9);
-  border-color: #bfddf9;
+  background: #d4eafc;
+  border: 1.5px solid #93c5fd;
 }
 
 body.theme-bright .t-label {
-  color: #436e96;
-  font-weight: 600;
-}
-
-body.theme-bright .t-val {
-  color: #0a2540;
+  color: #326491;
   font-weight: 700;
 }
 
+body.theme-bright .t-val {
+  color: #07223d;
+  font-weight: 800;
+}
+
 body.theme-bright .telemetry-status {
-  background: #ecfdf5;
-  border-color: #a7f3d0;
+  background: #d1fae5;
+  border-color: #6ee7b7;
   color: #065f46;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 body.theme-bright .telemetry-status.live {
-  color: #059669;
+  color: #047857;
 }
 
 /* 2. Map Floating Panels */
 body.theme-bright .glass-panel {
-  background: linear-gradient(180deg, rgba(246, 251, 255, 0.96) 0%, rgba(235, 246, 255, 0.94) 100%);
-  border-color: #b6d6f5;
-  box-shadow: 0 8px 28px rgba(10, 60, 110, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  background: linear-gradient(180deg, rgba(222, 239, 254, 0.98) 0%, rgba(208, 233, 254, 0.96) 100%);
+  border: 1.5px solid #93c5fd;
+  box-shadow: 0 8px 30px rgba(10, 60, 110, 0.16);
 }
 
 /* Active Layers Floating Panel */
 body.theme-bright .active-layers-panel {
-  background: linear-gradient(180deg, rgba(246, 251, 255, 0.96) 0%, rgba(235, 246, 255, 0.94) 100%);
-  border: 1px solid #b6d6f5;
-  box-shadow: 0 8px 28px rgba(10, 60, 110, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  background: linear-gradient(180deg, rgba(222, 239, 254, 0.98) 0%, rgba(208, 233, 254, 0.96) 100%);
+  border: 1.5px solid #93c5fd;
+  box-shadow: 0 8px 30px rgba(10, 60, 110, 0.16);
 }
 
 body.theme-bright .panel-tag {
   color: #0284c7;
-  border-bottom-color: #d0e4f7;
+  border-bottom-color: #bfdbfe;
 }
 
 body.theme-bright .group-title {
-  color: #436e96;
-  font-weight: 700;
+  color: #326491;
+  font-weight: 800;
 }
 
 body.theme-bright .layer-name {
-  color: #0a2540;
+  color: #07223d;
   font-weight: 600;
 }
 
 body.theme-bright .custom-checkbox {
-  color: #0a2540;
+  color: #07223d;
 }
 
 body.theme-bright .checkmark {
-  background: #eaf3fc;
-  border: 1px solid #9dc7ee;
+  background: #d4eafc;
+  border: 1.5px solid #93c5fd;
 }
 
 body.theme-bright .custom-checkbox input:checked + .checkmark {
   background: #0284c7;
   border-color: #0284c7;
-  box-shadow: 0 0 6px rgba(2, 132, 199, 0.4);
+  box-shadow: 0 0 8px rgba(2, 132, 199, 0.5);
 }
 
 body.theme-bright .custom-checkbox input:checked + .checkmark::after {
@@ -266,86 +266,86 @@ body.theme-bright .custom-checkbox input:checked + .checkmark::after {
 
 /* Map Legend Floating Panel */
 body.theme-bright .map-legend-panel {
-  background: linear-gradient(180deg, rgba(246, 251, 255, 0.96) 0%, rgba(235, 246, 255, 0.94) 100%);
-  border: 1px solid #b6d6f5;
-  box-shadow: 0 8px 28px rgba(10, 60, 110, 0.12);
+  background: linear-gradient(180deg, rgba(222, 239, 254, 0.98) 0%, rgba(208, 233, 254, 0.96) 100%);
+  border: 1.5px solid #93c5fd;
+  box-shadow: 0 8px 30px rgba(10, 60, 110, 0.16);
 }
 
 body.theme-bright .legend-header {
-  color: #1e4265;
-  font-weight: 700;
+  color: #07223d;
+  font-weight: 800;
 }
 
 body.theme-bright .quick-filter-btn {
-  background: #e4f1fc;
-  border: 1px solid #beddfa;
-  color: #1e4265;
-  font-weight: 600;
+  background: #d4eafc;
+  border: 1.5px solid #93c5fd;
+  color: #072e54;
+  font-weight: 700;
 }
 
 body.theme-bright .quick-filter-btn:hover {
-  background: #d4e8fa;
-  color: #0a2540;
+  background: #c2e2fa;
+  color: #034575;
 }
 
 body.theme-bright .quick-filter-btn.active {
   background: #0284c7;
   border-color: #0284c7;
   color: #ffffff;
-  box-shadow: 0 2px 6px rgba(2, 132, 199, 0.35);
+  box-shadow: 0 2px 8px rgba(2, 132, 199, 0.4);
 }
 
 body.theme-bright .legend-label {
-  color: #0a2540;
+  color: #07223d;
   font-weight: 700;
 }
 
 body.theme-bright .legend-sub {
-  color: #436e96;
+  color: #326491;
 }
 
 body.theme-bright .legend-context-section,
 body.theme-bright .legend-footer {
-  border-top-color: #d0e4f7;
-  color: #436e96;
+  border-top-color: #bfdbfe;
+  color: #326491;
 }
 
-body.theme-bright .legend-drain-title { color: #0284c7; }
+body.theme-bright .legend-drain-title { color: #0284c7; font-weight: 700; }
 body.theme-bright .legend-drain-swatch { background: #0284c7; box-shadow: 0 0 6px rgba(2, 132, 199, 0.4); }
-body.theme-bright .legend-drain-label { color: #0a2540; font-weight: 700; }
-body.theme-bright .legend-p-title { color: #7e22ce; }
-body.theme-bright .legend-p1-label { color: #6b21a8; font-weight: 700; }
-body.theme-bright .legend-p2-label { color: #7e22ce; font-weight: 700; }
-body.theme-bright .legend-p3-label { color: #4338ca; font-weight: 700; }
+body.theme-bright .legend-drain-label { color: #07223d; font-weight: 700; }
+body.theme-bright .legend-p-title { color: #7e22ce; font-weight: 700; }
+body.theme-bright .legend-p1-label { color: #6b21a8; font-weight: 800; }
+body.theme-bright .legend-p2-label { color: #7e22ce; font-weight: 800; }
+body.theme-bright .legend-p3-label { color: #4338ca; font-weight: 800; }
 
 /* Point GIS Inspection Card */
 body.theme-bright .inspector-overlay-card {
-  background: linear-gradient(180deg, rgba(248, 252, 255, 0.98) 0%, rgba(236, 247, 255, 0.96) 100%);
+  background: linear-gradient(180deg, rgba(222, 239, 254, 0.98) 0%, rgba(206, 232, 254, 0.97) 100%);
   border: 1.5px solid #38bdf8;
-  box-shadow: 0 10px 32px rgba(10, 60, 110, 0.16), 0 0 18px rgba(56, 189, 248, 0.25);
+  box-shadow: 0 10px 32px rgba(10, 60, 110, 0.18), 0 0 20px rgba(56, 189, 248, 0.35);
 }
 
 body.theme-bright .card-title-bar {
   color: #0284c7;
-  border-bottom-color: #d0e4f7;
+  border-bottom-color: #bfdbfe;
 }
 
 body.theme-bright .close-card-btn {
-  color: #436e96;
+  color: #326491;
 }
 
 body.theme-bright .close-card-btn:hover {
-  color: #0a2540;
+  color: #07223d;
 }
 
 body.theme-bright .insp-lbl {
-  color: #1e4265;
-  font-weight: 600;
+  color: #143d63;
+  font-weight: 700;
 }
 
 body.theme-bright .insp-val {
-  color: #09233e;
-  font-weight: 700;
+  color: #07223d;
+  font-weight: 800;
 }
 
 body.theme-bright .insp-val.highlight {
@@ -354,8 +354,8 @@ body.theme-bright .insp-val.highlight {
 }
 
 body.theme-bright .insp-basis-tag {
-  color: #436e96;
-  border-top: 1px dashed #d0e4f7;
+  color: #326491;
+  border-top: 1px dashed #bfdbfe;
 }
 
 body.theme-bright .insp-basis-tag strong {
@@ -364,9 +364,9 @@ body.theme-bright .insp-basis-tag strong {
 
 /* Bottom Nowcast Timeline Bar */
 body.theme-bright .timeline-bar-container {
-  background: linear-gradient(180deg, rgba(248, 252, 255, 0.96) 0%, rgba(234, 245, 255, 0.95) 100%);
-  border: 1px solid #b2d5f7;
-  box-shadow: 0 6px 24px rgba(9, 35, 62, 0.14);
+  background: linear-gradient(180deg, rgba(220, 238, 254, 0.98) 0%, rgba(206, 232, 253, 0.97) 100%);
+  border: 1.5px solid #93c5fd;
+  box-shadow: 0 6px 24px rgba(9, 35, 62, 0.16);
 }
 
 body.theme-bright .timeline-play-btn {
@@ -379,28 +379,28 @@ body.theme-bright .timeline-play-btn:hover {
 }
 
 body.theme-bright .timeline-label {
-  color: #0a2540;
-  font-weight: 700;
+  color: #07223d;
+  font-weight: 800;
 }
 
 body.theme-bright .time-step-btn {
-  background: #e6f2fd;
-  border: 1px solid #bdddfa;
-  color: #1e4265;
-  font-weight: 600;
+  background: #d4eafc;
+  border: 1.5px solid #93c5fd;
+  color: #072e54;
+  font-weight: 700;
 }
 
 body.theme-bright .time-step-btn:hover {
-  background: #d6e8fa;
-  border-color: #92c4f5;
-  color: #0a2540;
+  background: #c2e2fa;
+  border-color: #60a5fa;
+  color: #034575;
 }
 
 body.theme-bright .time-step-btn.active {
   background: linear-gradient(135deg, #0284c7, #0369a1);
   color: #ffffff;
   border-color: #0284c7;
-  box-shadow: 0 2px 8px rgba(2, 132, 199, 0.4);
+  box-shadow: 0 2px 10px rgba(2, 132, 199, 0.45);
 }
 
 body.theme-bright .step-dot {
@@ -410,44 +410,46 @@ body.theme-bright .step-dot {
 
 /* 3. Right Situation Command Sidebar & Tabs */
 body.theme-bright .sidebar-tabs-header {
-  background: rgba(222, 238, 254, 0.9);
-  border: 1px solid #bcdbf8;
+  background: rgba(204, 229, 253, 0.95);
+  border: 1.5px solid #93c5fd;
 }
 
 body.theme-bright .side-tab-btn {
-  color: #1e4265;
-  font-weight: 600;
+  color: #0c3866;
+  font-weight: 700;
 }
 
 body.theme-bright .side-tab-btn:hover {
-  color: #0a2540;
+  color: #034575;
 }
 
 body.theme-bright .side-tab-btn.active {
-  background: #ffffff;
+  background: linear-gradient(135deg, #d8ecfd 0%, #c6e3fc 100%);
   color: #0284c7;
-  border: 1px solid #b2d5f7;
-  box-shadow: 0 2px 8px rgba(2, 132, 199, 0.15);
+  border: 1.5px solid #60a5fa;
+  box-shadow: 0 2px 8px rgba(2, 132, 199, 0.22);
+  font-weight: 800;
 }
 
 body.theme-bright .sidebar-tab-content {
-  background: linear-gradient(180deg, rgba(246, 251, 255, 0.97) 0%, rgba(236, 246, 255, 0.95) 100%);
-  border: 1px solid #b2d5f7;
-  box-shadow: 0 8px 32px rgba(9, 35, 62, 0.1);
+  background: linear-gradient(180deg, rgba(224, 240, 254, 0.98) 0%, rgba(212, 234, 254, 0.96) 100%);
+  border: 1.5px solid #93c5fd;
+  box-shadow: 0 8px 32px rgba(9, 35, 62, 0.12);
 }
 
 body.theme-bright .section-title-box h3 {
-  color: #0a2540;
+  color: #07223d;
+  font-weight: 800;
 }
 
 body.theme-bright .sub-title-text {
-  color: #436e96;
+  color: #326491;
 }
 
 /* SCADA Operational Header & Metrics */
 body.theme-bright .scada-header-card {
-  background: linear-gradient(135deg, #deeffe 0%, #cce5fd 100%);
-  border: 1px solid #96c7f8;
+  background: linear-gradient(135deg, #d3eafc 0%, #bde0fa 100%);
+  border: 1.5px solid #7dd3fc;
 }
 
 body.theme-bright .scada-title-row strong {
@@ -455,331 +457,417 @@ body.theme-bright .scada-title-row strong {
 }
 
 body.theme-bright .scada-title {
-  color: #0a2540;
+  color: #07223d;
 }
 
 body.theme-bright .scada-metrics-grid .scada-metric-card,
 body.theme-bright .scada-metric-card {
-  background: rgba(242, 248, 255, 0.95);
-  border: 1px solid #c2def8;
+  background: linear-gradient(135deg, #dcf0fe 0%, #cce6fc 100%);
+  border: 1.5px solid #93c5fd;
+  box-shadow: 0 2px 8px rgba(10, 60, 110, 0.08);
 }
 
 body.theme-bright .scada-metric-card .m-label,
 body.theme-bright .scada-metric-card .m-sub {
-  color: #436e96;
+  color: #326491;
+  font-weight: 700;
 }
 
 body.theme-bright .scada-metric-card .m-value {
-  color: #0a2540;
+  color: #07223d;
+  font-weight: 800;
 }
 
-/* Active Situation Alerts Banner */
-body.theme-bright .active-alerts-banner {
-  background: #ecfdf5;
-  border: 1px solid #a7f3d0;
-  color: #065f46;
+/* Active Situation Alerts Banner & Box (Enhanced Vivid Oceanic Theme) */
+body.theme-bright .scada-alerts-summary-box {
+  background: linear-gradient(135deg, #d7eefa 0%, #c4e4fc 100%);
+  border: 1.5px solid #38bdf8;
+  border-radius: 6px;
+  padding: 8px 10px;
+  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
-body.theme-bright .active-alerts-banner strong {
-  color: #065f46;
+body.theme-bright .scada-alerts-summary-box .box-header {
+  color: #035388;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
-body.theme-bright .active-alerts-banner .live-badge {
-  background: #10b981;
+body.theme-bright #scada-alerts-badge,
+body.theme-bright .scada-alerts-summary-box .ver-tag {
+  background: linear-gradient(135deg, #059669 0%, #10b981 100%);
   color: #ffffff;
+  font-weight: 800;
+  font-size: 0.64rem;
+  padding: 2px 8px;
+  border-radius: 12px;
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
+  letter-spacing: 0.08em;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
-body.theme-bright .alerts-summary-text {
+body.theme-bright .scada-alerts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+body.theme-bright .alert-item-mini {
+  padding: 5px 8px;
+  border-radius: 5px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  box-shadow: 0 1px 4px rgba(9, 35, 62, 0.06);
+}
+
+body.theme-bright .alert-item-mini.ok {
+  background: #ecfdf5;
+  border: 1.5px solid #6ee7b7;
   color: #047857;
+}
+
+body.theme-bright .alert-item-mini.warn {
+  background: #fffbeb;
+  border: 1.5px solid #fcd34d;
+  color: #b45309;
+}
+
+body.theme-bright .alert-item-mini.crit {
+  background: #fef2f2;
+  border: 1.5px solid #fca5a5;
+  color: #b91c1c;
 }
 
 /* Population Response Priority Box */
 body.theme-bright .scada-response-priority-box {
-  background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%);
-  border: 1px solid #ddd6fe;
+  background: linear-gradient(135deg, #dbeefe 0%, #cae5fc 100%);
+  border: 1.5px solid #93c5fd;
+  box-shadow: 0 2px 8px rgba(10, 60, 110, 0.06);
 }
 
-body.theme-bright .scada-response-priority-box .box-label {
-  color: #6d28d9;
+body.theme-bright .scada-response-priority-box .box-header span:first-child {
+  color: #035388;
+  font-weight: 800;
+}
+
+body.theme-bright .scada-response-priority-box .ver-tag {
+  background: #bfdbfe;
+  color: #1d4ed8;
+  border: 1px solid #93c5fd;
   font-weight: 700;
 }
 
 body.theme-bright .p-count-pill.p1 {
-  background: #ede9fe;
-  border-color: #c4b5fd;
-  color: #5b21b6;
+  background: #d0e6fc;
+  border: 1.5px solid #93c5fd;
+  color: #1d4ed8;
+  font-weight: 800;
 }
 
 body.theme-bright .p-count-pill.p2 {
-  background: #f3e8ff;
-  border-color: #d8b4fe;
-  color: #6d28d9;
+  background: #dbeefd;
+  border: 1.5px solid #93c5fd;
+  color: #0284c7;
+  font-weight: 800;
 }
 
 body.theme-bright .p-count-pill.p3 {
-  background: #e0e7ff;
-  border-color: #c7d2fe;
-  color: #3730a3;
+  background: #e2f2fe;
+  border: 1.5px solid #7dd3fc;
+  color: #0369a1;
+  font-weight: 800;
 }
 
 /* Top Priority Corridor Card */
 body.theme-bright .top-priority-card {
-  background: #ffffff;
-  border: 1px solid #c4b5fd;
-  box-shadow: 0 3px 10px rgba(109, 40, 217, 0.08);
+  background: linear-gradient(135deg, #dcf0fe 0%, #cde8fc 100%);
+  border: 1.5px solid #93c5fd;
+  box-shadow: 0 3px 12px rgba(10, 60, 110, 0.1);
 }
 
 body.theme-bright .top-p-header .lbl {
-  color: #6d28d9;
-  font-weight: 700;
+  color: #035388;
+  font-weight: 800;
 }
 
 body.theme-bright .top-p-title {
-  color: #1e1b4b;
-  font-weight: 700;
+  color: #07223d;
+  font-weight: 800;
 }
 
 body.theme-bright .top-p-details {
-  color: #374151;
+  color: #143d63;
 }
 
 body.theme-bright .top-p-row strong {
-  color: #0f172a;
+  color: #07223d;
 }
 
 body.theme-bright .btn-focus-top-p {
-  background: linear-gradient(135deg, #7c3aed, #9333ea);
+  background: linear-gradient(135deg, #0284c7, #0369a1);
   color: #ffffff;
-  box-shadow: 0 2px 8px rgba(124, 58, 237, 0.35);
+  box-shadow: 0 2px 8px rgba(2, 132, 199, 0.35);
 }
 
 /* Scenario Presets */
 body.theme-bright .box-label {
-  color: #1e4265;
-  font-weight: 700;
+  color: #0c3866;
+  font-weight: 800;
 }
 
 body.theme-bright .preset-btn-4 {
-  background: #e6f2fd;
-  border: 1px solid #bdddfa;
-  color: #16426a;
+  background: #d4eafc;
+  border: 1.5px solid #93c5fd;
+  color: #072e54;
   font-weight: 700;
 }
 
 body.theme-bright .preset-btn-4:hover {
-  background: #d4e8fa;
-  border-color: #92c4f5;
-  color: #0a2540;
+  background: #c2e2fa;
+  border-color: #60a5fa;
+  color: #034575;
 }
 
 body.theme-bright .preset-btn-4.active {
   background: linear-gradient(135deg, #0284c7, #0369a1);
   border-color: #0284c7;
   color: #ffffff;
-  box-shadow: 0 2px 8px rgba(2, 132, 199, 0.35);
+  box-shadow: 0 2px 10px rgba(2, 132, 199, 0.4);
 }
 
 /* Inputs, Accordion & Sliders */
 body.theme-bright .sim-inputs-details {
-  background: rgba(234, 245, 255, 0.85);
-  border: 1px solid #bedefa;
+  background: #d4eafc;
+  border: 1.5px solid #93c5fd;
 }
 
 body.theme-bright .sim-inputs-summary {
   color: #0284c7;
+  font-weight: 800;
 }
 
 body.theme-bright .sim-summary-hint {
-  color: #436e96;
+  color: #326491;
 }
 
 body.theme-bright .group-header {
   color: #0284c7;
-  border-bottom-color: #cde4f9;
+  border-bottom-color: #bfdbfe;
+  font-weight: 800;
 }
 
 body.theme-bright .field-item label {
-  color: #1e4265;
-  font-weight: 600;
+  color: #143d63;
+  font-weight: 700;
 }
 
 body.theme-bright input[type="text"],
 body.theme-bright input[type="number"],
 body.theme-bright select {
-  background: #ffffff;
-  border: 1px solid #b8daf8;
-  color: #0a2540;
+  background: #dcedfd;
+  border: 1.5px solid #93c5fd;
+  color: #07223d;
+  font-weight: 600;
+}
+
+body.theme-bright input[type="text"]:focus,
+body.theme-bright input[type="number"]:focus,
+body.theme-bright select:focus {
+  background: #d2e8fc;
+  border-color: #0284c7;
+  box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.25);
+  outline: none;
 }
 
 body.theme-bright input[type="range"] {
-  background: #beddfa;
+  background: #badefc;
 }
 
 body.theme-bright .pick-map-btn {
-  background: #e6f2fd;
-  border: 1px solid #bdddfa;
-  color: #16426a;
+  background: #d4eafc;
+  border: 1.5px solid #93c5fd;
+  color: #072e54;
+  font-weight: 700;
 }
 
 body.theme-bright .pick-map-btn:hover {
-  background: #d4e8fa;
-  color: #0a2540;
+  background: #c2e2fa;
+  border-color: #60a5fa;
+  color: #034575;
 }
 
 body.theme-bright .cmd-secondary-btn {
-  background: #e6f2fd;
-  border: 1px solid #bdddfa;
-  color: #16426a;
+  background: #d4eafc;
+  border: 1.5px solid #93c5fd;
+  color: #072e54;
+  font-weight: 700;
 }
 
 body.theme-bright .cmd-secondary-btn:hover {
-  background: #d4e8fa;
-  color: #0a2540;
+  background: #c2e2fa;
+  border-color: #60a5fa;
+  color: #034575;
 }
 
 /* Current Simulated Scenario Card */
 body.theme-bright .scenario-summary-card {
-  background: linear-gradient(135deg, #dfeffe 0%, #cee6fc 100%);
-  border: 1px solid #96c7f8;
+  background: linear-gradient(135deg, #d4eafc 0%, #c0e1fa 100%);
+  border: 1.5px solid #7dd3fc;
+  box-shadow: 0 2px 8px rgba(10, 60, 110, 0.08);
 }
 
 body.theme-bright .sim-card-header {
   color: #0369a1;
-  font-weight: 700;
+  font-weight: 800;
 }
 
 body.theme-bright .sim-metrics-row {
-  color: #0a2540;
+  color: #07223d;
 }
 
 body.theme-bright .sim-metrics-row span b {
-  color: #436e96;
+  color: #326491;
 }
 
 body.theme-bright .sim-card-note {
-  color: #436e96;
-  border-top-color: #bedefa;
+  color: #326491;
+  border-top-color: #93c5fd;
 }
 
 /* Outcome Panels & Logs */
 body.theme-bright .outcome-card {
-  background: rgba(250, 253, 255, 0.95);
-  border: 1px solid #c2def8;
-  box-shadow: 0 3px 12px rgba(9, 35, 62, 0.06);
+  background: linear-gradient(135deg, #dcf0fe 0%, #cde7fc 100%);
+  border: 1.5px solid #93c5fd;
+  box-shadow: 0 3px 12px rgba(10, 60, 110, 0.08);
 }
 
 body.theme-bright .header-lbl {
-  color: #1e4265;
+  color: #143d63;
+  font-weight: 800;
 }
 
 body.theme-bright .p-name {
-  color: #436e96;
+  color: #326491;
 }
 
 body.theme-bright .p-track {
-  background: #d8eafb;
+  background: #badefc;
 }
 
 body.theme-bright .p-num {
-  color: #0a2540;
+  color: #07223d;
 }
 
 body.theme-bright .score-pill {
-  background: #e6f2fd;
-  color: #0a2540;
-  border: 1px solid #c2def8;
+  background: #d4eafc;
+  color: #07223d;
+  border: 1px solid #93c5fd;
+  font-weight: 700;
 }
 
 body.theme-bright .act-desc {
-  color: #1e4265;
+  color: #143d63;
 }
 
 body.theme-bright .log-item-row {
-  background: #f0f7fe;
-  border: 1px solid #d4e7fb;
+  background: #d4eafc;
+  border: 1px solid #a8d4fa;
 }
 
 body.theme-bright .log-item-name {
-  color: #0a2540;
+  color: #07223d;
+  font-weight: 700;
 }
 
 body.theme-bright .m-box {
-  background: rgba(234, 245, 255, 0.85);
-  border: 1px solid #bedefa;
+  background: #d0e7fc;
+  border: 1.5px solid #93c5fd;
 }
 
 body.theme-bright .m-lbl {
-  color: #436e96;
-  font-weight: 600;
+  color: #326491;
+  font-weight: 700;
 }
 
 body.theme-bright .m-val {
   color: #0284c7;
+  font-weight: 800;
 }
 
 body.theme-bright .spatial-basis-footer {
-  color: #436e96;
-  border-top-color: #cde4f9;
+  color: #326491;
+  border-top-color: #bfdbfe;
 }
 
 /* Alerts & Incidents Tab */
 body.theme-bright .alerts-meta-bar {
-  background: #eaf3fc;
-  border-color: #c2def8;
+  background: #d4eafc;
+  border-color: #93c5fd;
 }
 
 body.theme-bright .basis-pill {
-  color: #436e96;
+  color: #326491;
 }
 
 body.theme-bright .alert-card {
-  background: rgba(250, 253, 255, 0.95);
-  border: 1px solid #c2def8;
-  box-shadow: 0 3px 12px rgba(9, 35, 62, 0.06);
+  background: linear-gradient(135deg, #dcf0fe 0%, #cde7fc 100%);
+  border: 1.5px solid #93c5fd;
+  box-shadow: 0 3px 12px rgba(10, 60, 110, 0.08);
 }
 
 body.theme-bright .alert-card-title {
-  color: #0a2540;
+  color: #07223d;
+  font-weight: 800;
 }
 
 body.theme-bright .alert-card-loc {
-  color: #436e96;
+  color: #326491;
 }
 
 body.theme-bright .alert-detail-row {
-  color: #1e4265;
+  color: #143d63;
 }
 
 body.theme-bright .alert-detail-row strong {
-  color: #0a2540;
+  color: #07223d;
 }
 
 body.theme-bright .inc-id {
-  color: #0a2540;
+  color: #07223d;
   font-weight: 800;
 }
 
 body.theme-bright .inc-row {
-  color: #1e4265;
+  color: #143d63;
 }
 
 body.theme-bright .inc-row span {
-  color: #436e96;
+  color: #326491;
 }
 
 body.theme-bright .inc-row strong {
-  color: #0a2540;
+  color: #07223d;
 }
 
 body.theme-bright .inc-action-box {
-  background: #edf5fd;
-  border: 1px solid #cee5fc;
-  color: #0a2540;
+  background: #d4eafc;
+  border: 1.5px solid #93c5fd;
+  color: #07223d;
 }
 
 body.theme-bright .locate-inc-btn {
   border-color: #0284c7;
   color: #0284c7;
+  font-weight: 700;
 }
 
 body.theme-bright .locate-inc-btn:hover {
@@ -788,41 +876,41 @@ body.theme-bright .locate-inc-btn:hover {
 }
 
 body.theme-bright .alert-empty-msg {
-  background: #eaf3fc;
-  border: 1px solid #c2def8;
-  color: #436e96;
+  background: #d4eafc;
+  border: 1.5px solid #93c5fd;
+  color: #326491;
 }
 
 /* 4. Command Center Footer */
 body.theme-bright .command-footer {
-  background: linear-gradient(180deg, #ecf5fd 0%, #deeffd 100%);
-  border-color: #b2d5f7;
-  color: #1e4265;
-  box-shadow: 0 -2px 12px rgba(9, 35, 62, 0.04);
+  background: linear-gradient(180deg, #d8ebfd 0%, #c6e2fc 100%);
+  border-color: #93c5fd;
+  color: #143d63;
+  box-shadow: 0 -2px 12px rgba(9, 35, 62, 0.08);
 }
 
 body.theme-bright .footer-modules span {
-  color: #1e4265;
+  color: #143d63;
 }
 
 body.theme-bright .footer-modules strong {
-  color: #0a2540;
+  color: #07223d;
 }
 
 body.theme-bright .footer-disclaimer-text {
-  color: #436e96;
+  color: #326491;
 }
 
 /* 5. Leaflet Popups in Bright Mode */
 body.theme-bright .dark-leaflet-popup .leaflet-popup-content-wrapper {
-  background: linear-gradient(180deg, #ffffff 0%, #f4f9ff 100%) !important;
-  color: #0a2540 !important;
+  background: linear-gradient(180deg, #e4f1fe 0%, #d0e7fc 100%) !important;
+  color: #07223d !important;
   border: 1.5px solid #38bdf8 !important;
-  box-shadow: 0 10px 25px rgba(9, 35, 62, 0.15) !important;
+  box-shadow: 0 10px 25px rgba(9, 35, 62, 0.2) !important;
 }
 
 body.theme-bright .dark-leaflet-popup .leaflet-popup-tip {
-  background: #f4f9ff !important;
+  background: #d0e7fc !important;
   border-color: #38bdf8 !important;
 }
 
@@ -830,59 +918,59 @@ body.theme-bright .dark-leaflet-popup .wl-popup-title,
 body.theme-bright .dark-leaflet-popup .infra-popup-title,
 body.theme-bright .dark-leaflet-popup .drain-popup-title {
   color: #0284c7 !important;
-  border-bottom: 1px solid #cde4f9 !important;
+  border-bottom: 1px solid #bfdbfe !important;
 }
 
 body.theme-bright .dark-leaflet-popup .wl-popup-row span,
 body.theme-bright .dark-leaflet-popup .infra-popup-row,
 body.theme-bright .dark-leaflet-popup .drain-popup-row {
-  color: #1e4265 !important;
+  color: #143d63 !important;
 }
 
 body.theme-bright .dark-leaflet-popup .wl-popup-row strong,
 body.theme-bright .dark-leaflet-popup .infra-popup-row strong,
 body.theme-bright .dark-leaflet-popup .drain-popup-row strong {
-  color: #0a2540 !important;
+  color: #07223d !important;
 }
 
 body.theme-bright .dark-leaflet-popup .wl-popup-footer {
-  color: #436e96 !important;
-  border-top: 1px solid #cde4f9 !important;
+  color: #326491 !important;
+  border-top: 1px solid #bfdbfe !important;
 }
 
 /* Leaflet Zoom Controls */
 body.theme-bright .leaflet-control-zoom a {
-  background: #f4f9ff !important;
-  color: #0a2540 !important;
-  border-color: #b2d5f7 !important;
+  background: #d4eafc !important;
+  color: #07223d !important;
+  border-color: #93c5fd !important;
   box-shadow: 0 2px 6px rgba(9, 35, 62, 0.12) !important;
 }
 
 body.theme-bright .leaflet-control-zoom a:hover {
-  background: #e2f0fd !important;
+  background: #c2e2fa !important;
   color: #0284c7 !important;
 }
 
 body.theme-bright .leaflet-control-attribution {
-  background: rgba(244, 249, 255, 0.88) !important;
-  color: #436e96 !important;
+  background: rgba(222, 239, 254, 0.9) !important;
+  color: #326491 !important;
 }
 
 /* 6. SCADA Operational Modal */
 body.theme-bright .scada-modal {
-  background: rgba(9, 35, 62, 0.45);
+  background: rgba(9, 35, 62, 0.55);
 }
 
 body.theme-bright .modal-content,
 body.theme-bright .pump-modal-card {
-  background: linear-gradient(180deg, #ffffff 0%, #f2f8ff 100%);
-  border: 1.5px solid #b2d5f7;
-  box-shadow: 0 16px 45px rgba(9, 35, 62, 0.2);
+  background: linear-gradient(180deg, #e2f0fd 0%, #cee6fc 100%);
+  border: 1.5px solid #93c5fd;
+  box-shadow: 0 16px 45px rgba(9, 35, 62, 0.25);
 }
 
 body.theme-bright .modal-header,
 body.theme-bright .pump-modal-header {
-  border-bottom-color: #cde4f9;
+  border-bottom-color: #bfdbfe;
 }
 
 body.theme-bright .modal-header h3,
@@ -891,47 +979,48 @@ body.theme-bright .pump-modal-title {
 }
 
 body.theme-bright .pump-status-banner {
-  background: #eaf3fc;
-  border: 1px solid #bedefa;
+  background: #d4eafc;
+  border: 1.5px solid #93c5fd;
 }
 
 body.theme-bright .pump-status-row {
-  color: #1e4265;
+  color: #143d63;
 }
 
 body.theme-bright .pump-status-row .lbl {
-  color: #436e96;
+  color: #326491;
 }
 
 body.theme-bright .pump-status-row strong {
-  color: #0a2540;
+  color: #07223d;
 }
 
 body.theme-bright .pump-item-row {
-  background: #f0f7fe;
-  border: 1px solid #d4e7fb;
+  background: #dbeefd;
+  border: 1px solid #b6dbfa;
 }
 
 body.theme-bright .pump-item-row:hover {
-  background: #e4f2fe;
+  background: #cae4fc;
   border-color: #38bdf8;
 }
 
 body.theme-bright .pump-num {
   color: #0284c7;
+  font-weight: 800;
 }
 
 body.theme-bright .pump-name {
-  color: #0a2540;
+  color: #07223d;
 }
 
 body.theme-bright .pump-cap {
-  color: #1e4265;
+  color: #143d63;
 }
 
 body.theme-bright .pump-notice-footer {
-  color: #436e96;
-  border-top-color: #cde4f9;
+  color: #326491;
+  border-top-color: #bfdbfe;
 }
 
 * {
@@ -1719,8 +1808,8 @@ canvas.leaflet-zoom-animated {
 
 /* SCADA Mini Alerts Summary Box */
 .scada-alerts-summary-box {
-  background: rgba(0, 0, 0, 0.3);
-  border: 1px solid var(--border-glass-light);
+  background: rgba(10, 25, 48, 0.85);
+  border: 1px solid rgba(56, 189, 248, 0.3);
   border-radius: var(--radius-sm);
   padding: 6px 8px;
   display: flex;
@@ -1732,9 +1821,9 @@ canvas.leaflet-zoom-animated {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: 0.63rem;
+  font-size: 0.64rem;
   font-weight: 700;
-  color: var(--text-dim);
+  color: var(--accent-cyan-light);
   letter-spacing: 0.05em;
 }
 
@@ -1748,17 +1837,18 @@ canvas.leaflet-zoom-animated {
 }
 
 .alert-item-mini {
-  padding: 3px 5px;
-  border-radius: 3px;
-  background: rgba(255, 255, 255, 0.03);
+  padding: 4px 6px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.05);
   color: var(--text-main);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  font-weight: 600;
 }
-.alert-item-mini.ok { color: var(--severity-low); }
-.alert-item-mini.warn { color: var(--severity-medium); }
-.alert-item-mini.crit { color: var(--severity-critical); }
+.alert-item-mini.ok { color: var(--severity-low); background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.3); }
+.alert-item-mini.warn { color: var(--severity-medium); background: rgba(234, 179, 8, 0.12); border: 1px solid rgba(234, 179, 8, 0.3); }
+.alert-item-mini.crit { color: var(--severity-critical); background: rgba(239, 68, 68, 0.14); border: 1px solid rgba(239, 68, 68, 0.35); }
 
 /* Simulation Details Summary Accordion */
 .sim-inputs-details {
