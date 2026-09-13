@@ -1971,7 +1971,16 @@ async function loadPopulationPriorityLayer(signal) {
 // --------------------------------------------------------------------------
 // 6. Alerts & Triage Engine Panel (GET /alerts)
 // --------------------------------------------------------------------------
-async function loadAlertsPanel(signal, force = false) {
+async function loadAlertsPanel(signalOrForce, maybeForce = false) {
+  let signal = null;
+  let force = false;
+  if (typeof signalOrForce === "boolean") {
+    force = signalOrForce;
+  } else {
+    signal = signalOrForce;
+    force = maybeForce;
+  }
+
   const alertsTab = document.getElementById("tab-alerts");
   if (!force && alertsTab && !alertsTab.classList.contains("active")) {
     return;
@@ -2518,28 +2527,39 @@ function initSmartRouterState() {
 // --------------------------------------------------------------------------
 // UI Tabs & Controls Initialization
 // --------------------------------------------------------------------------
+function switchActiveTab(targetTabId) {
+  const sideTabBtns = document.querySelectorAll(".side-tab-btn");
+  const tabContents = document.querySelectorAll(".sidebar-tab-content");
+
+  sideTabBtns.forEach((b) => {
+    b.classList.toggle("active", b.getAttribute("data-tab") === targetTabId);
+  });
+
+  tabContents.forEach((c) => {
+    if (c.id === targetTabId) {
+      c.classList.add("active");
+    } else {
+      c.classList.remove("active");
+    }
+  });
+
+  const pModal = document.getElementById("pump-modal");
+  if (pModal) pModal.classList.add("hidden");
+}
+
 function initSideTabs() {
   const sideTabBtns = document.querySelectorAll(".side-tab-btn");
   sideTabBtns.forEach((btn) => {
     btn.addEventListener("click", () => {
       const targetTab = btn.getAttribute("data-tab");
-      sideTabBtns.forEach((b) => b.classList.remove("active"));
-      document.querySelectorAll(".sidebar-tab-content").forEach((c) => c.classList.remove("active"));
+      switchActiveTab(targetTab);
 
-      btn.classList.add("active");
-      const targetEl = document.getElementById(targetTab);
-      if (targetEl) targetEl.classList.add("active");
-
-      // Synchronize top nav module tabs when sidebar tabs change
       const navBtns = document.querySelectorAll(".nav-module-btn");
-      const pModal = document.getElementById("pump-modal");
-      if (pModal) pModal.classList.add("hidden");
-
       if (targetTab === "tab-alerts") {
         navBtns.forEach((b) => b.classList.remove("active"));
         const btnAlerts = document.getElementById("nav-btn-alerts");
         if (btnAlerts) btnAlerts.classList.add("active");
-        loadAlertsPanel(true);
+        setTimeout(() => loadAlertsPanel(null, true), 30);
       } else if (targetTab === "tab-routing") {
         navBtns.forEach((b) => b.classList.remove("active"));
         const btnAnalytics = document.getElementById("nav-btn-analytics");
@@ -2578,7 +2598,6 @@ function initTopNavModuleButtons() {
   const btnScada = document.getElementById("nav-btn-scada");
   const btnAlerts = document.getElementById("nav-btn-alerts");
   const btnAnalytics = document.getElementById("nav-btn-analytics");
-
   const navBtns = document.querySelectorAll(".nav-module-btn");
 
   const setActiveNav = (activeBtn) => {
@@ -2591,45 +2610,48 @@ function initTopNavModuleButtons() {
     if (pModal) pModal.classList.add("hidden");
   };
 
+  const smoothScrollTabContent = (tabId, topPos = 0) => {
+    const tabEl = document.getElementById(tabId);
+    if (tabEl) {
+      tabEl.scrollTo({ top: topPos, behavior: "smooth" });
+    }
+  };
+
   if (btnGis) {
     btnGis.addEventListener("click", () => {
       setActiveNav(btnGis);
       closePumpModal();
-      const tabBtn = document.querySelector('.side-tab-btn[data-tab="tab-situation"]');
-      if (tabBtn) tabBtn.click();
-      const sidebar = document.querySelector(".command-sidebar");
-      if (sidebar) sidebar.scrollTo({ top: 0, behavior: "smooth" });
+      switchActiveTab("tab-situation");
+      smoothScrollTabContent("tab-situation", 0);
     });
   }
 
   if (btnScada) {
     btnScada.addEventListener("click", () => {
       setActiveNav(btnScada);
-      closePumpModal(); // Never open the pump modal on Drainage & SCADA click
-      
-      // 1. Activate Situation / SCADA tab in sidebar
-      const tabBtn = document.querySelector('.side-tab-btn[data-tab="tab-situation"]');
-      if (tabBtn) tabBtn.click();
+      closePumpModal();
+      switchActiveTab("tab-situation");
 
-      // 2. Ensure Drainage Network layer is visible on the GIS map canvas
-      const dCheck = document.getElementById("layer-drains-check");
-      if (dCheck && !dCheck.checked) {
-        dCheck.checked = true;
-        loadDrainageNetworkLayer();
-      }
-
-      // 3. Ensure Pump Stations are active on the GIS map canvas
-      const pCheck = document.getElementById("layer-pumps-check");
-      if (pCheck && !pCheck.checked) {
-        pCheck.checked = true;
-        handlePumpsToggle(true);
-      }
-
-      // 4. Smoothly scroll directly to the SCADA telemetry header & metrics grid
+      // Smooth scroll inside tab-situation to SCADA telemetry header
       const scadaHeader = document.querySelector(".scada-header-card") || document.querySelector(".scada-metrics-grid");
       if (scadaHeader) {
-        scadaHeader.scrollIntoView({ behavior: "smooth", block: "start" });
+        smoothScrollTabContent("tab-situation", Math.max(0, scadaHeader.offsetTop - 12));
       }
+
+      // Micro-defer layer activations to maintain smooth 60fps tab transition
+      setTimeout(() => {
+        const dCheck = document.getElementById("layer-drains-check");
+        if (dCheck && !dCheck.checked) {
+          dCheck.checked = true;
+          loadDrainageNetworkLayer();
+        }
+
+        const pCheck = document.getElementById("layer-pumps-check");
+        if (pCheck && !pCheck.checked) {
+          pCheck.checked = true;
+          handlePumpsToggle(true);
+        }
+      }, 50);
     });
   }
 
@@ -2637,14 +2659,13 @@ function initTopNavModuleButtons() {
     btnAlerts.addEventListener("click", () => {
       setActiveNav(btnAlerts);
       closePumpModal();
-      // Activate Alerts & Triage tab in sidebar
-      const tabBtn = document.querySelector('.side-tab-btn[data-tab="tab-alerts"]');
-      if (tabBtn) tabBtn.click();
-      loadAlertsPanel(true);
-      const alertsTab = document.getElementById("tab-alerts");
-      if (alertsTab) {
-        alertsTab.scrollIntoView({ behavior: "smooth", block: "start" });
-      }
+      switchActiveTab("tab-alerts");
+      smoothScrollTabContent("tab-alerts", 0);
+
+      // Micro-defer single alerts fetch
+      setTimeout(() => {
+        loadAlertsPanel(null, true);
+      }, 40);
     });
   }
 
@@ -2652,19 +2673,16 @@ function initTopNavModuleButtons() {
     btnAnalytics.addEventListener("click", () => {
       setActiveNav(btnAnalytics);
       closePumpModal();
-      // Activate AquaGraph Router & Hydro Analytics tab in sidebar
-      const tabBtn = document.querySelector('.side-tab-btn[data-tab="tab-routing"]');
-      if (tabBtn) tabBtn.click();
-      const routeTab = document.getElementById("tab-routing");
-      if (routeTab) {
-        routeTab.scrollIntoView({ behavior: "smooth", block: "start" });
-      }
-      // Ensure Smart Routing layer checkbox is enabled
-      const rCheck = document.getElementById("layer-route-check");
-      if (rCheck && !rCheck.checked) {
-        rCheck.checked = true;
-        setSmartRouterState(true, { openTab: true });
-      }
+      switchActiveTab("tab-routing");
+      smoothScrollTabContent("tab-routing", 0);
+
+      setTimeout(() => {
+        const rCheck = document.getElementById("layer-route-check");
+        if (rCheck && !rCheck.checked) {
+          rCheck.checked = true;
+          setSmartRouterState(true, { openTab: true });
+        }
+      }, 40);
     });
   }
 }
@@ -3058,13 +3076,45 @@ async function triggerTimestepUpdate() {
   }
 }
 
+let inspectionMarker = null;
+let inspectionAbortCtrl = null;
+
+function closeInspectorCard() {
+  const card = document.getElementById("inspector-card");
+  if (card) {
+    card.classList.remove("visible");
+    setTimeout(() => {
+      if (!card.classList.contains("visible")) {
+        card.classList.add("hidden");
+      }
+    }, 240);
+  }
+  if (inspectionMarker && map) {
+    map.removeLayer(inspectionMarker);
+    inspectionMarker = null;
+  }
+  if (inspectionAbortCtrl) {
+    inspectionAbortCtrl.abort();
+    inspectionAbortCtrl = null;
+  }
+}
+
 function initInspectorCard() {
   const closeBtn = document.getElementById("btn-close-inspector");
   if (closeBtn) {
     closeBtn.addEventListener("click", () => {
-      document.getElementById("inspector-card").classList.add("hidden");
+      closeInspectorCard();
     });
   }
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      const card = document.getElementById("inspector-card");
+      if (card && card.classList.contains("visible")) {
+        closeInspectorCard();
+      }
+    }
+  });
 }
 
 // --------------------------------------------------------------------------
@@ -3131,23 +3181,50 @@ async function handleMapClick(e) {
     return;
   }
 
-  // Show Inspector Card Loading
+  // Abort any pending inspection request to prevent race conditions & out-of-order flashing
+  if (inspectionAbortCtrl) {
+    inspectionAbortCtrl.abort();
+  }
+  inspectionAbortCtrl = new AbortController();
+  const currentSignal = inspectionAbortCtrl.signal;
+
+  // 1. Sleek, animated map reticle / pulse marker to visually anchor the inspection point
+  if (inspectionMarker) {
+    inspectionMarker.setLatLng([lat, lon]);
+  } else {
+    const pulseIcon = L.divIcon({
+      className: "inspection-pulse-pin",
+      html: '<div class="reticle-core"></div><div class="reticle-ring"></div>',
+      iconSize: [28, 28],
+      iconAnchor: [14, 14]
+    });
+    inspectionMarker = L.marker([lat, lon], { icon: pulseIcon, interactive: false, zIndexOffset: 2500 });
+    inspectionMarker.addTo(map);
+  }
+
+  // 2. Open Inspector Card with smooth CSS transition & gentle loading cross-fade
   const card = document.getElementById("inspector-card");
-  document.getElementById("insp-coords").textContent = `${lat.toFixed(5)}, ${lon.toFixed(5)}`;
-  document.getElementById("insp-elevation").textContent = "Sampling AW3D30...";
-  document.getElementById("insp-drain-name").textContent = "Locating drain...";
-  document.getElementById("insp-drain-dist").textContent = "Calculating...";
-  if (card) card.classList.remove("hidden");
+  if (card) {
+    card.classList.remove("hidden");
+    requestAnimationFrame(() => card.classList.add("visible"));
+    card.classList.add("is-updating");
+  }
+
+  const coordsEl = document.getElementById("insp-coords");
+  if (coordsEl) coordsEl.textContent = `${lat.toFixed(5)}, ${lon.toFixed(5)}`;
 
   try {
     const res = await apiFetch("/flood_info", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ lat, lon }),
+      signal: currentSignal
     }, 8000);
 
+    if (currentSignal.aborted) return;
     if (!res.ok) throw new Error("Flood info query failed");
     const data = await res.json();
+    if (currentSignal.aborted) return;
 
     let elevText = "215.0 m";
     if (typeof data.elevation_m === "number" && !isNaN(data.elevation_m)) {
@@ -3168,15 +3245,23 @@ async function handleMapClick(e) {
 
     let drainDistText = "N/A";
     if (drainDist !== null) {
-      drainDistText = drainDist >= 1000 ? `${Math.round(drainDist).toLocaleString()} m (${(drainDist / 1000).toFixed(1)} km)` : `${drainDist.toFixed(1)} m`;
+      drainDistText = drainDist >= 1000 
+        ? `${Math.round(drainDist).toLocaleString()} m (${(drainDist / 1000).toFixed(1)} km)` 
+        : `${drainDist.toFixed(1)} m`;
     }
 
+    // Apply values smoothly
     document.getElementById("insp-elevation").textContent = elevText;
     document.getElementById("insp-drain-name").textContent = drainName;
     document.getElementById("insp-drain-dist").textContent = drainDistText;
     document.getElementById("insp-basis").textContent = (data.risk_basis && !data.risk_basis.includes("(")) ? data.risk_basis : "spatial_proxy";
+
+    if (card) card.classList.remove("is-updating");
+
   } catch (err) {
+    if (currentSignal.aborted) return;
     console.warn("Flood info remote fetch fallback:", err.message);
+
     let minDist = Infinity;
     let closestName = "MPD-1976 Drain";
     if (drainageNetworkLayer && typeof drainageNetworkLayer.eachLayer === "function") {
@@ -3203,6 +3288,8 @@ async function handleMapClick(e) {
     document.getElementById("insp-drain-name").textContent = closestName;
     document.getElementById("insp-drain-dist").textContent = drainDistText;
     document.getElementById("insp-basis").textContent = "spatial_proxy";
+
+    if (card) card.classList.remove("is-updating");
   }
 }
 

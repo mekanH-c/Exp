@@ -1417,21 +1417,54 @@ body, html {
   align-items: center;
   gap: 6px;
   padding: 6px 14px;
-  border: none;
+  border: 1.5px solid transparent;
   background: transparent;
   color: var(--text-muted);
   font-size: 0.76rem;
   font-weight: 600;
   border-radius: var(--radius-sm);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+              color 0.2s ease,
+              transform 0.15s ease;
+}
+
+.nav-module-btn:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.12);
+  transform: translateY(-1px);
+}
+
+.nav-module-btn:active {
+  transform: scale(0.97);
 }
 
 .nav-module-btn.active {
-  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
-  color: white;
-  box-shadow: 0 0 12px rgba(2, 132, 199, 0.45);
-  border: 1px solid rgba(56, 189, 248, 0.4);
+  background: linear-gradient(135deg, rgba(2, 132, 199, 0.35) 0%, rgba(3, 105, 161, 0.45) 100%);
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3), 0 0 12px rgba(56, 189, 248, 0.35);
+  border: 1.5px solid rgba(56, 189, 248, 0.55);
+}
+
+#nav-btn-scada.active {
+  background: linear-gradient(135deg, rgba(8, 28, 58, 0.8) 0%, rgba(14, 48, 90, 0.8) 100%);
+  border-color: rgba(56, 189, 248, 0.6);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3), 0 0 12px rgba(56, 189, 248, 0.35);
+}
+
+#nav-btn-alerts.active {
+  background: linear-gradient(135deg, rgba(6, 44, 34, 0.8) 0%, rgba(10, 60, 48, 0.8) 100%);
+  border-color: rgba(16, 185, 129, 0.6);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3), 0 0 12px rgba(16, 185, 129, 0.35);
+}
+
+#nav-btn-analytics.active {
+  background: linear-gradient(135deg, rgba(38, 14, 66, 0.8) 0%, rgba(58, 24, 98, 0.8) 100%);
+  border-color: rgba(168, 85, 247, 0.6);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3), 0 0 12px rgba(168, 85, 247, 0.35);
 }
 
 .nav-module-btn.disabled {
@@ -1834,13 +1867,36 @@ canvas.leaflet-zoom-animated {
   top: 14px;
   right: 14px;
   z-index: 1000;
-  width: 290px;
-  padding: 12px;
+  width: 320px;
+  min-width: 320px;
+  max-width: 320px;
+  box-sizing: border-box;
+  padding: 12px 14px;
   display: flex;
   flex-direction: column;
   gap: 8px;
-  background: rgba(8, 14, 26, 0.92);
-  border-color: rgba(6, 182, 212, 0.35);
+  background: rgba(8, 14, 26, 0.94);
+  border: 1.5px solid rgba(6, 182, 212, 0.45);
+  border-radius: var(--radius-md, 8px);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6), 0 0 24px rgba(6, 182, 212, 0.25);
+  backdrop-filter: blur(20px) saturate(190%);
+  -webkit-backdrop-filter: blur(20px) saturate(190%);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-8px) scale(0.97);
+  pointer-events: none;
+  transition: opacity 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+              visibility 0.22s ease,
+              box-shadow 0.22s ease,
+              border-color 0.22s ease;
+}
+
+.inspector-overlay-card.visible {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
 }
 
 .card-title-bar {
@@ -1852,7 +1908,7 @@ canvas.leaflet-zoom-animated {
   color: var(--accent-cyan-bright);
   letter-spacing: 0.06em;
   border-bottom: 1px solid rgba(56, 189, 248, 0.2);
-  padding-bottom: 4px;
+  padding-bottom: 5px;
 }
 
 .close-card-btn {
@@ -1861,23 +1917,95 @@ canvas.leaflet-zoom-animated {
   color: var(--text-muted);
   font-size: 16px;
   cursor: pointer;
-  transition: color 0.15s;
+  padding: 2px 4px;
+  border-radius: 4px;
+  line-height: 1;
+  transition: color 0.15s, background 0.15s;
 }
-.close-card-btn:hover { color: #fff; }
+.close-card-btn:hover { color: #fff; background: rgba(255, 255, 255, 0.08); }
 
 .inspector-body { display: flex; flex-direction: column; gap: 6px; }
-.insp-row { display: flex; justify-content: space-between; font-size: 0.73rem; }
-.insp-lbl { color: var(--text-dim); }
-.insp-val { color: var(--text-main); font-weight: 600; }
+
+.insp-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 0.73rem;
+  min-height: 1.35rem;
+}
+
+.insp-lbl {
+  color: var(--text-dim);
+  flex-shrink: 0;
+}
+
+.insp-val {
+  color: var(--text-main);
+  font-weight: 600;
+  text-align: right;
+  word-break: break-word;
+  max-width: 65%;
+  font-variant-numeric: tabular-nums;
+  transition: opacity 0.18s cubic-bezier(0.16, 1, 0.3, 1),
+              filter 0.18s cubic-bezier(0.16, 1, 0.3, 1),
+              color 0.18s ease;
+}
+
+.inspector-overlay-card.is-updating .insp-val {
+  opacity: 0.45;
+  filter: blur(0.35px);
+}
+
 .insp-val.highlight { color: var(--accent-cyan-bright); font-family: var(--font-mono); }
 
 .insp-basis-tag {
   font-size: 0.66rem;
   color: var(--text-dim);
   border-top: 1px dashed var(--border-glass-light);
-  padding-top: 4px;
+  padding-top: 5px;
   margin-top: 4px;
   font-family: var(--font-mono);
+}
+
+/* Map Reticle Pulse Marker */
+.inspection-pulse-pin {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.reticle-core {
+  width: 9px;
+  height: 9px;
+  background: #00f3ff;
+  border: 1.5px solid #ffffff;
+  border-radius: 50%;
+  box-shadow: 0 0 10px #00f3ff, 0 0 20px #00f3ff;
+  z-index: 2;
+}
+
+.reticle-ring {
+  position: absolute;
+  width: 26px;
+  height: 26px;
+  border: 1.5px solid #00f3ff;
+  border-radius: 50%;
+  animation: inspectionPulseRing 1.8s cubic-bezier(0.1, 0.8, 0.3, 1) infinite;
+  pointer-events: none;
+}
+
+@keyframes inspectionPulseRing {
+  0% {
+    transform: scale(0.35);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1.9);
+    opacity: 0;
+  }
 }
 
 /* Bottom Nowcast Timeline Bar */
@@ -2199,9 +2327,24 @@ canvas.leaflet-zoom-animated {
   gap: 12px;
   border-radius: var(--radius-md);
   background: rgba(8, 14, 26, 0.9);
+  scroll-behavior: smooth;
 }
 
-.sidebar-tab-content.active { display: flex; }
+.sidebar-tab-content.active {
+  display: flex;
+  animation: tabContentSmoothIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes tabContentSmoothIn {
+  0% {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 
 .section-title-box h3 { font-size: 1rem; font-weight: 700; color: #fff; }
 .sub-title-text { font-size: 0.72rem; color: var(--text-muted); }
