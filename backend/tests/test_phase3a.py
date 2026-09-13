@@ -67,7 +67,7 @@ def test_4_drainage_valid_geojson():
     assert data["type"] == "FeatureCollection"
     assert "features" in data
     assert "metadata" in data
-    assert data["metadata"]["source"] == "MPD-1976"
+    assert "MPD-1976" in data["metadata"]["source"]
 
 
 def test_5_drainage_bbox_filtering():
@@ -79,9 +79,10 @@ def test_5_drainage_bbox_filtering():
 
     min_lon, min_lat, max_lon, max_lat = [float(x) for x in DELHI_BBOX_STR.split(",")]
     for feature in data["features"]:
-        lon, lat = feature["geometry"]["coordinates"]
-        assert min_lon <= lon <= max_lon
-        assert min_lat <= lat <= max_lat
+        if feature["geometry"]["type"] == "Point":
+            lon, lat = feature["geometry"]["coordinates"]
+            assert min_lon <= lon <= max_lon
+            assert min_lat <= lat <= max_lat
 
 
 def test_6_drainage_geometry_matches_source_point():
@@ -90,14 +91,27 @@ def test_6_drainage_geometry_matches_source_point():
     data = response.json()
     assert len(data["features"]) > 0
     
-    for feature in data["features"]:
-        assert feature["geometry"]["type"] == "Point"
+    point_features = [f for f in data["features"] if f["geometry"]["type"] == "Point"]
+    assert len(point_features) > 0
+    for feature in point_features:
         assert len(feature["geometry"]["coordinates"]) == 2
         prop = feature["properties"]
         assert "drain_name" in prop
         assert "basin" in prop
         assert "status" in prop
         assert "source" in prop
+
+
+def test_6b_drainage_master_plan_channels_present():
+    response = client.get("/drainage")
+    assert response.status_code == 200
+    data = response.json()
+    channels = [f for f in data["features"] if f["geometry"]["type"] == "LineString"]
+    assert len(channels) >= 7
+    najafgarh = next((c for c in channels if "Najafgarh" in c["properties"]["drain_name"]), None)
+    assert najafgarh is not None
+    assert len(najafgarh["geometry"]["coordinates"]) > 10
+    assert najafgarh["properties"]["length_km"] > 50
 
 
 def test_7_pumps_source_derived_metadata():

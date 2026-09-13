@@ -951,19 +951,45 @@ function createDrainMarker(feature, latlng) {
 function bindDrainPopupContent(p) {
   const drainName = p.drain_name || "MPD-1976 Drain";
   const basin = p.basin || "Delhi Basin";
-  const seqNo = p.seq_no || "N/A";
   const status = p.status || "Existing / Remodeling";
   const source = p.source || "MPD-1976";
+  const isLine = p.geometry_type === "LineString" || p.length_km !== undefined;
+  const drainType = p.drain_type || (isLine ? "Primary Drainage Trunk Canal" : "Outfall / Sump Node");
+
+  let detailRows = "";
+  if (p.length_km !== undefined) {
+    detailRows += `<div class="drain-popup-row"><span>Channel Length:</span> <strong>${p.length_km} km</strong></div>`;
+  }
+  if (p.capacity_cusecs !== undefined) {
+    detailRows += `<div class="drain-popup-row"><span>Design Capacity:</span> <strong>${Number(p.capacity_cusecs).toLocaleString()} cusecs</strong></div>`;
+  }
+  if (p.flow_direction) {
+    detailRows += `<div class="drain-popup-row"><span>Flow Course:</span> <strong>${p.flow_direction}</strong></div>`;
+  }
+  if (p.seq_no && p.seq_no !== 0) {
+    detailRows += `<div class="drain-popup-row"><span>Sequence No:</span> <strong>#${p.seq_no}</strong></div>`;
+  }
+
+  const isUntraceable = (status || "").toLowerCase().includes("untraceable") || (source || "").toLowerCase().includes("untraceable");
+  const titleColor = isUntraceable ? "#f59e0b" : "#00f3ff";
+  const badgeBg = isUntraceable ? "rgba(245, 158, 11, 0.15)" : (isLine ? "rgba(6, 182, 212, 0.2)" : "rgba(59, 130, 246, 0.15)");
+  const badgeBorder = isUntraceable ? "rgba(245, 158, 11, 0.4)" : (isLine ? "rgba(6, 182, 212, 0.45)" : "rgba(59, 130, 246, 0.4)");
+  const badgeText = isUntraceable ? "#fbbf24" : (isLine ? "#22d3ee" : "#60a5fa");
 
   return `
-    <div class="drain-popup">
-      <div class="drain-popup-title font-mono" style="color:#00f3ff; font-weight:700; font-size:0.85rem; margin-bottom:6px;">${drainName}</div>
+    <div class="drain-popup" style="min-width: 220px;">
+      <div class="drain-popup-title font-mono" style="color:${titleColor}; font-weight:700; font-size:0.86rem; margin-bottom:5px; line-height:1.25;">
+        ${drainName}
+      </div>
+      <div style="display:inline-block; font-size:0.68rem; font-weight:600; padding:2px 6px; border-radius:4px; background:${badgeBg}; border:1px solid ${badgeBorder}; color:${badgeText}; margin-bottom:8px;">
+        ${drainType}
+      </div>
       <div class="drain-popup-row"><span>Basin:</span> <strong>${basin}</strong></div>
-      <div class="drain-popup-row"><span>Sequence No:</span> <strong>${seqNo}</strong></div>
+      ${detailRows}
       <div class="drain-popup-row"><span>Status:</span> <strong>${status}</strong></div>
       <div class="drain-popup-row"><span>Source:</span> <strong>${source}</strong></div>
       <div class="drain-popup-footer" style="margin-top:6px; font-size:0.65rem; color:#94a3b8; border-top:1px solid rgba(255,255,255,0.1); padding-top:4px;">
-        MPD-1976 Stormwater Drainage System
+        Delhi Master Plan Drainage GIS Network (I&FC / MPD)
       </div>
     </div>
   `;
@@ -971,7 +997,7 @@ function bindDrainPopupContent(p) {
 
 async function loadDrainageNetworkLayer(signal) {
   const dCheck = document.getElementById("layer-drains-check");
-  const legendDrainage = document.getElementById("legend-drainage-status");
+  const legendDrainage = document.getElementById("legend-drainage-section") || document.getElementById("legend-drainage-status");
   if (dCheck && !dCheck.checked) {
     if (drainageNetworkLayer) drainageNetworkLayer.clearLayers();
     if (legendDrainage) legendDrainage.classList.add("hidden");
@@ -984,7 +1010,7 @@ async function loadDrainageNetworkLayer(signal) {
   const bboxStr = bbox.join(",");
 
   try {
-    const res = await apiFetch(`/drainage?bbox=${bboxStr}`, { signal }, 10000);
+    const res = await apiFetch(`/drainage?bbox=${bboxStr}&include_channels=true`, { signal }, 10000);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const geojson = await res.json();
 
@@ -993,71 +1019,74 @@ async function loadDrainageNetworkLayer(signal) {
     drainageNetworkLayer.clearLayers();
 
     const features = geojson.features || [];
-    const drainGroups = {};
-    features.forEach((feat) => {
-      const p = feat.properties || {};
-      const name = p.drain_name || "MPD-1976 Drain";
-      if (!drainGroups[name]) drainGroups[name] = [];
-      if (feat.geometry && feat.geometry.coordinates) {
-        drainGroups[name].push({
-          seq: p.seq_no || 0,
-          coords: feat.geometry.coordinates,
-          feature: feat
-        });
-      }
-    });
-
     let renderedFeatureCount = 0;
     const lineOpts = sharedCanvasRenderer ? { renderer: sharedCanvasRenderer } : {};
 
-    Object.keys(drainGroups).forEach((name) => {
-      const pts = drainGroups[name];
-      renderedFeatureCount += pts.length;
-      pts.sort((a, b) => a.seq - b.seq);
+    features.forEach((feat) => {
+      const geom = feat.geometry || {};
+      const props = feat.properties || {};
 
-      if (pts.length >= 2) {
-        const latlngs = pts.map((pt) => [pt.coords[1], pt.coords[0]]);
-        const sampleFeat = pts[0].feature;
-        const popupContent = bindDrainPopupContent(sampleFeat.properties || {});
+      // 1. LineString Features: Genuine Master Plan Drainage Channels & Arterials
+      if (geom.type === "LineString" && Array.isArray(geom.coordinates) && geom.coordinates.length >= 2) {
+        renderedFeatureCount++;
+        // GeoJSON has [lon, lat], Leaflet polyline expects [lat, lon]
+        const latlngs = geom.coordinates.map((c) => [c[1], c[0]]);
+        const isPrimary = props.drain_type === "Primary Arterial Trunk" || props.drain_type === "Major River Corridor";
+        const strokeColor = props.color || (isPrimary ? "#00f3ff" : "#38bdf8");
+        const coreWeight = props.weight || (isPrimary ? 4.5 : 3.0);
+        const popupContent = bindDrainPopupContent(props);
 
         const outerGlowLine = L.polyline(latlngs, {
           ...lineOpts,
-          color: "#00f3ff",
-          weight: 7,
-          opacity: 0.75,
+          color: strokeColor,
+          weight: coreWeight + 5,
+          opacity: 0.40,
           lineCap: "round",
           lineJoin: "round",
           interactive: false
         });
 
+        const isSecondary = props.drain_type && props.drain_type.includes("Secondary");
         const innerCoreLine = L.polyline(latlngs, {
           ...lineOpts,
-          color: "#00f3ff",
-          weight: 4,
-          opacity: 1.0,
+          color: strokeColor,
+          weight: coreWeight,
+          opacity: 0.95,
           lineCap: "round",
           lineJoin: "round",
+          dashArray: isSecondary ? "8, 6" : undefined,
           interactive: true
         });
+
         innerCoreLine.bindPopup(popupContent, { className: "dark-leaflet-popup" });
+        innerCoreLine.on("mouseover", function () {
+          this.setStyle({ weight: coreWeight + 2.5, opacity: 1.0 });
+        });
+        innerCoreLine.on("mouseout", function () {
+          this.setStyle({ weight: coreWeight, opacity: 0.95 });
+        });
 
         drainageNetworkLayer.addLayer(outerGlowLine);
         drainageNetworkLayer.addLayer(innerCoreLine);
-      }
 
-      pts.forEach((pt) => {
-        const latlng = [pt.coords[1], pt.coords[0]];
+      // 2. Point Features: Individual Outfall / Sump / Regulator Inventory Nodes
+      } else if (geom.type === "Point" && Array.isArray(geom.coordinates) && geom.coordinates.length >= 2) {
+        renderedFeatureCount++;
+        const latlng = [geom.coordinates[1], geom.coordinates[0]];
+        const isUntraceable = (props.status || "").toLowerCase().includes("untraceable") || (props.source || "").toLowerCase().includes("untraceable");
+
         const marker = L.circleMarker(latlng, {
           ...lineOpts,
-          radius: 4,
-          color: "#00f3ff",
-          fillColor: "#06b6d4",
-          fillOpacity: 0.9,
-          weight: 2
+          radius: isUntraceable ? 4 : 4.5,
+          color: isUntraceable ? "#f59e0b" : "#00f3ff",
+          fillColor: isUntraceable ? "#d97706" : "#06b6d4",
+          fillOpacity: 0.85,
+          weight: 1.5
         });
-        marker.bindPopup(bindDrainPopupContent(pt.feature.properties || {}), { className: "dark-leaflet-popup" });
+
+        marker.bindPopup(bindDrainPopupContent(props), { className: "dark-leaflet-popup" });
         drainageNetworkLayer.addLayer(marker);
-      });
+      }
     });
 
     window.AQUAG_LAST_DRAINAGE_COUNT = renderedFeatureCount;
@@ -2849,11 +2878,14 @@ function initLayerToggles() {
   const dCheck = document.getElementById("layer-drains-check");
   if (dCheck) {
     dCheck.addEventListener("change", (e) => {
+      const legendDrainage = document.getElementById("legend-drainage-section") || document.getElementById("legend-drainage-status");
       if (e.target.checked) {
         if (!map.hasLayer(drainageNetworkLayer)) map.addLayer(drainageNetworkLayer);
         loadDrainageNetworkLayer();
+        if (legendDrainage) legendDrainage.classList.remove("hidden");
       } else {
         if (map.hasLayer(drainageNetworkLayer)) map.removeLayer(drainageNetworkLayer);
+        if (legendDrainage) legendDrainage.classList.add("hidden");
       }
     });
   }

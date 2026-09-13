@@ -400,10 +400,14 @@ def pumps(
 
 @app.get(
     "/drainage",
-    summary="Get Viewport-Filtered MPD-1976 Drainage Reference Points GeoJSON Layer",
+    summary="Get Viewport-Filtered Delhi Drainage Network (Master Plan Channels & Outfalls) GeoJSON Layer",
     tags=["GIS & Infrastructure"],
 )
-def drainage(bbox: str | None = None) -> Dict[str, Any]:
+def drainage(
+    bbox: str | None = None,
+    include_channels: bool = True,
+    only_channels: bool = False,
+) -> Dict[str, Any]:
     bbox_list = None
     if bbox:
         try:
@@ -412,7 +416,12 @@ def drainage(bbox: str | None = None) -> Dict[str, Any]:
                 bbox_list = parts
         except ValueError:
             pass
-    return get_drainage_geojson(bbox=bbox_list)
+    return get_drainage_geojson(
+        bbox=bbox_list,
+        include_channels=include_channels,
+        only_channels=only_channels,
+    )
+
 
 
 @app.get(
