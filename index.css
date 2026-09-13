@@ -51,17 +51,20 @@
 
 /* Dual Theme System Variables */
 body.theme-bright {
-  --bg-main: #f1f5f9;
-  --bg-workspace: #cbd5e1;
-  --bg-glass: rgba(255, 255, 255, 0.94);
+  --bg-main: #f8fafc;
+  --bg-workspace: #f1f5f9;
+  --bg-glass: rgba(255, 255, 255, 0.96);
   --bg-glass-solid: #ffffff;
   --bg-card: #ffffff;
-  --border-glass: rgba(203, 213, 225, 0.9);
-  --border-glass-light: rgba(226, 232, 240, 0.8);
-  --border-cyan: rgba(2, 132, 199, 0.4);
+  --border-glass: #cbd5e1;
+  --border-glass-light: #e2e8f0;
+  --border-cyan: #0284c7;
   --text-main: #0f172a;
   --text-muted: #334155;
   --text-dim: #64748b;
+  --accent-cyan-bright: #0284c7;
+  --accent-cyan: #0284c7;
+  --accent-cyan-light: #0369a1;
   transition: background-color 0.2s ease, color 0.2s ease;
 }
 
@@ -139,84 +142,792 @@ body.theme-bright .theme-toggle-btn.active {
   box-shadow: 0 2px 6px rgba(2, 132, 199, 0.35);
 }
 
-/* Bright Mode Header & Panel Styling Adjustments */
+/* ==========================================================================
+   Comprehensive Bright Mode Styling (Clean, Legible & Visually Appealing)
+   ========================================================================== */
+
+/* 1. Header & Navigation */
 body.theme-bright .command-nav {
-  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  background: #ffffff;
   border-color: #cbd5e1;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.06);
 }
 
 body.theme-bright .app-name {
   color: #0f172a;
 }
 
+body.theme-bright .brand-icon {
+  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+  box-shadow: 0 2px 8px rgba(2, 132, 199, 0.35);
+  border-color: rgba(2, 132, 199, 0.3);
+}
+
+body.theme-bright .sih-badge {
+  background: #e0f2fe;
+  color: #0284c7;
+  border-color: #bae6fd;
+}
+
+body.theme-bright .nav-modules {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
 body.theme-bright .nav-module-btn {
   color: #475569;
 }
 
-body.theme-bright .nav-modules {
-  background: rgba(241, 245, 249, 0.8);
-  border-color: #cbd5e1;
+body.theme-bright .nav-module-btn:hover {
+  color: #0f172a;
+}
+
+body.theme-bright .nav-module-btn.active {
+  background: #0284c7;
+  color: #ffffff;
+  box-shadow: 0 2px 6px rgba(2, 132, 199, 0.3);
 }
 
 body.theme-bright .telemetry-item {
-  background: rgba(241, 245, 249, 0.8);
+  background: #f8fafc;
   border-color: #cbd5e1;
+}
+
+body.theme-bright .t-label {
+  color: #475569;
+  font-weight: 600;
 }
 
 body.theme-bright .t-val {
   color: #0f172a;
+  font-weight: 700;
 }
 
-body.theme-bright .t-label {
+body.theme-bright .telemetry-status {
+  background: #ecfdf5;
+  border-color: #a7f3d0;
+  color: #065f46;
+  font-weight: 600;
+}
+
+body.theme-bright .telemetry-status.live {
+  color: #059669;
+}
+
+/* 2. Map Floating Panels */
+body.theme-bright .glass-panel {
+  background: rgba(255, 255, 255, 0.96);
+  border-color: #cbd5e1;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+}
+
+/* Active Layers Floating Panel */
+body.theme-bright .active-layers-panel {
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid #cbd5e1;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.1);
+}
+
+body.theme-bright .panel-tag {
+  color: #0284c7;
+  border-bottom-color: #e2e8f0;
+}
+
+body.theme-bright .group-title {
   color: #64748b;
+  font-weight: 700;
+}
+
+body.theme-bright .layer-name {
+  color: #0f172a;
+  font-weight: 600;
+}
+
+body.theme-bright .custom-checkbox {
+  color: #0f172a;
+}
+
+body.theme-bright .checkmark {
+  background: #f1f5f9;
+  border-color: #94a3b8;
+}
+
+body.theme-bright .custom-checkbox input:checked + .checkmark {
+  background: #0284c7;
+  border-color: #0284c7;
+  box-shadow: 0 0 6px rgba(2, 132, 199, 0.4);
+}
+
+body.theme-bright .custom-checkbox input:checked + .checkmark::after {
+  color: #ffffff;
+}
+
+/* Map Legend Floating Panel */
+body.theme-bright .map-legend-panel {
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid #cbd5e1;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.1);
+}
+
+body.theme-bright .legend-header {
+  color: #475569;
+  font-weight: 700;
+}
+
+body.theme-bright .quick-filter-btn {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+  color: #334155;
+  font-weight: 600;
+}
+
+body.theme-bright .quick-filter-btn:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+body.theme-bright .quick-filter-btn.active {
+  background: #0284c7;
+  border-color: #0284c7;
+  color: #ffffff;
+  box-shadow: 0 2px 6px rgba(2, 132, 199, 0.3);
+}
+
+body.theme-bright .legend-label {
+  color: #0f172a;
+  font-weight: 700;
+}
+
+body.theme-bright .legend-sub {
+  color: #475569;
+}
+
+body.theme-bright .legend-context-section,
+body.theme-bright .legend-footer {
+  border-top-color: #e2e8f0;
+  color: #64748b;
+}
+
+body.theme-bright .legend-drain-title { color: #0284c7; }
+body.theme-bright .legend-drain-swatch { background: #0284c7; box-shadow: 0 0 6px rgba(2, 132, 199, 0.4); }
+body.theme-bright .legend-drain-label { color: #0f172a; font-weight: 700; }
+body.theme-bright .legend-p-title { color: #7e22ce; }
+body.theme-bright .legend-p1-label { color: #6b21a8; font-weight: 700; }
+body.theme-bright .legend-p2-label { color: #7e22ce; font-weight: 700; }
+body.theme-bright .legend-p3-label { color: #4338ca; font-weight: 700; }
+
+/* Point GIS Inspection Card */
+body.theme-bright .inspector-overlay-card {
+  background: rgba(255, 255, 255, 0.97);
+  border: 1px solid #38bdf8;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.14);
+}
+
+body.theme-bright .card-title-bar {
+  color: #0284c7;
+  border-bottom-color: #e2e8f0;
+}
+
+body.theme-bright .close-card-btn {
+  color: #64748b;
+}
+
+body.theme-bright .close-card-btn:hover {
+  color: #0f172a;
+}
+
+body.theme-bright .insp-lbl {
+  color: #475569;
+  font-weight: 600;
+}
+
+body.theme-bright .insp-val {
+  color: #0f172a;
+  font-weight: 600;
+}
+
+body.theme-bright .insp-val.highlight {
+  color: #0284c7;
+  font-weight: 700;
+}
+
+body.theme-bright .insp-basis-tag {
+  color: #64748b;
+  border-top-color: #e2e8f0;
+}
+
+body.theme-bright .insp-basis-tag strong {
+  color: #0284c7;
+}
+
+/* Bottom Nowcast Timeline Bar */
+body.theme-bright .timeline-bar-container {
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid #cbd5e1;
+  box-shadow: 0 6px 24px rgba(15, 23, 42, 0.12);
+}
+
+body.theme-bright .timeline-play-btn {
+  background: #0284c7;
+  color: #ffffff;
+}
+
+body.theme-bright .timeline-play-btn:hover {
+  background: #0369a1;
+}
+
+body.theme-bright .timeline-label {
+  color: #0f172a;
+  font-weight: 700;
+}
+
+body.theme-bright .time-step-btn {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+  color: #334155;
+  font-weight: 600;
+}
+
+body.theme-bright .time-step-btn:hover {
+  background: #e2e8f0;
+  border-color: #94a3b8;
+  color: #0f172a;
+}
+
+body.theme-bright .time-step-btn.active {
+  background: linear-gradient(135deg, #0284c7, #0369a1);
+  color: #ffffff;
+  border-color: #0284c7;
+  box-shadow: 0 2px 8px rgba(2, 132, 199, 0.4);
+}
+
+body.theme-bright .step-dot {
+  background: #38bdf8;
+  box-shadow: 0 0 6px rgba(56, 189, 248, 0.8);
+}
+
+/* 3. Right Situation Command Sidebar & Tabs */
+body.theme-bright .sidebar-tabs-header {
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+}
+
+body.theme-bright .side-tab-btn {
+  color: #475569;
+  font-weight: 600;
+}
+
+body.theme-bright .side-tab-btn:hover {
+  color: #0f172a;
+}
+
+body.theme-bright .side-tab-btn.active {
+  background: #ffffff;
+  color: #0284c7;
+  border: 1px solid #cbd5e1;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+}
+
+body.theme-bright .sidebar-tab-content {
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid #cbd5e1;
+  box-shadow: 0 8px 30px rgba(15, 23, 42, 0.08);
+}
+
+body.theme-bright .section-title-box h3 {
+  color: #0f172a;
+}
+
+body.theme-bright .sub-title-text {
+  color: #64748b;
+}
+
+/* SCADA Operational Header & Metrics */
+body.theme-bright .scada-header-card {
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+}
+
+body.theme-bright .scada-title-row strong {
+  color: #0369a1;
+}
+
+body.theme-bright .scada-title {
+  color: #0f172a;
+}
+
+body.theme-bright .scada-metrics-grid .scada-metric-card,
+body.theme-bright .scada-metric-card {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+
+body.theme-bright .scada-metric-card .m-label,
+body.theme-bright .scada-metric-card .m-sub {
+  color: #64748b;
+}
+
+body.theme-bright .scada-metric-card .m-value {
+  color: #0f172a;
+}
+
+/* Active Situation Alerts Banner */
+body.theme-bright .active-alerts-banner {
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  color: #065f46;
+}
+
+body.theme-bright .active-alerts-banner strong {
+  color: #065f46;
+}
+
+body.theme-bright .active-alerts-banner .live-badge {
+  background: #10b981;
+  color: #ffffff;
+}
+
+body.theme-bright .alerts-summary-text {
+  color: #047857;
+}
+
+/* Population Response Priority Box */
+body.theme-bright .scada-response-priority-box {
+  background: #faf5ff;
+  border: 1px solid #e9d5ff;
+}
+
+body.theme-bright .scada-response-priority-box .box-label {
+  color: #7e22ce;
+  font-weight: 700;
+}
+
+body.theme-bright .p-count-pill.p1 {
+  background: #ede9fe;
+  border-color: #c4b5fd;
+  color: #6b21a8;
+}
+
+body.theme-bright .p-count-pill.p2 {
+  background: #f3e8ff;
+  border-color: #d8b4fe;
+  color: #7e22ce;
+}
+
+body.theme-bright .p-count-pill.p3 {
+  background: #e0e7ff;
+  border-color: #c7d2fe;
+  color: #4338ca;
+}
+
+/* Top Priority Corridor Card */
+body.theme-bright .top-priority-card {
+  background: #ffffff;
+  border: 1px solid #d8b4fe;
+  box-shadow: 0 2px 8px rgba(168, 85, 247, 0.08);
+}
+
+body.theme-bright .top-p-header .lbl {
+  color: #7e22ce;
+  font-weight: 700;
+}
+
+body.theme-bright .top-p-title {
+  color: #1e1b4b;
+  font-weight: 700;
+}
+
+body.theme-bright .top-p-details {
+  color: #475569;
+}
+
+body.theme-bright .top-p-row strong {
+  color: #0f172a;
+}
+
+body.theme-bright .btn-focus-top-p {
+  background: linear-gradient(135deg, #7e22ce, #9333ea);
+  color: #ffffff;
+  box-shadow: 0 2px 6px rgba(168, 85, 247, 0.3);
+}
+
+/* Scenario Presets */
+body.theme-bright .box-label {
+  color: #475569;
+  font-weight: 700;
+}
+
+body.theme-bright .preset-btn-4 {
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
+  color: #1e293b;
+}
+
+body.theme-bright .preset-btn-4:hover {
+  background: #e2e8f0;
+  border-color: #94a3b8;
+  color: #0f172a;
+}
+
+body.theme-bright .preset-btn-4.active {
+  background: linear-gradient(135deg, #0284c7, #0369a1);
+  border-color: #0284c7;
+  color: #ffffff;
+  box-shadow: 0 2px 6px rgba(2, 132, 199, 0.35);
+}
+
+/* Inputs, Accordion & Sliders */
+body.theme-bright .sim-inputs-details {
+  background: #f8fafc;
+  border-color: #e2e8f0;
+}
+
+body.theme-bright .sim-inputs-summary {
+  color: #0284c7;
+}
+
+body.theme-bright .sim-summary-hint {
+  color: #64748b;
+}
+
+body.theme-bright .group-header {
+  color: #0284c7;
+  border-bottom-color: #e2e8f0;
+}
+
+body.theme-bright .field-item label {
+  color: #334155;
+  font-weight: 600;
 }
 
 body.theme-bright input[type="text"],
 body.theme-bright input[type="number"],
 body.theme-bright select {
   background: #ffffff;
-  border-color: #cbd5e1;
+  border: 1px solid #cbd5e1;
   color: #0f172a;
 }
 
-body.theme-bright .side-tab-btn {
+body.theme-bright input[type="range"] {
+  background: #cbd5e1;
+}
+
+body.theme-bright .pick-map-btn {
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  color: #334155;
+}
+
+body.theme-bright .pick-map-btn:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+body.theme-bright .cmd-secondary-btn {
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  color: #334155;
+}
+
+body.theme-bright .cmd-secondary-btn:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+/* Current Simulated Scenario Card */
+body.theme-bright .scenario-summary-card {
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+}
+
+body.theme-bright .sim-card-header {
+  color: #0369a1;
+  font-weight: 700;
+}
+
+body.theme-bright .sim-metrics-row {
+  color: #0f172a;
+}
+
+body.theme-bright .sim-metrics-row span b {
+  color: #64748b;
+}
+
+body.theme-bright .sim-card-note {
+  color: #64748b;
+  border-top-color: #bae6fd;
+}
+
+/* Outcome Panels & Logs */
+body.theme-bright .outcome-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+body.theme-bright .header-lbl {
   color: #475569;
 }
 
-body.theme-bright .side-tab-btn.active {
-  background: #ffffff;
-  color: #0284c7;
-  border-color: #cbd5e1;
+body.theme-bright .p-name {
+  color: #64748b;
 }
 
+body.theme-bright .p-track {
+  background: #e2e8f0;
+}
+
+body.theme-bright .p-num {
+  color: #0f172a;
+}
+
+body.theme-bright .score-pill {
+  background: #f1f5f9;
+  color: #0f172a;
+  border: 1px solid #e2e8f0;
+}
+
+body.theme-bright .act-desc {
+  color: #334155;
+}
+
+body.theme-bright .log-item-row {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+
+body.theme-bright .log-item-name {
+  color: #0f172a;
+}
+
+body.theme-bright .m-box {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+
+body.theme-bright .m-lbl {
+  color: #64748b;
+  font-weight: 600;
+}
+
+body.theme-bright .m-val {
+  color: #0284c7;
+}
+
+body.theme-bright .spatial-basis-footer {
+  color: #64748b;
+  border-top-color: #e2e8f0;
+}
+
+/* Alerts & Incidents Tab */
+body.theme-bright .alerts-meta-bar {
+  background: #f8fafc;
+  border-color: #e2e8f0;
+}
+
+body.theme-bright .basis-pill {
+  color: #64748b;
+}
+
+body.theme-bright .alert-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+body.theme-bright .alert-card-title {
+  color: #0f172a;
+}
+
+body.theme-bright .alert-card-loc {
+  color: #64748b;
+}
+
+body.theme-bright .alert-detail-row {
+  color: #475569;
+}
+
+body.theme-bright .alert-detail-row strong {
+  color: #0f172a;
+}
+
+body.theme-bright .inc-id {
+  color: #0f172a;
+  font-weight: 800;
+}
+
+body.theme-bright .inc-row {
+  color: #334155;
+}
+
+body.theme-bright .inc-row span {
+  color: #64748b;
+}
+
+body.theme-bright .inc-row strong {
+  color: #0f172a;
+}
+
+body.theme-bright .inc-action-box {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  color: #1e293b;
+}
+
+body.theme-bright .locate-inc-btn {
+  border-color: #0284c7;
+  color: #0284c7;
+}
+
+body.theme-bright .locate-inc-btn:hover {
+  background: #0284c7;
+  color: #ffffff;
+}
+
+body.theme-bright .alert-empty-msg {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  color: #64748b;
+}
+
+/* 4. Command Center Footer */
+body.theme-bright .command-footer {
+  background: #ffffff;
+  border-color: #cbd5e1;
+  color: #475569;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.03);
+}
+
+body.theme-bright .footer-modules span {
+  color: #334155;
+}
+
+body.theme-bright .footer-modules strong {
+  color: #0f172a;
+}
+
+body.theme-bright .footer-disclaimer-text {
+  color: #64748b;
+}
+
+/* 5. Leaflet Popups in Bright Mode */
 body.theme-bright .dark-leaflet-popup .leaflet-popup-content-wrapper {
   background: #ffffff !important;
   color: #0f172a !important;
   border: 1px solid #cbd5e1 !important;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15) !important;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12) !important;
 }
 
 body.theme-bright .dark-leaflet-popup .leaflet-popup-tip {
   background: #ffffff !important;
 }
 
-body.theme-bright .dark-leaflet-popup .wl-popup-title {
-  color: #0f172a !important;
+body.theme-bright .dark-leaflet-popup .wl-popup-title,
+body.theme-bright .dark-leaflet-popup .infra-popup-title,
+body.theme-bright .dark-leaflet-popup .drain-popup-title {
+  color: #0284c7 !important;
   border-bottom: 1px solid #e2e8f0 !important;
 }
 
-body.theme-bright .dark-leaflet-popup .wl-popup-row span {
+body.theme-bright .dark-leaflet-popup .wl-popup-row span,
+body.theme-bright .dark-leaflet-popup .infra-popup-row,
+body.theme-bright .dark-leaflet-popup .drain-popup-row {
   color: #475569 !important;
 }
 
-body.theme-bright .dark-leaflet-popup .wl-popup-row strong {
+body.theme-bright .dark-leaflet-popup .wl-popup-row strong,
+body.theme-bright .dark-leaflet-popup .infra-popup-row strong,
+body.theme-bright .dark-leaflet-popup .drain-popup-row strong {
   color: #0f172a !important;
 }
 
 body.theme-bright .dark-leaflet-popup .wl-popup-footer {
   color: #64748b !important;
   border-top: 1px solid #e2e8f0 !important;
+}
+
+/* Leaflet Zoom Controls */
+body.theme-bright .leaflet-control-zoom a {
+  background: #ffffff !important;
+  color: #0f172a !important;
+  border-color: #cbd5e1 !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1) !important;
+}
+
+body.theme-bright .leaflet-control-zoom a:hover {
+  background: #f1f5f9 !important;
+  color: #0284c7 !important;
+}
+
+body.theme-bright .leaflet-control-attribution {
+  background: rgba(255, 255, 255, 0.85) !important;
+  color: #64748b !important;
+}
+
+/* 6. SCADA Operational Modal */
+body.theme-bright .scada-modal {
+  background: rgba(15, 23, 42, 0.35);
+}
+
+body.theme-bright .modal-content,
+body.theme-bright .pump-modal-card {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.16);
+}
+
+body.theme-bright .modal-header,
+body.theme-bright .pump-modal-header {
+  border-bottom-color: #e2e8f0;
+}
+
+body.theme-bright .modal-header h3,
+body.theme-bright .pump-modal-title {
+  color: #0284c7;
+}
+
+body.theme-bright .pump-status-banner {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+
+body.theme-bright .pump-status-row {
+  color: #475569;
+}
+
+body.theme-bright .pump-status-row .lbl {
+  color: #64748b;
+}
+
+body.theme-bright .pump-status-row strong {
+  color: #0f172a;
+}
+
+body.theme-bright .pump-item-row {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+
+body.theme-bright .pump-item-row:hover {
+  background: #f0f9ff;
+  border-color: #38bdf8;
+}
+
+body.theme-bright .pump-num {
+  color: #0284c7;
+}
+
+body.theme-bright .pump-name {
+  color: #0f172a;
+}
+
+body.theme-bright .pump-cap {
+  color: #475569;
+}
+
+body.theme-bright .pump-notice-footer {
+  color: #64748b;
+  border-top-color: #e2e8f0;
 }
 
 * {
@@ -308,7 +1019,7 @@ body, html {
   font-size: 1.15rem;
   font-weight: 800;
   letter-spacing: -0.02em;
-  color: #fff;
+  color: var(--text-main);
   display: flex;
   align-items: center;
   gap: 6px;
@@ -733,6 +1444,14 @@ canvas.leaflet-zoom-animated {
   margin-top: 2px;
 }
 
+.legend-drain-title { color: #00f3ff; }
+.legend-drain-swatch { background: #00f3ff; box-shadow: 0 0 6px #00f3ff; }
+.legend-drain-label { color: #00f3ff; }
+.legend-p-title { color: #c084fc; }
+.legend-p1-label { color: #c084fc; }
+.legend-p2-label { color: #e9d5ff; }
+.legend-p3-label { color: #a5b4fc; }
+
 /* Map Inspector Overlay Card */
 .inspector-overlay-card {
   position: absolute;
@@ -914,7 +1633,7 @@ canvas.leaflet-zoom-animated {
   font-size: 0.8rem;
   font-weight: 800;
   letter-spacing: 0.06em;
-  color: #fff;
+  color: var(--text-main);
   display: flex;
   align-items: center;
   gap: 6px;
@@ -1108,7 +1827,7 @@ canvas.leaflet-zoom-animated {
 
 .sidebar-tab-content.active { display: flex; }
 
-.section-title-box h3 { font-size: 1rem; font-weight: 700; color: #fff; }
+.section-title-box h3 { font-size: 1rem; font-weight: 700; color: var(--text-main); }
 .sub-title-text { font-size: 0.72rem; color: var(--text-muted); }
 
 /* 4 Preset Buttons: NORMAL, MODERATE, HEAVY, EXTREME */
@@ -1674,7 +2393,7 @@ canvas.leaflet-zoom-animated {
   font-family: var(--font-mono);
   font-size: 0.75rem;
   font-weight: 700;
-  color: #fff;
+  color: var(--text-main);
 }
 
 .inc-badge {
