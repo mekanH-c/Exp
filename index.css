@@ -6,13 +6,16 @@
 :root {
   --bg-main: #060a12;
   --bg-workspace: #080d19;
-  --bg-glass: rgba(10, 17, 30, 0.85);
-  --bg-glass-solid: #0a111e;
-  --bg-card: rgba(15, 25, 45, 0.7);
+  --bg-glass: rgba(10, 20, 40, 0.75);
+  --bg-glass-solid: #0d1a33;
+  --bg-card: rgba(14, 28, 54, 0.65);
   
-  --border-glass: rgba(56, 189, 248, 0.16);
-  --border-glass-light: rgba(255, 255, 255, 0.1);
-  --border-cyan: rgba(6, 182, 212, 0.4);
+  --border-glass: rgba(56, 189, 248, 0.25);
+  --border-glass-light: rgba(255, 255, 255, 0.12);
+  --border-cyan: rgba(6, 182, 212, 0.45);
+  --shadow-glass: rgba(0, 0, 0, 0.6);
+  --specular-glass: rgba(255, 255, 255, 0.12);
+  --blur-glass: blur(18px) saturate(180%);
 
   --accent-cyan: #06b6d4;
   --accent-cyan-light: #38bdf8;
@@ -49,16 +52,19 @@
   --radius-sm: 4px;
 }
 
-/* Dual Theme System Variables */
+/* Dual Theme System Variables with True Glassmorphism */
 body.theme-bright {
   --bg-main: #dbeaf7;
   --bg-workspace: #cee2f2;
-  --bg-glass: rgba(222, 239, 254, 0.97);
+  --bg-glass: rgba(222, 239, 254, 0.82);
   --bg-glass-solid: #d4eafc;
-  --bg-card: #dbeefd;
-  --border-glass: #93c5fd;
-  --border-glass-light: #bfdbfe;
+  --bg-card: rgba(216, 237, 254, 0.72);
+  --border-glass: rgba(147, 197, 253, 0.75);
+  --border-glass-light: rgba(191, 219, 254, 0.85);
   --border-cyan: #38bdf8;
+  --shadow-glass: rgba(10, 60, 110, 0.12);
+  --specular-glass: rgba(255, 255, 255, 0.85);
+  --blur-glass: blur(18px) saturate(190%);
   --text-main: #07223d;
   --text-muted: #143d63;
   --text-dim: #326491;
@@ -69,17 +75,23 @@ body.theme-bright {
 }
 
 body.theme-dark {
-  --bg-main: #060a12;
-  --bg-workspace: #080d19;
-  --bg-glass: rgba(10, 17, 30, 0.85);
-  --bg-glass-solid: #0a111e;
-  --bg-card: rgba(15, 25, 45, 0.7);
-  --border-glass: rgba(56, 189, 248, 0.16);
-  --border-glass-light: rgba(255, 255, 255, 0.1);
-  --border-cyan: rgba(6, 182, 212, 0.4);
+  --bg-main: #050a14;
+  --bg-workspace: #070d1a;
+  --bg-glass: rgba(10, 20, 40, 0.75);
+  --bg-glass-solid: #0d1a33;
+  --bg-card: rgba(14, 28, 54, 0.65);
+  --border-glass: rgba(56, 189, 248, 0.25);
+  --border-glass-light: rgba(255, 255, 255, 0.12);
+  --border-cyan: rgba(6, 182, 212, 0.45);
+  --shadow-glass: rgba(0, 0, 0, 0.6);
+  --specular-glass: rgba(255, 255, 255, 0.12);
+  --blur-glass: blur(18px) saturate(180%);
   --text-main: #f8fafc;
   --text-muted: #94a3b8;
   --text-dim: #64748b;
+  --accent-cyan-bright: #00f3ff;
+  --accent-cyan: #06b6d4;
+  --accent-cyan-light: #38bdf8;
   transition: background-color 0.2s ease, color 0.2s ease;
 }
 
@@ -148,9 +160,11 @@ body.theme-bright .theme-toggle-btn.active {
 
 /* 1. Top Command Navigation Bar */
 body.theme-bright .command-nav {
-  background: linear-gradient(180deg, #dceffe 0%, #cce6fc 100%);
-  border-bottom: 1.5px solid #93c5fd;
-  box-shadow: 0 4px 20px rgba(10, 60, 110, 0.1);
+  background: rgba(220, 238, 254, 0.78);
+  backdrop-filter: blur(20px) saturate(190%);
+  -webkit-backdrop-filter: blur(20px) saturate(190%);
+  border: 1.5px solid rgba(147, 197, 253, 0.75);
+  box-shadow: 0 8px 30px rgba(10, 60, 110, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.85);
 }
 
 body.theme-bright .app-name {
@@ -164,14 +178,19 @@ body.theme-bright .brand-icon {
 }
 
 body.theme-bright .sih-badge {
-  background: #d4eafc;
+  background: rgba(212, 234, 252, 0.8);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   color: #0284c7;
-  border-color: #93c5fd;
+  border-color: rgba(147, 197, 253, 0.8);
 }
 
 body.theme-bright .nav-modules {
-  background: rgba(198, 226, 252, 0.95);
-  border: 1.5px solid #93c5fd;
+  background: rgba(198, 226, 252, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1.5px solid rgba(147, 197, 253, 0.7);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
 }
 
 body.theme-bright .nav-module-btn {
@@ -181,18 +200,21 @@ body.theme-bright .nav-module-btn {
 
 body.theme-bright .nav-module-btn:hover {
   color: #034575;
-  background: #cae4fc;
+  background: rgba(202, 228, 252, 0.85);
 }
 
 body.theme-bright .nav-module-btn.active {
   background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
   color: #ffffff;
-  box-shadow: 0 2px 8px rgba(2, 132, 199, 0.35);
+  box-shadow: 0 2px 10px rgba(2, 132, 199, 0.4);
 }
 
 body.theme-bright .telemetry-item {
-  background: #d4eafc;
-  border: 1.5px solid #93c5fd;
+  background: rgba(212, 234, 252, 0.75);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1.5px solid rgba(147, 197, 253, 0.7);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
 }
 
 body.theme-bright .t-label {
@@ -206,7 +228,9 @@ body.theme-bright .t-val {
 }
 
 body.theme-bright .telemetry-status {
-  background: #d1fae5;
+  background: rgba(209, 250, 229, 0.85);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   border-color: #6ee7b7;
   color: #065f46;
   font-weight: 700;
@@ -216,23 +240,27 @@ body.theme-bright .telemetry-status.live {
   color: #047857;
 }
 
-/* 2. Map Floating Panels */
+/* 2. Map Floating Panels with Glassmorphism */
 body.theme-bright .glass-panel {
-  background: linear-gradient(180deg, rgba(222, 239, 254, 0.98) 0%, rgba(208, 233, 254, 0.96) 100%);
-  border: 1.5px solid #93c5fd;
-  box-shadow: 0 8px 30px rgba(10, 60, 110, 0.16);
+  background: rgba(220, 238, 254, 0.8);
+  backdrop-filter: blur(20px) saturate(190%);
+  -webkit-backdrop-filter: blur(20px) saturate(190%);
+  border: 1.5px solid rgba(147, 197, 253, 0.75);
+  box-shadow: 0 12px 36px rgba(10, 60, 110, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.85);
 }
 
 /* Active Layers Floating Panel */
 body.theme-bright .active-layers-panel {
-  background: linear-gradient(180deg, rgba(222, 239, 254, 0.98) 0%, rgba(208, 233, 254, 0.96) 100%);
-  border: 1.5px solid #93c5fd;
-  box-shadow: 0 8px 30px rgba(10, 60, 110, 0.16);
+  background: rgba(220, 238, 254, 0.8);
+  backdrop-filter: blur(20px) saturate(190%);
+  -webkit-backdrop-filter: blur(20px) saturate(190%);
+  border: 1.5px solid rgba(147, 197, 253, 0.75);
+  box-shadow: 0 12px 36px rgba(10, 60, 110, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.85);
 }
 
 body.theme-bright .panel-tag {
   color: #0284c7;
-  border-bottom-color: #bfdbfe;
+  border-bottom-color: rgba(191, 219, 254, 0.8);
 }
 
 body.theme-bright .group-title {
@@ -250,8 +278,10 @@ body.theme-bright .custom-checkbox {
 }
 
 body.theme-bright .checkmark {
-  background: #d4eafc;
-  border: 1.5px solid #93c5fd;
+  background: rgba(212, 234, 252, 0.8);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border: 1.5px solid rgba(147, 197, 253, 0.8);
 }
 
 body.theme-bright .custom-checkbox input:checked + .checkmark {
@@ -266,9 +296,11 @@ body.theme-bright .custom-checkbox input:checked + .checkmark::after {
 
 /* Map Legend Floating Panel */
 body.theme-bright .map-legend-panel {
-  background: linear-gradient(180deg, rgba(222, 239, 254, 0.98) 0%, rgba(208, 233, 254, 0.96) 100%);
-  border: 1.5px solid #93c5fd;
-  box-shadow: 0 8px 30px rgba(10, 60, 110, 0.16);
+  background: rgba(220, 238, 254, 0.8);
+  backdrop-filter: blur(20px) saturate(190%);
+  -webkit-backdrop-filter: blur(20px) saturate(190%);
+  border: 1.5px solid rgba(147, 197, 253, 0.75);
+  box-shadow: 0 12px 36px rgba(10, 60, 110, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.85);
 }
 
 body.theme-bright .legend-header {
@@ -277,14 +309,16 @@ body.theme-bright .legend-header {
 }
 
 body.theme-bright .quick-filter-btn {
-  background: #d4eafc;
-  border: 1.5px solid #93c5fd;
+  background: rgba(212, 234, 252, 0.75);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1.5px solid rgba(147, 197, 253, 0.75);
   color: #072e54;
   font-weight: 700;
 }
 
 body.theme-bright .quick-filter-btn:hover {
-  background: #c2e2fa;
+  background: rgba(194, 226, 250, 0.85);
   color: #034575;
 }
 
@@ -306,7 +340,7 @@ body.theme-bright .legend-sub {
 
 body.theme-bright .legend-context-section,
 body.theme-bright .legend-footer {
-  border-top-color: #bfdbfe;
+  border-top-color: rgba(191, 219, 254, 0.8);
   color: #326491;
 }
 
@@ -320,14 +354,16 @@ body.theme-bright .legend-p3-label { color: #4338ca; font-weight: 800; }
 
 /* Point GIS Inspection Card */
 body.theme-bright .inspector-overlay-card {
-  background: linear-gradient(180deg, rgba(222, 239, 254, 0.98) 0%, rgba(206, 232, 254, 0.97) 100%);
-  border: 1.5px solid #38bdf8;
-  box-shadow: 0 10px 32px rgba(10, 60, 110, 0.18), 0 0 20px rgba(56, 189, 248, 0.35);
+  background: rgba(220, 238, 254, 0.84);
+  backdrop-filter: blur(22px) saturate(190%);
+  -webkit-backdrop-filter: blur(22px) saturate(190%);
+  border: 1.5px solid rgba(56, 189, 248, 0.85);
+  box-shadow: 0 14px 40px rgba(10, 60, 110, 0.18), 0 0 24px rgba(56, 189, 248, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.9);
 }
 
 body.theme-bright .card-title-bar {
   color: #0284c7;
-  border-bottom-color: #bfdbfe;
+  border-bottom-color: rgba(191, 219, 254, 0.8);
 }
 
 body.theme-bright .close-card-btn {
@@ -355,7 +391,7 @@ body.theme-bright .insp-val.highlight {
 
 body.theme-bright .insp-basis-tag {
   color: #326491;
-  border-top: 1px dashed #bfdbfe;
+  border-top: 1px dashed rgba(191, 219, 254, 0.8);
 }
 
 body.theme-bright .insp-basis-tag strong {
@@ -364,9 +400,11 @@ body.theme-bright .insp-basis-tag strong {
 
 /* Bottom Nowcast Timeline Bar */
 body.theme-bright .timeline-bar-container {
-  background: linear-gradient(180deg, rgba(220, 238, 254, 0.98) 0%, rgba(206, 232, 253, 0.97) 100%);
-  border: 1.5px solid #93c5fd;
-  box-shadow: 0 6px 24px rgba(9, 35, 62, 0.16);
+  background: rgba(218, 236, 254, 0.82);
+  backdrop-filter: blur(20px) saturate(190%);
+  -webkit-backdrop-filter: blur(20px) saturate(190%);
+  border: 1.5px solid rgba(147, 197, 253, 0.75);
+  box-shadow: 0 10px 30px rgba(9, 35, 62, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.85);
 }
 
 body.theme-bright .timeline-play-btn {
@@ -384,14 +422,16 @@ body.theme-bright .timeline-label {
 }
 
 body.theme-bright .time-step-btn {
-  background: #d4eafc;
-  border: 1.5px solid #93c5fd;
+  background: rgba(212, 234, 252, 0.75);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1.5px solid rgba(147, 197, 253, 0.75);
   color: #072e54;
   font-weight: 700;
 }
 
 body.theme-bright .time-step-btn:hover {
-  background: #c2e2fa;
+  background: rgba(194, 226, 250, 0.85);
   border-color: #60a5fa;
   color: #034575;
 }
@@ -410,8 +450,11 @@ body.theme-bright .step-dot {
 
 /* 3. Right Situation Command Sidebar & Tabs */
 body.theme-bright .sidebar-tabs-header {
-  background: rgba(204, 229, 253, 0.95);
-  border: 1.5px solid #93c5fd;
+  background: rgba(204, 229, 253, 0.75);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1.5px solid rgba(147, 197, 253, 0.75);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
 }
 
 body.theme-bright .side-tab-btn {
@@ -424,17 +467,21 @@ body.theme-bright .side-tab-btn:hover {
 }
 
 body.theme-bright .side-tab-btn.active {
-  background: linear-gradient(135deg, #d8ecfd 0%, #c6e3fc 100%);
+  background: rgba(216, 236, 253, 0.9);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   color: #0284c7;
   border: 1.5px solid #60a5fa;
-  box-shadow: 0 2px 8px rgba(2, 132, 199, 0.22);
+  box-shadow: 0 2px 8px rgba(2, 132, 199, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.9);
   font-weight: 800;
 }
 
 body.theme-bright .sidebar-tab-content {
-  background: linear-gradient(180deg, rgba(224, 240, 254, 0.98) 0%, rgba(212, 234, 254, 0.96) 100%);
-  border: 1.5px solid #93c5fd;
-  box-shadow: 0 8px 32px rgba(9, 35, 62, 0.12);
+  background: rgba(222, 239, 254, 0.8);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1.5px solid rgba(147, 197, 253, 0.75);
+  box-shadow: 0 16px 40px rgba(9, 35, 62, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.8);
 }
 
 body.theme-bright .section-title-box h3 {
@@ -448,8 +495,11 @@ body.theme-bright .sub-title-text {
 
 /* SCADA Operational Header & Metrics */
 body.theme-bright .scada-header-card {
-  background: linear-gradient(135deg, #d3eafc 0%, #bde0fa 100%);
-  border: 1.5px solid #7dd3fc;
+  background: rgba(211, 234, 252, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1.5px solid rgba(125, 211, 252, 0.8);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75);
 }
 
 body.theme-bright .scada-title-row strong {
@@ -462,9 +512,11 @@ body.theme-bright .scada-title {
 
 body.theme-bright .scada-metrics-grid .scada-metric-card,
 body.theme-bright .scada-metric-card {
-  background: linear-gradient(135deg, #dcf0fe 0%, #cce6fc 100%);
-  border: 1.5px solid #93c5fd;
-  box-shadow: 0 2px 8px rgba(10, 60, 110, 0.08);
+  background: rgba(218, 238, 254, 0.7);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1.5px solid rgba(147, 197, 253, 0.75);
+  box-shadow: 0 2px 8px rgba(10, 60, 110, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.75);
 }
 
 body.theme-bright .scada-metric-card .m-label,
@@ -478,13 +530,15 @@ body.theme-bright .scada-metric-card .m-value {
   font-weight: 800;
 }
 
-/* Active Situation Alerts Banner & Box (Enhanced Vivid Oceanic Theme) */
+/* Active Situation Alerts Banner & Box (Enhanced Vivid Glassmorphism) */
 body.theme-bright .scada-alerts-summary-box {
-  background: linear-gradient(135deg, #d7eefa 0%, #c4e4fc 100%);
+  background: rgba(215, 238, 250, 0.8);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   border: 1.5px solid #38bdf8;
   border-radius: 6px;
   padding: 8px 10px;
-  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  box-shadow: 0 4px 16px rgba(2, 132, 199, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.85);
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -530,28 +584,30 @@ body.theme-bright .alert-item-mini {
 }
 
 body.theme-bright .alert-item-mini.ok {
-  background: #ecfdf5;
+  background: rgba(236, 253, 245, 0.9);
   border: 1.5px solid #6ee7b7;
   color: #047857;
 }
 
 body.theme-bright .alert-item-mini.warn {
-  background: #fffbeb;
+  background: rgba(255, 251, 235, 0.9);
   border: 1.5px solid #fcd34d;
   color: #b45309;
 }
 
 body.theme-bright .alert-item-mini.crit {
-  background: #fef2f2;
+  background: rgba(254, 242, 242, 0.9);
   border: 1.5px solid #fca5a5;
   color: #b91c1c;
 }
 
 /* Population Response Priority Box */
 body.theme-bright .scada-response-priority-box {
-  background: linear-gradient(135deg, #dbeefe 0%, #cae5fc 100%);
-  border: 1.5px solid #93c5fd;
-  box-shadow: 0 2px 8px rgba(10, 60, 110, 0.06);
+  background: rgba(219, 238, 254, 0.72);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1.5px solid rgba(147, 197, 253, 0.75);
+  box-shadow: 0 2px 8px rgba(10, 60, 110, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.75);
 }
 
 body.theme-bright .scada-response-priority-box .box-header span:first-child {
@@ -560,38 +616,46 @@ body.theme-bright .scada-response-priority-box .box-header span:first-child {
 }
 
 body.theme-bright .scada-response-priority-box .ver-tag {
-  background: #bfdbfe;
+  background: rgba(191, 219, 254, 0.8);
   color: #1d4ed8;
-  border: 1px solid #93c5fd;
+  border: 1px solid rgba(147, 197, 253, 0.8);
   font-weight: 700;
 }
 
 body.theme-bright .p-count-pill.p1 {
-  background: #d0e6fc;
-  border: 1.5px solid #93c5fd;
+  background: rgba(208, 230, 252, 0.8);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border: 1.5px solid rgba(147, 197, 253, 0.8);
   color: #1d4ed8;
   font-weight: 800;
 }
 
 body.theme-bright .p-count-pill.p2 {
-  background: #dbeefd;
-  border: 1.5px solid #93c5fd;
+  background: rgba(219, 238, 253, 0.8);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border: 1.5px solid rgba(147, 197, 253, 0.8);
   color: #0284c7;
   font-weight: 800;
 }
 
 body.theme-bright .p-count-pill.p3 {
-  background: #e2f2fe;
-  border: 1.5px solid #7dd3fc;
+  background: rgba(226, 242, 254, 0.8);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border: 1.5px solid rgba(125, 211, 252, 0.8);
   color: #0369a1;
   font-weight: 800;
 }
 
 /* Top Priority Corridor Card */
 body.theme-bright .top-priority-card {
-  background: linear-gradient(135deg, #dcf0fe 0%, #cde8fc 100%);
-  border: 1.5px solid #93c5fd;
-  box-shadow: 0 3px 12px rgba(10, 60, 110, 0.1);
+  background: rgba(220, 240, 254, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1.5px solid rgba(147, 197, 253, 0.75);
+  box-shadow: 0 3px 12px rgba(10, 60, 110, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.8);
 }
 
 body.theme-bright .top-p-header .lbl {
@@ -625,14 +689,16 @@ body.theme-bright .box-label {
 }
 
 body.theme-bright .preset-btn-4 {
-  background: #d4eafc;
-  border: 1.5px solid #93c5fd;
+  background: rgba(212, 234, 252, 0.75);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1.5px solid rgba(147, 197, 253, 0.75);
   color: #072e54;
   font-weight: 700;
 }
 
 body.theme-bright .preset-btn-4:hover {
-  background: #c2e2fa;
+  background: rgba(194, 226, 250, 0.85);
   border-color: #60a5fa;
   color: #034575;
 }
@@ -646,8 +712,11 @@ body.theme-bright .preset-btn-4.active {
 
 /* Inputs, Accordion & Sliders */
 body.theme-bright .sim-inputs-details {
-  background: #d4eafc;
-  border: 1.5px solid #93c5fd;
+  background: rgba(212, 234, 252, 0.7);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1.5px solid rgba(147, 197, 253, 0.7);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75);
 }
 
 body.theme-bright .sim-inputs-summary {
@@ -661,7 +730,7 @@ body.theme-bright .sim-summary-hint {
 
 body.theme-bright .group-header {
   color: #0284c7;
-  border-bottom-color: #bfdbfe;
+  border-bottom-color: rgba(191, 219, 254, 0.8);
   font-weight: 800;
 }
 
@@ -673,8 +742,10 @@ body.theme-bright .field-item label {
 body.theme-bright input[type="text"],
 body.theme-bright input[type="number"],
 body.theme-bright select {
-  background: #dcedfd;
-  border: 1.5px solid #93c5fd;
+  background: rgba(220, 237, 253, 0.8);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1.5px solid rgba(147, 197, 253, 0.8);
   color: #07223d;
   font-weight: 600;
 }
@@ -682,47 +753,53 @@ body.theme-bright select {
 body.theme-bright input[type="text"]:focus,
 body.theme-bright input[type="number"]:focus,
 body.theme-bright select:focus {
-  background: #d2e8fc;
+  background: rgba(210, 232, 252, 0.9);
   border-color: #0284c7;
   box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.25);
   outline: none;
 }
 
 body.theme-bright input[type="range"] {
-  background: #badefc;
+  background: rgba(186, 222, 252, 0.85);
 }
 
 body.theme-bright .pick-map-btn {
-  background: #d4eafc;
-  border: 1.5px solid #93c5fd;
+  background: rgba(212, 234, 252, 0.75);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1.5px solid rgba(147, 197, 253, 0.75);
   color: #072e54;
   font-weight: 700;
 }
 
 body.theme-bright .pick-map-btn:hover {
-  background: #c2e2fa;
+  background: rgba(194, 226, 250, 0.85);
   border-color: #60a5fa;
   color: #034575;
 }
 
 body.theme-bright .cmd-secondary-btn {
-  background: #d4eafc;
-  border: 1.5px solid #93c5fd;
+  background: rgba(212, 234, 252, 0.75);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1.5px solid rgba(147, 197, 253, 0.75);
   color: #072e54;
   font-weight: 700;
 }
 
 body.theme-bright .cmd-secondary-btn:hover {
-  background: #c2e2fa;
+  background: rgba(194, 226, 250, 0.85);
   border-color: #60a5fa;
   color: #034575;
 }
 
 /* Current Simulated Scenario Card */
 body.theme-bright .scenario-summary-card {
-  background: linear-gradient(135deg, #d4eafc 0%, #c0e1fa 100%);
-  border: 1.5px solid #7dd3fc;
-  box-shadow: 0 2px 8px rgba(10, 60, 110, 0.08);
+  background: rgba(212, 234, 252, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1.5px solid rgba(125, 211, 252, 0.8);
+  box-shadow: 0 2px 8px rgba(10, 60, 110, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.75);
 }
 
 body.theme-bright .sim-card-header {
@@ -740,14 +817,16 @@ body.theme-bright .sim-metrics-row span b {
 
 body.theme-bright .sim-card-note {
   color: #326491;
-  border-top-color: #93c5fd;
+  border-top-color: rgba(147, 197, 253, 0.75);
 }
 
 /* Outcome Panels & Logs */
 body.theme-bright .outcome-card {
-  background: linear-gradient(135deg, #dcf0fe 0%, #cde7fc 100%);
-  border: 1.5px solid #93c5fd;
-  box-shadow: 0 3px 12px rgba(10, 60, 110, 0.08);
+  background: rgba(220, 240, 254, 0.72);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1.5px solid rgba(147, 197, 253, 0.75);
+  box-shadow: 0 3px 12px rgba(10, 60, 110, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.75);
 }
 
 body.theme-bright .header-lbl {
@@ -760,7 +839,7 @@ body.theme-bright .p-name {
 }
 
 body.theme-bright .p-track {
-  background: #badefc;
+  background: rgba(186, 222, 252, 0.8);
 }
 
 body.theme-bright .p-num {
@@ -768,9 +847,11 @@ body.theme-bright .p-num {
 }
 
 body.theme-bright .score-pill {
-  background: #d4eafc;
+  background: rgba(212, 234, 252, 0.8);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
   color: #07223d;
-  border: 1px solid #93c5fd;
+  border: 1px solid rgba(147, 197, 253, 0.75);
   font-weight: 700;
 }
 
@@ -779,8 +860,10 @@ body.theme-bright .act-desc {
 }
 
 body.theme-bright .log-item-row {
-  background: #d4eafc;
-  border: 1px solid #a8d4fa;
+  background: rgba(212, 234, 252, 0.7);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border: 1px solid rgba(168, 212, 250, 0.75);
 }
 
 body.theme-bright .log-item-name {
@@ -789,8 +872,10 @@ body.theme-bright .log-item-name {
 }
 
 body.theme-bright .m-box {
-  background: #d0e7fc;
-  border: 1.5px solid #93c5fd;
+  background: rgba(208, 231, 252, 0.7);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1.5px solid rgba(147, 197, 253, 0.7);
 }
 
 body.theme-bright .m-lbl {
@@ -805,13 +890,15 @@ body.theme-bright .m-val {
 
 body.theme-bright .spatial-basis-footer {
   color: #326491;
-  border-top-color: #bfdbfe;
+  border-top-color: rgba(191, 219, 254, 0.8);
 }
 
 /* Alerts & Incidents Tab */
 body.theme-bright .alerts-meta-bar {
-  background: #d4eafc;
-  border-color: #93c5fd;
+  background: rgba(212, 234, 252, 0.75);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-color: rgba(147, 197, 253, 0.75);
 }
 
 body.theme-bright .basis-pill {
@@ -819,9 +906,11 @@ body.theme-bright .basis-pill {
 }
 
 body.theme-bright .alert-card {
-  background: linear-gradient(135deg, #dcf0fe 0%, #cde7fc 100%);
-  border: 1.5px solid #93c5fd;
-  box-shadow: 0 3px 12px rgba(10, 60, 110, 0.08);
+  background: rgba(220, 240, 254, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1.5px solid rgba(147, 197, 253, 0.75);
+  box-shadow: 0 3px 12px rgba(10, 60, 110, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.8);
 }
 
 body.theme-bright .alert-card-title {
@@ -859,8 +948,10 @@ body.theme-bright .inc-row strong {
 }
 
 body.theme-bright .inc-action-box {
-  background: #d4eafc;
-  border: 1.5px solid #93c5fd;
+  background: rgba(212, 234, 252, 0.75);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1.5px solid rgba(147, 197, 253, 0.75);
   color: #07223d;
 }
 
@@ -876,17 +967,21 @@ body.theme-bright .locate-inc-btn:hover {
 }
 
 body.theme-bright .alert-empty-msg {
-  background: #d4eafc;
-  border: 1.5px solid #93c5fd;
+  background: rgba(212, 234, 252, 0.75);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1.5px solid rgba(147, 197, 253, 0.75);
   color: #326491;
 }
 
 /* 4. Command Center Footer */
 body.theme-bright .command-footer {
-  background: linear-gradient(180deg, #d8ebfd 0%, #c6e2fc 100%);
-  border-color: #93c5fd;
+  background: rgba(216, 235, 253, 0.78);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-top: 1.5px solid rgba(147, 197, 253, 0.75);
   color: #143d63;
-  box-shadow: 0 -2px 12px rgba(9, 35, 62, 0.08);
+  box-shadow: 0 -2px 14px rgba(9, 35, 62, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.85);
 }
 
 body.theme-bright .footer-modules span {
@@ -903,14 +998,16 @@ body.theme-bright .footer-disclaimer-text {
 
 /* 5. Leaflet Popups in Bright Mode */
 body.theme-bright .dark-leaflet-popup .leaflet-popup-content-wrapper {
-  background: linear-gradient(180deg, #e4f1fe 0%, #d0e7fc 100%) !important;
+  background: rgba(226, 242, 255, 0.85) !important;
+  backdrop-filter: blur(16px) saturate(190%) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(190%) !important;
   color: #07223d !important;
-  border: 1.5px solid #38bdf8 !important;
-  box-shadow: 0 10px 25px rgba(9, 35, 62, 0.2) !important;
+  border: 1.5px solid rgba(56, 189, 248, 0.85) !important;
+  box-shadow: 0 12px 36px rgba(9, 35, 62, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
 }
 
 body.theme-bright .dark-leaflet-popup .leaflet-popup-tip {
-  background: #d0e7fc !important;
+  background: rgba(208, 231, 252, 0.9) !important;
   border-color: #38bdf8 !important;
 }
 
@@ -918,7 +1015,7 @@ body.theme-bright .dark-leaflet-popup .wl-popup-title,
 body.theme-bright .dark-leaflet-popup .infra-popup-title,
 body.theme-bright .dark-leaflet-popup .drain-popup-title {
   color: #0284c7 !important;
-  border-bottom: 1px solid #bfdbfe !important;
+  border-bottom: 1px solid rgba(191, 219, 254, 0.8) !important;
 }
 
 body.theme-bright .dark-leaflet-popup .wl-popup-row span,
@@ -935,42 +1032,50 @@ body.theme-bright .dark-leaflet-popup .drain-popup-row strong {
 
 body.theme-bright .dark-leaflet-popup .wl-popup-footer {
   color: #326491 !important;
-  border-top: 1px solid #bfdbfe !important;
+  border-top: 1px solid rgba(191, 219, 254, 0.8) !important;
 }
 
 /* Leaflet Zoom Controls */
 body.theme-bright .leaflet-control-zoom a {
-  background: #d4eafc !important;
+  background: rgba(212, 234, 252, 0.8) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
   color: #07223d !important;
-  border-color: #93c5fd !important;
+  border-color: rgba(147, 197, 253, 0.8) !important;
   box-shadow: 0 2px 6px rgba(9, 35, 62, 0.12) !important;
 }
 
 body.theme-bright .leaflet-control-zoom a:hover {
-  background: #c2e2fa !important;
+  background: rgba(194, 226, 250, 0.9) !important;
   color: #0284c7 !important;
 }
 
 body.theme-bright .leaflet-control-attribution {
-  background: rgba(222, 239, 254, 0.9) !important;
+  background: rgba(222, 239, 254, 0.85) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
   color: #326491 !important;
 }
 
 /* 6. SCADA Operational Modal */
 body.theme-bright .scada-modal {
   background: rgba(9, 35, 62, 0.55);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
 body.theme-bright .modal-content,
 body.theme-bright .pump-modal-card {
-  background: linear-gradient(180deg, #e2f0fd 0%, #cee6fc 100%);
-  border: 1.5px solid #93c5fd;
-  box-shadow: 0 16px 45px rgba(9, 35, 62, 0.25);
+  background: rgba(226, 240, 253, 0.88);
+  backdrop-filter: blur(24px) saturate(200%);
+  -webkit-backdrop-filter: blur(24px) saturate(200%);
+  border: 1.5px solid rgba(147, 197, 253, 0.8);
+  box-shadow: 0 24px 60px rgba(9, 35, 62, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.9);
 }
 
 body.theme-bright .modal-header,
 body.theme-bright .pump-modal-header {
-  border-bottom-color: #bfdbfe;
+  border-bottom-color: rgba(191, 219, 254, 0.8);
 }
 
 body.theme-bright .modal-header h3,
@@ -979,8 +1084,10 @@ body.theme-bright .pump-modal-title {
 }
 
 body.theme-bright .pump-status-banner {
-  background: #d4eafc;
-  border: 1.5px solid #93c5fd;
+  background: rgba(212, 234, 252, 0.75);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1.5px solid rgba(147, 197, 253, 0.75);
 }
 
 body.theme-bright .pump-status-row {
@@ -996,12 +1103,14 @@ body.theme-bright .pump-status-row strong {
 }
 
 body.theme-bright .pump-item-row {
-  background: #dbeefd;
-  border: 1px solid #b6dbfa;
+  background: rgba(219, 238, 253, 0.75);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border: 1px solid rgba(182, 219, 250, 0.75);
 }
 
 body.theme-bright .pump-item-row:hover {
-  background: #cae4fc;
+  background: rgba(202, 228, 252, 0.85);
   border-color: #38bdf8;
 }
 
@@ -1020,7 +1129,7 @@ body.theme-bright .pump-cap {
 
 body.theme-bright .pump-notice-footer {
   color: #326491;
-  border-top-color: #bfdbfe;
+  border-top-color: rgba(191, 219, 254, 0.8);
 }
 
 * {
@@ -1060,10 +1169,10 @@ body, html {
 
 .glass-panel {
   background: var(--bg-glass);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(18px) saturate(180%);
+  -webkit-backdrop-filter: blur(18px) saturate(180%);
   border: 1px solid var(--border-glass);
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.55), inset 0 1px 0 0 rgba(255, 255, 255, 0.08);
+  box-shadow: 0 10px 32px 0 var(--shadow-glass), inset 0 1px 0 0 var(--specular-glass);
   border-radius: var(--radius-lg);
 }
 
@@ -1085,8 +1194,11 @@ body, html {
   margin: 8px 8px 0 8px;
   z-index: 2000;
   border-radius: var(--radius-md);
-  border-color: rgba(56, 189, 248, 0.2);
-  background: linear-gradient(180deg, rgba(14, 23, 42, 0.9) 0%, rgba(10, 17, 30, 0.85) 100%);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  background: rgba(8, 16, 32, 0.75);
+  backdrop-filter: blur(20px) saturate(190%);
+  -webkit-backdrop-filter: blur(20px) saturate(190%);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 .nav-brand {
@@ -1164,10 +1276,13 @@ body, html {
   display: flex;
   align-items: center;
   gap: 4px;
-  background: rgba(4, 8, 16, 0.5);
+  background: rgba(15, 28, 56, 0.6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   padding: 3px;
   border-radius: var(--radius-md);
-  border: 1px solid var(--border-glass-light);
+  border: 1px solid rgba(56, 189, 248, 0.2);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
 .nav-module-btn {
@@ -1339,7 +1454,11 @@ canvas.leaflet-zoom-animated {
   flex-direction: column;
   gap: 10px;
   min-width: 230px;
-  background: rgba(8, 14, 26, 0.9);
+  background: rgba(10, 20, 42, 0.75);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 .panel-tag {
@@ -1424,7 +1543,11 @@ canvas.leaflet-zoom-animated {
   flex-direction: column;
   gap: 6px;
   min-width: 250px;
-  background: rgba(8, 14, 26, 0.9);
+  background: rgba(10, 20, 42, 0.75);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 .legend-header-row {
@@ -1449,7 +1572,9 @@ canvas.leaflet-zoom-animated {
 }
 
 .quick-filter-btn {
-  background: rgba(255, 255, 255, 0.06);
+  background: rgba(15, 28, 56, 0.6);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   border: 1px solid var(--border-glass-light);
   color: var(--text-dim);
   font-size: 0.58rem;
@@ -1462,15 +1587,15 @@ canvas.leaflet-zoom-animated {
 }
 
 .quick-filter-btn:hover {
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(56, 189, 248, 0.2);
   color: var(--text-main);
 }
 
 .quick-filter-btn.active {
-  background: rgba(59, 130, 246, 0.25);
-  border-color: rgba(59, 130, 246, 0.5);
+  background: rgba(59, 130, 246, 0.35);
+  border-color: rgba(59, 130, 246, 0.6);
   color: #60a5fa;
-  box-shadow: 0 0 6px rgba(59, 130, 246, 0.3);
+  box-shadow: 0 0 8px rgba(59, 130, 246, 0.4);
 }
 
 .legend-items { display: flex; flex-direction: column; gap: 5px; }
@@ -1556,8 +1681,11 @@ canvas.leaflet-zoom-animated {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  background: rgba(8, 14, 26, 0.92);
-  border-color: rgba(6, 182, 212, 0.35);
+  background: rgba(10, 22, 46, 0.8);
+  backdrop-filter: blur(22px) saturate(190%);
+  -webkit-backdrop-filter: blur(22px) saturate(190%);
+  border: 1.5px solid rgba(56, 189, 248, 0.45);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.65), 0 0 24px rgba(56, 189, 248, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.15);
 }
 
 .card-title-bar {
@@ -1609,9 +1737,11 @@ canvas.leaflet-zoom-animated {
   gap: 12px;
   padding: 6px 16px;
   border-radius: 30px;
-  background: rgba(8, 14, 26, 0.92);
+  background: rgba(10, 20, 42, 0.78);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
   border: 1px solid rgba(56, 189, 248, 0.3);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6), 0 0 15px rgba(6, 182, 212, 0.15);
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.6), 0 0 18px rgba(6, 182, 212, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.12);
 }
 
 .timeline-play-btn {
@@ -1661,8 +1791,10 @@ canvas.leaflet-zoom-animated {
   gap: 4px;
   padding: 4px 11px;
   border-radius: 16px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid var(--border-glass-light);
+  background: rgba(15, 28, 56, 0.65);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(56, 189, 248, 0.25);
   color: var(--text-muted);
   font-size: 0.72rem;
   font-weight: 600;
@@ -1672,9 +1804,9 @@ canvas.leaflet-zoom-animated {
 }
 
 .time-step-btn:hover {
-  background: rgba(6, 182, 212, 0.15);
-  border-color: var(--accent-cyan);
-  color: white;
+  background: rgba(6, 182, 212, 0.25);
+  border-color: rgba(6, 182, 212, 0.45);
+  color: #ffffff;
 }
 
 .time-step-btn.active {
@@ -1707,8 +1839,11 @@ canvas.leaflet-zoom-animated {
 
 /* SCADA Operational Header & Telemetry Grid */
 .scada-header-card {
-  background: linear-gradient(135deg, rgba(6, 182, 212, 0.12) 0%, rgba(10, 17, 30, 0.8) 100%);
-  border: 1px solid var(--border-cyan);
+  background: rgba(10, 20, 44, 0.72);
+  backdrop-filter: blur(18px) saturate(180%);
+  -webkit-backdrop-filter: blur(18px) saturate(180%);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.1);
   border-radius: var(--radius-sm);
   padding: 8px 10px;
   display: flex;
@@ -1778,8 +1913,11 @@ canvas.leaflet-zoom-animated {
 }
 
 .scada-metric-card {
-  background: rgba(0, 0, 0, 0.35);
-  border: 1px solid var(--border-glass-light);
+  background: rgba(12, 24, 52, 0.6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(56, 189, 248, 0.2);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
   border-radius: var(--radius-sm);
   padding: 6px 8px;
   display: flex;
@@ -1808,8 +1946,11 @@ canvas.leaflet-zoom-animated {
 
 /* SCADA Mini Alerts Summary Box */
 .scada-alerts-summary-box {
-  background: rgba(10, 25, 48, 0.85);
+  background: rgba(10, 22, 46, 0.75);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
   border: 1px solid rgba(56, 189, 248, 0.3);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.08);
   border-radius: var(--radius-sm);
   padding: 6px 8px;
   display: flex;
@@ -1852,10 +1993,12 @@ canvas.leaflet-zoom-animated {
 
 /* Simulation Details Summary Accordion */
 .sim-inputs-details {
-  border: 1px solid var(--border-glass-light);
+  border: 1px solid rgba(56, 189, 248, 0.2);
   border-radius: var(--radius-sm);
   padding: 6px 8px;
-  background: rgba(0, 0, 0, 0.25);
+  background: rgba(8, 16, 36, 0.55);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   margin-top: 4px;
 }
 
@@ -1881,7 +2024,11 @@ canvas.leaflet-zoom-animated {
   padding: 4px;
   gap: 4px;
   border-radius: var(--radius-md);
-  background: rgba(6, 12, 22, 0.9);
+  background: rgba(10, 20, 42, 0.72);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border: 1px solid rgba(56, 189, 248, 0.22);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
 .side-tab-btn {
@@ -1916,7 +2063,11 @@ canvas.leaflet-zoom-animated {
   overflow-y: auto;
   gap: 12px;
   border-radius: var(--radius-md);
-  background: rgba(8, 14, 26, 0.9);
+  background: rgba(8, 18, 38, 0.76);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(56, 189, 248, 0.22);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
 .sidebar-tab-content.active { display: flex; }
@@ -1951,8 +2102,10 @@ canvas.leaflet-zoom-animated {
   font-weight: 700;
   font-family: var(--font-mono);
   border-radius: var(--radius-sm);
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid var(--border-glass-light);
+  background: rgba(15, 28, 56, 0.6);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(56, 189, 248, 0.2);
   color: var(--text-main);
   cursor: pointer;
   text-align: center;
@@ -2050,16 +2203,18 @@ canvas.leaflet-zoom-animated {
 
 .cmd-secondary-btn {
   padding: 8px 12px;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid var(--border-glass-light);
+  background: rgba(15, 28, 56, 0.6);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(56, 189, 248, 0.25);
   border-radius: var(--radius-sm);
   color: var(--text-main);
   font-weight: 500;
   font-size: 0.78rem;
   cursor: pointer;
-  transition: background 0.15s;
+  transition: all 0.15s ease;
 }
-.cmd-secondary-btn:hover { background: rgba(255, 255, 255, 0.15); }
+.cmd-secondary-btn:hover { background: rgba(56, 189, 248, 0.2); border-color: rgba(56, 189, 248, 0.45); }
 
 .coord-input-group {
   grid-column: span 2;
@@ -2072,26 +2227,31 @@ canvas.leaflet-zoom-animated {
 
 .pick-map-btn {
   padding: 5px 8px;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid var(--border-glass-light);
+  background: rgba(15, 28, 56, 0.6);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(56, 189, 248, 0.25);
   border-radius: var(--radius-sm);
   color: var(--text-main);
   font-size: 0.7rem;
   cursor: pointer;
   white-space: nowrap;
-  transition: background 0.15s;
+  transition: all 0.15s ease;
 }
-.pick-map-btn:hover { background: var(--accent-blue); }
+.pick-map-btn:hover { background: rgba(56, 189, 248, 0.25); border-color: var(--accent-cyan); }
 
 /* Scenario Summary Card */
 .scenario-summary-card {
-  background: rgba(6, 182, 212, 0.08);
+  background: rgba(10, 24, 48, 0.65);
+  backdrop-filter: blur(14px) saturate(180%);
+  -webkit-backdrop-filter: blur(14px) saturate(180%);
   border: 1px solid var(--border-cyan);
   border-radius: var(--radius-sm);
   padding: 8px 10px;
   display: flex;
   flex-direction: column;
   gap: 4px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
 .sim-card-header {
@@ -2126,8 +2286,11 @@ canvas.leaflet-zoom-animated {
 }
 
 .outcome-card {
-  background: rgba(0, 0, 0, 0.35);
-  border: 1px solid var(--border-glass-light);
+  background: rgba(12, 24, 52, 0.65);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border: 1px solid rgba(56, 189, 248, 0.22);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.08);
   border-radius: var(--radius-sm);
   padding: 10px;
   display: flex;
@@ -2240,7 +2403,10 @@ canvas.leaflet-zoom-animated {
   justify-content: space-between;
   align-items: center;
   padding: 4px 6px;
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(15, 28, 56, 0.4);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border: 1px solid rgba(56, 189, 248, 0.12);
   border-radius: 3px;
   font-size: 0.7rem;
 }
@@ -2260,7 +2426,10 @@ canvas.leaflet-zoom-animated {
 .m-box {
   display: flex;
   flex-direction: column;
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(15, 28, 56, 0.55);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(56, 189, 248, 0.15);
   padding: 5px 7px;
   border-radius: 4px;
 }
@@ -2285,8 +2454,11 @@ canvas.leaflet-zoom-animated {
   font-size: 0.68rem;
   color: var(--text-dim);
   border-radius: var(--radius-md);
-  border-color: rgba(255, 255, 255, 0.1);
-  background: rgba(8, 14, 26, 0.85);
+  border: 1px solid rgba(56, 189, 248, 0.22);
+  background: rgba(8, 16, 32, 0.75);
+  backdrop-filter: blur(18px) saturate(180%);
+  -webkit-backdrop-filter: blur(18px) saturate(180%);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
 .footer-disclaimer-text { color: var(--text-dim); font-size: 0.66rem; }
@@ -2425,9 +2597,12 @@ canvas.leaflet-zoom-animated {
   align-items: center;
   justify-content: space-between;
   padding: 6px 10px;
-  background: rgba(0, 0, 0, 0.35);
+  background: rgba(12, 24, 52, 0.6);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   border-radius: var(--radius-sm);
-  border: 1px solid var(--border-glass-light);
+  border: 1px solid rgba(56, 189, 248, 0.2);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
 .basis-pill {
@@ -2450,13 +2625,19 @@ canvas.leaflet-zoom-animated {
   text-align: center;
   color: var(--text-dim);
   font-size: 0.78rem;
-  background: rgba(0, 0, 0, 0.2);
+  background: rgba(10, 20, 40, 0.4);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(56, 189, 248, 0.15);
   border-radius: var(--radius-sm);
 }
 
 .alert-card {
-  background: rgba(8, 14, 26, 0.92);
-  border: 1px solid var(--border-glass-light);
+  background: rgba(10, 22, 46, 0.72);
+  backdrop-filter: blur(14px) saturate(180%);
+  -webkit-backdrop-filter: blur(14px) saturate(180%);
+  border: 1px solid rgba(56, 189, 248, 0.2);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.06);
   border-radius: var(--radius-md);
   padding: 10px;
   display: flex;
@@ -2521,7 +2702,10 @@ canvas.leaflet-zoom-animated {
 .inc-action-box {
   font-size: 0.72rem;
   color: var(--text-main);
-  background: rgba(0, 0, 0, 0.35);
+  background: rgba(15, 28, 56, 0.55);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border: 1px solid rgba(56, 189, 248, 0.15);
   border-radius: 4px;
   padding: 6px;
   margin-top: 4px;
@@ -2565,8 +2749,9 @@ canvas.leaflet-zoom-animated {
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(4, 8, 16, 0.75);
-  backdrop-filter: blur(10px);
+  background: rgba(4, 8, 16, 0.65);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   z-index: 1500;
   display: flex;
   align-items: center;
@@ -2582,9 +2767,12 @@ canvas.leaflet-zoom-animated {
   flex-direction: column;
   padding: 16px;
   gap: 12px;
-  border-color: rgba(6, 182, 212, 0.45);
-  background: rgba(8, 14, 26, 0.95);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.8), 0 0 20px rgba(6, 182, 212, 0.25);
+  border-radius: var(--radius-lg);
+  border: 1.5px solid rgba(56, 189, 248, 0.35);
+  background: rgba(10, 20, 44, 0.82);
+  backdrop-filter: blur(24px) saturate(200%);
+  -webkit-backdrop-filter: blur(24px) saturate(200%);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8), 0 0 30px rgba(6, 182, 212, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.15);
 }
 
 .pump-modal-header {
@@ -2614,8 +2802,11 @@ canvas.leaflet-zoom-animated {
 }
 
 .pump-status-banner {
-  background: rgba(0, 0, 0, 0.4);
-  border: 1px solid var(--border-glass-light);
+  background: rgba(12, 24, 52, 0.65);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(56, 189, 248, 0.22);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
   border-radius: var(--radius-sm);
   padding: 8px 10px;
   display: flex;
@@ -2649,15 +2840,17 @@ canvas.leaflet-zoom-animated {
   align-items: center;
   justify-content: space-between;
   padding: 6px 8px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(15, 28, 56, 0.5);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(56, 189, 248, 0.15);
   border-radius: 4px;
   font-size: 0.72rem;
-  transition: background 0.15s;
+  transition: all 0.15s ease;
 }
 .pump-item-row:hover {
-  background: rgba(6, 182, 212, 0.1);
-  border-color: rgba(6, 182, 212, 0.3);
+  background: rgba(6, 182, 212, 0.18);
+  border-color: rgba(6, 182, 212, 0.45);
 }
 
 .pump-num { color: var(--accent-cyan-bright); font-weight: 700; font-family: var(--font-mono); }
@@ -2714,8 +2907,11 @@ canvas.leaflet-zoom-animated {
    8. POPULATION RESPONSE PRIORITY STYLING
    -------------------------------------------------------------------------- */
 .scada-response-priority-box {
-  background: rgba(15, 23, 42, 0.6);
+  background: rgba(15, 23, 48, 0.65);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border: 1px solid rgba(168, 85, 247, 0.35);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
   border-radius: 6px;
   padding: 8px;
   margin-top: 6px;
@@ -2761,7 +2957,10 @@ canvas.leaflet-zoom-animated {
 
 .top-priority-card {
   background: rgba(30, 27, 75, 0.45);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border: 1px solid rgba(168, 85, 247, 0.4);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.08);
   border-radius: 5px;
   padding: 8px;
   margin-top: 6px;
