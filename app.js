@@ -2437,8 +2437,27 @@ function initSideTabs() {
       const targetEl = document.getElementById(targetTab);
       if (targetEl) targetEl.classList.add("active");
 
+      // Synchronize top nav module tabs when sidebar tabs change
+      const navBtns = document.querySelectorAll(".nav-module-btn");
+      const pModal = document.getElementById("pump-modal");
+      if (pModal) pModal.classList.add("hidden");
+
       if (targetTab === "tab-alerts") {
+        navBtns.forEach((b) => b.classList.remove("active"));
+        const btnAlerts = document.getElementById("nav-btn-alerts");
+        if (btnAlerts) btnAlerts.classList.add("active");
         loadAlertsPanel(true);
+      } else if (targetTab === "tab-routing") {
+        navBtns.forEach((b) => b.classList.remove("active"));
+        const btnAnalytics = document.getElementById("nav-btn-analytics");
+        if (btnAnalytics) btnAnalytics.classList.add("active");
+      } else if (targetTab === "tab-situation") {
+        const btnScada = document.getElementById("nav-btn-scada");
+        const btnGis = document.getElementById("nav-btn-gis");
+        if (!btnScada?.classList.contains("active")) {
+          navBtns.forEach((b) => b.classList.remove("active"));
+          if (btnGis) btnGis.classList.add("active");
+        }
       }
     });
   });
@@ -2474,31 +2493,49 @@ function initTopNavModuleButtons() {
     if (activeBtn) activeBtn.classList.add("active");
   };
 
+  const closePumpModal = () => {
+    const pModal = document.getElementById("pump-modal");
+    if (pModal) pModal.classList.add("hidden");
+  };
+
   if (btnGis) {
     btnGis.addEventListener("click", () => {
       setActiveNav(btnGis);
+      closePumpModal();
       const tabBtn = document.querySelector('.side-tab-btn[data-tab="tab-situation"]');
       if (tabBtn) tabBtn.click();
+      const sidebar = document.querySelector(".command-sidebar");
+      if (sidebar) sidebar.scrollTo({ top: 0, behavior: "smooth" });
     });
   }
 
   if (btnScada) {
     btnScada.addEventListener("click", () => {
       setActiveNav(btnScada);
+      closePumpModal(); // Never open the pump modal on Drainage & SCADA click
+      
+      // 1. Activate Situation / SCADA tab in sidebar
+      const tabBtn = document.querySelector('.side-tab-btn[data-tab="tab-situation"]');
+      if (tabBtn) tabBtn.click();
+
+      // 2. Ensure Drainage Network layer is visible on the GIS map canvas
       const dCheck = document.getElementById("layer-drains-check");
       if (dCheck && !dCheck.checked) {
         dCheck.checked = true;
         loadDrainageNetworkLayer();
       }
+
+      // 3. Ensure Pump Stations are active on the GIS map canvas
       const pCheck = document.getElementById("layer-pumps-check");
       if (pCheck && !pCheck.checked) {
         pCheck.checked = true;
         handlePumpsToggle(true);
       }
-      const pModal = document.getElementById("pump-modal");
-      if (pModal) {
-        pModal.classList.remove("hidden");
-        loadPumpStationsMetadata();
+
+      // 4. Smoothly scroll directly to the SCADA telemetry header & metrics grid
+      const scadaHeader = document.querySelector(".scada-header-card") || document.querySelector(".scada-metrics-grid");
+      if (scadaHeader) {
+        scadaHeader.scrollIntoView({ behavior: "smooth", block: "start" });
       }
     });
   }
@@ -2506,19 +2543,34 @@ function initTopNavModuleButtons() {
   if (btnAlerts) {
     btnAlerts.addEventListener("click", () => {
       setActiveNav(btnAlerts);
+      closePumpModal();
+      // Activate Alerts & Triage tab in sidebar
       const tabBtn = document.querySelector('.side-tab-btn[data-tab="tab-alerts"]');
       if (tabBtn) tabBtn.click();
+      loadAlertsPanel(true);
+      const alertsTab = document.getElementById("tab-alerts");
+      if (alertsTab) {
+        alertsTab.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
     });
   }
 
   if (btnAnalytics) {
     btnAnalytics.addEventListener("click", () => {
       setActiveNav(btnAnalytics);
-      const tabBtn = document.querySelector('.side-tab-btn[data-tab="tab-situation"]');
+      closePumpModal();
+      // Activate AquaGraph Router & Hydro Analytics tab in sidebar
+      const tabBtn = document.querySelector('.side-tab-btn[data-tab="tab-routing"]');
       if (tabBtn) tabBtn.click();
-      const scadaGrid = document.querySelector(".scada-metrics-grid");
-      if (scadaGrid) {
-        scadaGrid.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      const routeTab = document.getElementById("tab-routing");
+      if (routeTab) {
+        routeTab.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+      // Ensure Smart Routing layer checkbox is enabled
+      const rCheck = document.getElementById("layer-route-check");
+      if (rCheck && !rCheck.checked) {
+        rCheck.checked = true;
+        setSmartRouterState(true, { openTab: true });
       }
     });
   }

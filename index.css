@@ -196,17 +196,101 @@ body.theme-bright .nav-modules {
 body.theme-bright .nav-module-btn {
   color: #0c3866;
   font-weight: 700;
+  border: 1.5px solid transparent;
+  border-radius: var(--radius-sm);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 body.theme-bright .nav-module-btn:hover {
   color: #034575;
   background: rgba(202, 228, 252, 0.85);
+  border-color: rgba(147, 197, 253, 0.7);
+  transform: translateY(-1px);
 }
 
+body.theme-bright #nav-btn-scada:hover {
+  color: #0284c7;
+  background: rgba(56, 189, 248, 0.14);
+  border-color: rgba(56, 189, 248, 0.45);
+}
+
+body.theme-bright #nav-btn-alerts:hover {
+  color: #059669;
+  background: rgba(16, 185, 129, 0.14);
+  border-color: rgba(16, 185, 129, 0.45);
+}
+
+body.theme-bright #nav-btn-analytics:hover {
+  color: #7e22ce;
+  background: rgba(168, 85, 247, 0.14);
+  border-color: rgba(168, 85, 247, 0.45);
+}
+
+/* Base Active Nav Button (Internal UI HUD Glassmorphism) */
 body.theme-bright .nav-module-btn.active {
-  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+  background: linear-gradient(135deg, rgba(8, 28, 58, 0.94) 0%, rgba(14, 38, 76, 0.90) 100%);
+  backdrop-filter: blur(14px) saturate(190%);
+  -webkit-backdrop-filter: blur(14px) saturate(190%);
   color: #ffffff;
-  box-shadow: 0 2px 10px rgba(2, 132, 199, 0.4);
+  border: 1.5px solid rgba(56, 189, 248, 0.65);
+  box-shadow: 0 4px 14px rgba(6, 22, 48, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.28);
+  font-weight: 800;
+}
+
+/* 1. GIS Map Tab Active */
+body.theme-bright #nav-btn-gis.active {
+  background: linear-gradient(135deg, rgba(10, 37, 68, 0.94) 0%, rgba(18, 56, 102, 0.90) 100%);
+  backdrop-filter: blur(14px) saturate(190%);
+  -webkit-backdrop-filter: blur(14px) saturate(190%);
+  border: 1.5px solid rgba(56, 189, 248, 0.65);
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(10, 37, 68, 0.32), 0 0 10px rgba(56, 189, 248, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.28);
+}
+body.theme-bright #nav-btn-gis.active svg {
+  stroke: #38bdf8;
+  filter: drop-shadow(0 0 4px rgba(56, 189, 248, 0.7));
+}
+
+/* 2. Drainage & SCADA Tab Active (Matches Dark Bluish SCADA Telemetry Portion) */
+body.theme-bright #nav-btn-scada.active {
+  background: linear-gradient(135deg, rgba(8, 28, 58, 0.94) 0%, rgba(14, 38, 76, 0.90) 100%);
+  backdrop-filter: blur(14px) saturate(190%);
+  -webkit-backdrop-filter: blur(14px) saturate(190%);
+  border: 1.5px solid rgba(56, 189, 248, 0.7);
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(6, 22, 48, 0.35), 0 0 12px rgba(56, 189, 248, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+body.theme-bright #nav-btn-scada.active svg {
+  stroke: #38bdf8;
+  filter: drop-shadow(0 0 4px rgba(56, 189, 248, 0.75));
+}
+
+/* 3. Alerts & Triage Tab Active (Matches Alerts Internal UI) */
+body.theme-bright #nav-btn-alerts.active {
+  background: linear-gradient(135deg, rgba(10, 32, 54, 0.94) 0%, rgba(12, 44, 72, 0.90) 100%);
+  backdrop-filter: blur(14px) saturate(190%);
+  -webkit-backdrop-filter: blur(14px) saturate(190%);
+  border: 1.5px solid rgba(16, 185, 129, 0.75);
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(6, 22, 48, 0.35), 0 0 12px rgba(16, 185, 129, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+body.theme-bright #nav-btn-alerts.active svg {
+  stroke: #34d399;
+  filter: drop-shadow(0 0 4px rgba(52, 211, 153, 0.75));
+}
+
+/* 4. Hydro Analytics Tab Active (Matches Purplish Exposure & Analytics Portion) */
+body.theme-bright #nav-btn-analytics.active {
+  background: linear-gradient(135deg, rgba(38, 14, 66, 0.94) 0%, rgba(58, 24, 98, 0.90) 100%);
+  backdrop-filter: blur(14px) saturate(190%);
+  -webkit-backdrop-filter: blur(14px) saturate(190%);
+  border: 1.5px solid rgba(168, 85, 247, 0.75);
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(58, 24, 98, 0.35), 0 0 12px rgba(168, 85, 247, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+body.theme-bright #nav-btn-analytics.active svg {
+  stroke: #c084fc;
+  filter: drop-shadow(0 0 4px rgba(192, 132, 252, 0.8));
 }
 
 body.theme-bright .telemetry-item {
@@ -474,6 +558,26 @@ body.theme-bright .side-tab-btn.active {
   border: 1.5px solid #60a5fa;
   box-shadow: 0 2px 8px rgba(2, 132, 199, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.9);
   font-weight: 800;
+}
+
+body.theme-bright .side-tab-btn[data-tab="tab-routing"].active {
+  background: rgba(243, 232, 255, 0.92);
+  color: #7e22ce;
+  border-color: #c084fc;
+  box-shadow: 0 2px 8px rgba(126, 34, 206, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+body.theme-bright .side-tab-btn[data-tab="tab-routing"].active svg {
+  stroke: #9333ea;
+}
+
+body.theme-bright .side-tab-btn[data-tab="tab-alerts"].active {
+  background: rgba(236, 253, 245, 0.92);
+  color: #047857;
+  border-color: #34d399;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+body.theme-bright .side-tab-btn[data-tab="tab-alerts"].active svg {
+  stroke: #10b981;
 }
 
 body.theme-bright .sidebar-tab-content {
