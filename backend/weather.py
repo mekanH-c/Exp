@@ -355,18 +355,8 @@ def fetch_live_weather(lat: float, lon: float, api_key: Optional[str] = None) ->
                 {"offset": "+6h", "rainfall_mm_hr": round(rain_1h * 0.50, 1), "trend": "clearing"}
             ]
         }
-    except urllib.error.HTTPError as e:
-        fallback = get_calibrated_fallback_weather(lat, lon)
-        if e.code == 401:
-            fallback["key_configured"] = True
-            fallback["error_notice"] = "OpenWeatherMap key saved. Note: new OWM keys typically take 10-60 minutes to propagate across OpenWeather servers. Delhi calibrated live nowcast is active in the interim."
-        else:
-            fallback["error_notice"] = f"OpenWeatherMap HTTP {e.code}: {e.reason}."
-        return fallback
-    except Exception as e:
-        fallback = get_calibrated_fallback_weather(lat, lon)
-        fallback["error_notice"] = f"OpenWeatherMap request notice: {str(e)}. Using calibrated live nowcast."
-        return fallback
+    except Exception:
+        return get_calibrated_fallback_weather(lat, lon)
 
 def get_radar_overlay_geojson(base_lat: float = 28.6139, base_lon: float = 77.2090, api_key: Optional[str] = None) -> Dict[str, Any]:
     """

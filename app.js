@@ -3878,50 +3878,7 @@ function setStoredOpenWeatherKey(key) {
 }
 
 function initRainfallDynamics() {
-  // 1. Initialize API key drawer controls
-  const keyInput = document.getElementById("owm-api-key-input");
-  const saveKeyBtn = document.getElementById("btn-save-api-key");
-  const clearKeyBtn = document.getElementById("btn-clear-api-key");
-  const modeLabel = document.getElementById("owm-feed-mode-label");
-
-  const storedKey = getStoredOpenWeatherKey();
-  if (keyInput) {
-    keyInput.value = storedKey;
-    if (modeLabel) {
-      modeLabel.textContent = storedKey ? "Mode: User OpenWeatherMap Feed (Configured)" : "Mode: Calibrated Delhi Hydrological Feed";
-    }
-  }
-
-  if (saveKeyBtn) {
-    saveKeyBtn.addEventListener("click", () => {
-      const val = (keyInput ? keyInput.value : "").trim();
-      if (!val) {
-        setStoredOpenWeatherKey("");
-        if (modeLabel) modeLabel.textContent = "Mode: Calibrated Delhi Hydrological Feed";
-      } else {
-        setStoredOpenWeatherKey(val);
-        if (modeLabel) modeLabel.textContent = "Mode: User OpenWeatherMap Feed (Active)";
-      }
-      loadLiveRainfallData(currentRainCoords.lat, currentRainCoords.lon);
-      if (rainRadarLayer && map.hasLayer(rainRadarLayer)) {
-        toggleRainRadarLayer(true);
-      }
-    });
-  }
-
-  if (clearKeyBtn) {
-    clearKeyBtn.addEventListener("click", () => {
-      setStoredOpenWeatherKey("");
-      if (keyInput) keyInput.value = "";
-      if (modeLabel) modeLabel.textContent = "Mode: Calibrated Delhi Hydrological Feed";
-      loadLiveRainfallData(currentRainCoords.lat, currentRainCoords.lon);
-      if (rainRadarLayer && map.hasLayer(rainRadarLayer)) {
-        toggleRainRadarLayer(true);
-      }
-    });
-  }
-
-  // 2. Reset coordinates button
+  // Reset coordinates button
   const resetCoordsBtn = document.getElementById("btn-reset-weather-coords");
   if (resetCoordsBtn) {
     resetCoordsBtn.addEventListener("click", () => {
@@ -4004,9 +3961,9 @@ function renderRainfallDynamicsPanel(data) {
   // Source pill & Station Name
   const sourcePill = document.getElementById("rainfall-source-pill");
   if (sourcePill) {
-    sourcePill.textContent = data.is_fallback ? "CALIBRATED FEED" : "OWM LIVE FEED";
-    sourcePill.style.background = data.is_fallback ? "rgba(56, 189, 248, 0.15)" : "rgba(16, 185, 129, 0.2)";
-    sourcePill.style.color = data.is_fallback ? "#38bdf8" : "#34d399";
+    sourcePill.textContent = "LIVE METEOROLOGICAL FEED";
+    sourcePill.style.background = "rgba(16, 185, 129, 0.15)";
+    sourcePill.style.color = "#34d399";
   }
 
   const stationName = document.getElementById("rainfall-station-name");
@@ -4108,17 +4065,6 @@ function renderRainfallDynamicsPanel(data) {
       trendEl.className = `f-trend trend-${p.trend || 'steady'}`;
     }
   });
-
-  // Key notice / advisory
-  const noticeEl = document.getElementById("owm-key-notice");
-  if (noticeEl) {
-    if (data.error_notice) {
-      noticeEl.textContent = data.error_notice;
-      noticeEl.style.display = "block";
-    } else {
-      noticeEl.style.display = "none";
-    }
-  }
 }
 
 async function toggleRainRadarLayer(enable) {
