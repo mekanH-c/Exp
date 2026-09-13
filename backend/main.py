@@ -471,3 +471,12 @@ def alerts(
         recent_rainfall_intensity=recent_rainfall_intensity,
         bbox=bbox_list,
     )
+
+
+# ---------------------------------------------------------------------------
+# Static Files & Frontend Serving for Unified Cloud Deployment
+# ---------------------------------------------------------------------------
+from fastapi.staticfiles import StaticFiles
+
+if (project_root / "index.html").exists():
+    app.mount("/", StaticFiles(directory=str(project_root), html=True), name="static")

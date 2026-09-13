@@ -123,6 +123,10 @@ async function probeAndSelectBackend() {
   );
 
   const candidates = [];
+  // If hosted on cloud or unified host, probe same-origin first for 0ms zero-CORS connection
+  if (typeof window !== "undefined" && window.location && window.location.origin && !isLocalHost) {
+    candidates.push({ url: window.location.origin, label: "Cloud Host (Same Origin)" });
+  }
   if (isLocalHost) {
     candidates.push({ url: "http://127.0.0.1:8001", label: "Local (Port 8001)" });
     candidates.push({ url: "http://127.0.0.1:8000", label: "Local (Port 8000)" });
