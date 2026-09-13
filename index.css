@@ -594,6 +594,16 @@ body.theme-bright .side-tab-btn[data-tab="tab-alerts"].active svg {
   stroke: #10b981;
 }
 
+body.theme-bright .side-tab-btn[data-tab="tab-rainfall"].active {
+  background: rgba(224, 242, 254, 0.92);
+  color: #0284c7;
+  border-color: #38bdf8;
+  box-shadow: 0 2px 8px rgba(2, 132, 199, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+body.theme-bright .side-tab-btn[data-tab="tab-rainfall"].active svg {
+  stroke: #0284c7;
+}
+
 body.theme-bright .sidebar-tab-content {
   background: rgba(222, 239, 254, 0.8);
   backdrop-filter: blur(20px) saturate(180%);
@@ -2137,8 +2147,8 @@ canvas.leaflet-zoom-animated {
    3. RIGHT FLOOD SITUATION COMMAND SIDEBAR & SIMULATOR
    -------------------------------------------------------------------------- */
 .command-sidebar {
-  width: 350px;
-  max-width: 350px;
+  width: 365px;
+  max-width: 380px;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -2317,7 +2327,8 @@ canvas.leaflet-zoom-animated {
 }
 
 .sidebar-tabs-header {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   padding: 4px;
   gap: 4px;
   border-radius: var(--radius-md);
@@ -2325,20 +2336,27 @@ canvas.leaflet-zoom-animated {
 }
 
 .side-tab-btn {
-  flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  padding: 8px 12px;
-  border: none;
+  gap: 5px;
+  padding: 7px 8px;
+  border: 1px solid transparent;
   background: transparent;
   color: var(--text-muted);
-  font-size: 0.78rem;
-  font-weight: 600;
+  font-size: 0.72rem;
+  font-weight: 700;
   border-radius: var(--radius-sm);
   cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   transition: all 0.2s ease;
+}
+
+.side-tab-btn:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.07);
 }
 
 .side-tab-btn.active {
@@ -2346,6 +2364,13 @@ canvas.leaflet-zoom-animated {
   color: white;
   box-shadow: 0 0 10px rgba(59, 130, 246, 0.45);
   border: 1px solid rgba(56, 189, 248, 0.3);
+}
+
+.side-tab-btn[data-tab="tab-rainfall"].active {
+  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+  color: white;
+  border: 1px solid rgba(56, 189, 248, 0.5);
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.45);
 }
 
 .sidebar-tab-content {
@@ -3773,13 +3798,16 @@ canvas.leaflet-zoom-animated {
    ========================================================================== */
 
 #tab-rainfall {
-  display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
+#tab-rainfall:not(.active) {
+  display: none !important;
+}
+
 #tab-rainfall.active {
-  display: flex;
+  display: flex !important;
   animation: tabContentSmoothIn 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
