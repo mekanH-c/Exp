@@ -51,6 +51,10 @@
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
           Hydro Analytics
         </button>
+        <button id="nav-btn-rainfall" class="nav-module-btn" title="Rainfall Dynamics &amp; Live API">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 16.58A5 5 0 0 0 18 7h-1.26A8 8 0 1 0 4 15.25"/><path d="M8 19v2"/><path d="M8 13v2"/><path d="M12 21v2"/><path d="M12 15v2"/><path d="M16 19v2"/><path d="M16 13v2"/></svg>
+          Rainfall Dynamics
+        </button>
       </nav>
 
       <!-- System Status Telemetry & Dual Theme Switcher -->
@@ -155,6 +159,18 @@
                 <input type="checkbox" id="layer-route-check" />
                 <span class="checkmark"></span>
                 <span class="layer-name">Smart Routing</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- SECTION 4: PRECIPITATION & METEOROLOGY -->
+          <div class="layer-group-section">
+            <div class="group-title">LIVE RADAR &amp; PRECIPITATION</div>
+            <div class="layer-item">
+              <label class="custom-checkbox">
+                <input type="checkbox" id="layer-rain-radar-check" />
+                <span class="checkmark"></span>
+                <span class="layer-name">Rainfall Radar / Heatmap</span>
               </label>
             </div>
           </div>
@@ -353,6 +369,10 @@
               <span class="insp-lbl">Drainage Proximity:</span>
               <span id="insp-drain-dist" class="insp-val highlight">--</span>
             </div>
+            <div class="insp-row">
+              <span class="insp-lbl">Live Rainfall Rate:</span>
+              <span id="insp-live-rain" class="insp-val highlight font-mono">-- mm/hr</span>
+            </div>
             <div class="insp-basis-tag">
               Risk Basis: <strong id="insp-basis">spatial_proxy</strong> (Terrain DEM + MPD-1976)
             </div>
@@ -408,6 +428,10 @@
           <button class="side-tab-btn" data-tab="tab-alerts">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
             Alerts &amp; Triage
+          </button>
+          <button class="side-tab-btn" data-tab="tab-rainfall" title="Live Rain API &amp; Precipitation Dynamics">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 16.58A5 5 0 0 0 18 7h-1.26A8 8 0 1 0 4 15.25"/><path d="M8 19v2"/><path d="M8 13v2"/><path d="M12 21v2"/><path d="M12 15v2"/><path d="M16 19v2"/><path d="M16 13v2"/></svg>
+            Rainfall Dynamics
           </button>
         </div>
 
@@ -804,6 +828,164 @@
             <div class="alert-empty-msg">No high priority incidents for current viewport.</div>
           </div>
         </div>
+
+          <!-- TAB 4: LIVE RAINFALL DYNAMICS & OPENWEATHERMAP API -->
+          <div id="tab-rainfall" class="sidebar-tab-content glass-panel">
+            <!-- 1. HEADER TELEMETRY CARD -->
+            <div class="scada-header-card rainfall-header-card">
+              <div class="scada-title-row">
+                <div class="scada-title">
+                  <span class="live-dot pulse" id="rainfall-live-dot"></span>
+                  <span>RAINFALL DYNAMICS</span>
+                </div>
+                <span id="rainfall-source-pill" class="scada-timestep-pill font-mono">LIVE FEED</span>
+              </div>
+              <div class="scada-status-row">
+                <span id="rainfall-station-name" class="scada-subtext font-mono" title="Telemetry Station / Field Coordinate">Delhi - Connaught Place / NDMC Core</span>
+                <span id="rainfall-level-badge" class="scada-status-badge normal">NORMAL</span>
+              </div>
+            </div>
+
+            <!-- 2. API KEY MANAGEMENT DRAWER -->
+            <div class="weather-api-drawer">
+              <div class="weather-api-row">
+                <div class="api-key-input-wrapper">
+                  <svg class="key-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-1-1l-4 4m2-6l-3 3m1-1l-4 4-2-2-7 7 4 4 7-7-2-2 4-4 1 1 3-3z"/></svg>
+                  <input type="password" id="owm-api-key-input" class="owm-input font-mono" placeholder="Enter OpenWeatherMap API Key (appid)..." autocomplete="off" />
+                </div>
+                <button id="btn-save-api-key" class="owm-key-btn" title="Apply API Key">Apply</button>
+                <button id="btn-clear-api-key" class="owm-key-btn-secondary" title="Clear API Key &amp; Revert to Calibrated Feed">Reset</button>
+              </div>
+              <div class="weather-api-caption font-mono">
+                <span id="owm-feed-mode-label">Mode: Calibrated Delhi Hydrological Feed</span>
+                <a href="https://openweathermap.org/api" target="_blank" rel="noopener noreferrer" class="owm-link">Get Free Key &nearr;</a>
+              </div>
+            </div>
+
+            <!-- 3. PRIMARY PRECIPITATION & WEATHER METRICS (6 KPI TILES) -->
+            <div class="rainfall-metrics-grid">
+              <!-- Metric 1: Live Intensity -->
+              <div class="scada-metric-card rainfall-kpi-featured">
+                <div class="kpi-header-flex">
+                  <span class="m-label">LIVE RAIN INTENSITY</span>
+                  <span id="rainfall-intensity-tag" class="intensity-tag tag-low">LIGHT</span>
+                </div>
+                <div class="kpi-val-row">
+                  <span id="rainfall-rate-val" class="m-value font-mono">0.0</span>
+                  <span class="m-unit font-mono">mm/hr</span>
+                </div>
+                <span class="m-sub font-mono">CURRENT PRECIPITATION</span>
+              </div>
+
+              <!-- Metric 2: 1-Hour Accumulation -->
+              <div class="scada-metric-card">
+                <span class="m-label">TOTAL PRECIP (1H)</span>
+                <div class="kpi-val-row">
+                  <span id="rainfall-total-1h" class="m-value font-mono">0.0</span>
+                  <span class="m-unit font-mono">mm</span>
+                </div>
+                <span class="m-sub font-mono">ACCUMULATED PAST HOUR</span>
+              </div>
+
+              <!-- Metric 3: 3-Hour Cumulative -->
+              <div class="scada-metric-card">
+                <span class="m-label">CUMULATIVE (3H)</span>
+                <div class="kpi-val-row">
+                  <span id="rainfall-total-3h" class="m-value font-mono">0.0</span>
+                  <span class="m-unit font-mono">mm</span>
+                </div>
+                <span class="m-sub font-mono">3-HOUR SURCHARGE PROXY</span>
+              </div>
+
+              <!-- Metric 4: Doppler Radar Reflectivity -->
+              <div class="scada-metric-card">
+                <span class="m-label">RADAR REFLECTIVITY</span>
+                <div class="kpi-val-row">
+                  <span id="rainfall-dbz-val" class="m-value font-mono">0.0</span>
+                  <span class="m-unit font-mono">dBZ</span>
+                </div>
+                <span class="m-sub font-mono">MARSHALL-PALMER Z=200*R^1.6</span>
+              </div>
+
+              <!-- Metric 5: Atmospheric Cloud & Humidity -->
+              <div class="scada-metric-card">
+                <span class="m-label">ATMOSPHERIC MOISTURE</span>
+                <div class="kpi-val-row">
+                  <span id="rainfall-humidity-val" class="m-value font-mono">0%</span>
+                  <span class="m-unit font-mono" id="rainfall-cloud-val">/ 0% cld</span>
+                </div>
+                <span class="m-sub font-mono">HUMIDITY &amp; CLOUD COVER</span>
+              </div>
+
+              <!-- Metric 6: Wind Telemetry -->
+              <div class="scada-metric-card">
+                <span class="m-label">WIND VECTOR</span>
+                <div class="kpi-val-row">
+                  <span id="rainfall-wind-val" class="m-value font-mono">0.0</span>
+                  <span class="m-unit font-mono" id="rainfall-wind-dir">km/h N</span>
+                </div>
+                <span class="m-sub font-mono">SURFACE DRAINAGE DRIFT</span>
+              </div>
+            </div>
+
+            <!-- 4. CRITICAL THRESHOLD & FLOOD RISK ALERT CARD -->
+            <div id="rainfall-alert-card" class="rainfall-alert-box alert-normal">
+              <div class="alert-icon-wrap">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              </div>
+              <div class="alert-content">
+                <div class="alert-title font-mono" id="rainfall-alert-title">PRECIPITATION THRESHOLD: NORMAL</div>
+                <div class="alert-desc" id="rainfall-alert-desc">Normal drainage conditions. Standard baseline gravity outflow.</div>
+              </div>
+            </div>
+
+            <!-- 5. LOCATION-SPECIFIC SAMPLING HUD CARD -->
+            <div class="rainfall-location-card">
+              <div class="loc-card-header">
+                <div class="loc-card-title font-mono">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>
+                  MAP RETICLE SAMPLING
+                </div>
+                <span id="rainfall-coords-badge" class="coord-pill font-mono">28.6139° N, 77.2090° E</span>
+              </div>
+              <p class="loc-card-help">Click anywhere on the GIS map to sample micro-climate precipitation, cloud cover, and runoff rate for that specific coordinate.</p>
+              <div class="loc-card-actions">
+                <button id="btn-reset-weather-coords" class="secondary-btn btn-sm" title="Center on Delhi Capital Core">Reset to Delhi Center</button>
+                <button id="btn-toggle-rain-radar" class="secondary-btn btn-sm" title="Toggle Live Rain Radar on Map">Radar Overlay</button>
+              </div>
+            </div>
+
+            <!-- 6. SIMULATION INTEGRATION BRIDGE (ACTION BUTTON) -->
+            <div class="rainfall-sync-container">
+              <button id="btn-sync-simulation-live-rain" class="action-btn-primary btn-full-width" title="Feed current live precipitation into AquaG ML Waterlogging &amp; Pump Utilization Engine">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                ⚡ Sync GIS Simulation to Live Rain
+              </button>
+              <div id="rainfall-sync-status" class="sync-status-caption font-mono">Simulation calibrated to manual scenario. Click to sync with live telemetry.</div>
+            </div>
+
+            <!-- 7. SHORT-TERM NOWCAST PROJECTIONS (+1h, +3h, +6h) -->
+            <div class="forecast-section">
+              <div class="forecast-header font-mono">NOWCAST PROJECTIONS &amp; TRENDS</div>
+              <div class="forecast-cards-row">
+                <div class="forecast-pill-card">
+                  <span class="f-time font-mono">+1 Hour</span>
+                  <span class="f-rain font-mono" id="forecast-rain-1h">0.0 mm/h</span>
+                  <span class="f-trend trend-rising" id="forecast-trend-1h">Rising</span>
+                </div>
+                <div class="forecast-pill-card">
+                  <span class="f-time font-mono">+3 Hours</span>
+                  <span class="f-rain font-mono" id="forecast-rain-3h">0.0 mm/h</span>
+                  <span class="f-trend trend-steady" id="forecast-trend-3h">Steady</span>
+                </div>
+                <div class="forecast-pill-card">
+                  <span class="f-time font-mono">+6 Hours</span>
+                  <span class="f-rain font-mono" id="forecast-rain-6h">0.0 mm/h</span>
+                  <span class="f-trend trend-easing" id="forecast-trend-6h">Easing</span>
+                </div>
+              </div>
+            </div>
+          </div>
       </aside>
     </main>
 

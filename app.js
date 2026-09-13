@@ -384,6 +384,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   initInspectorCard();
   initTopPriorityFocusHandler();
   initSmartRouterState();
+  initRainfallDynamics();
 
   // 1. Asynchronously probe & select fastest operational backend (Local 8001 / Cloud Render)
   await probeAndSelectBackend();
@@ -2564,6 +2565,11 @@ function initSideTabs() {
         navBtns.forEach((b) => b.classList.remove("active"));
         const btnAnalytics = document.getElementById("nav-btn-analytics");
         if (btnAnalytics) btnAnalytics.classList.add("active");
+      } else if (targetTab === "tab-rainfall") {
+        navBtns.forEach((b) => b.classList.remove("active"));
+        const btnRainfall = document.getElementById("nav-btn-rainfall");
+        if (btnRainfall) btnRainfall.classList.add("active");
+        setTimeout(() => loadLiveRainfallData(), 30);
       } else if (targetTab === "tab-situation") {
         const btnScada = document.getElementById("nav-btn-scada");
         const btnGis = document.getElementById("nav-btn-gis");
@@ -2598,6 +2604,7 @@ function initTopNavModuleButtons() {
   const btnScada = document.getElementById("nav-btn-scada");
   const btnAlerts = document.getElementById("nav-btn-alerts");
   const btnAnalytics = document.getElementById("nav-btn-analytics");
+  const btnRainfall = document.getElementById("nav-btn-rainfall");
   const navBtns = document.querySelectorAll(".nav-module-btn");
 
   const setActiveNav = (activeBtn) => {
@@ -2683,6 +2690,19 @@ function initTopNavModuleButtons() {
           setSmartRouterState(true, { openTab: true });
         }
       }, 40);
+    });
+  }
+
+  if (btnRainfall) {
+    btnRainfall.addEventListener("click", () => {
+      setActiveNav(btnRainfall);
+      closePumpModal();
+      switchActiveTab("tab-rainfall");
+      smoothScrollTabContent("tab-rainfall", 0);
+
+      setTimeout(() => {
+        loadLiveRainfallData();
+      }, 35);
     });
   }
 }
@@ -2956,6 +2976,13 @@ function initLayerToggles() {
       }
     });
   }
+
+  const rainRadarCheck = document.getElementById("layer-rain-radar-check");
+  if (rainRadarCheck) {
+    rainRadarCheck.addEventListener("change", (e) => {
+      toggleRainRadarLayer(e.target.checked);
+    });
+  }
 }
 
 let isPlaying = false;
@@ -3212,6 +3239,18 @@ async function handleMapClick(e) {
 
   const coordsEl = document.getElementById("insp-coords");
   if (coordsEl) coordsEl.textContent = `${lat.toFixed(5)}, ${lon.toFixed(5)}`;
+
+  const rainEl = document.getElementById("insp-live-rain");
+  if (rainEl) rainEl.textContent = "Sampling API...";
+
+  // Sample live rainfall for this exact coordinate
+  loadLiveRainfallData(lat, lon).then(() => {
+    if (rainEl && lastLiveWeather) {
+      const rainRate = (lastLiveWeather.rainfall_intensity_mm_hr || 0).toFixed(1);
+      const condition = lastLiveWeather.condition || "Precipitation";
+      rainEl.textContent = `${rainRate} mm/hr (${condition})`;
+    }
+  }).catch(() => {});
 
   try {
     const res = await apiFetch("/flood_info", {
@@ -3767,5 +3806,455 @@ async function loadZoneLayer(shouldFocus = false) {
     console.log("Zone layer fallback:", err.message);
     renderZoneFeatures(DELHI_ZONE_CENTROIDS.map((c, i) => ({ zone_id: String(i), latitude: c.lat, longitude: c.lon, severity: i === 7 ? "High" : i % 2 === 1 ? "Medium" : "Low" })));
     if (shouldFocus) focusOnFloodRiskRegion(true);
+  }
+}
+
+// --------------------------------------------------------------------------
+// LIVE RAINFALL DYNAMICS & OPENWEATHERMAP API CONTROLLER
+// --------------------------------------------------------------------------
+
+let rainRadarLayer = null;
+let currentRainCoords = { lat: 28.6139, lon: 77.2090 };
+let lastLiveWeather = null;
+let rainDataAbortCtrl = null;
+
+function getStoredOpenWeatherKey() {
+  try {
+    return (localStorage.getItem("aquag_owm_api_key") || "").trim();
+  } catch (e) {
+    return "";
+  }
+}
+
+function setStoredOpenWeatherKey(key) {
+  try {
+    if (key && key.trim()) {
+      localStorage.setItem("aquag_owm_api_key", key.trim());
+    } else {
+      localStorage.removeItem("aquag_owm_api_key");
+    }
+  } catch (e) {}
+}
+
+function initRainfallDynamics() {
+  // 1. Initialize API key drawer controls
+  const keyInput = document.getElementById("owm-api-key-input");
+  const saveKeyBtn = document.getElementById("btn-save-api-key");
+  const clearKeyBtn = document.getElementById("btn-clear-api-key");
+  const modeLabel = document.getElementById("owm-feed-mode-label");
+
+  const storedKey = getStoredOpenWeatherKey();
+  if (keyInput && storedKey) {
+    keyInput.value = storedKey;
+    if (modeLabel) modeLabel.textContent = "Mode: User OpenWeatherMap Feed (Active)";
+  }
+
+  if (saveKeyBtn) {
+    saveKeyBtn.addEventListener("click", () => {
+      const val = (keyInput ? keyInput.value : "").trim();
+      if (!val) {
+        setStoredOpenWeatherKey("");
+        if (modeLabel) modeLabel.textContent = "Mode: Calibrated Delhi Hydrological Feed";
+      } else {
+        setStoredOpenWeatherKey(val);
+        if (modeLabel) modeLabel.textContent = "Mode: User OpenWeatherMap Feed (Active)";
+      }
+      loadLiveRainfallData(currentRainCoords.lat, currentRainCoords.lon);
+      if (rainRadarLayer && map.hasLayer(rainRadarLayer)) {
+        toggleRainRadarLayer(true);
+      }
+    });
+  }
+
+  if (clearKeyBtn) {
+    clearKeyBtn.addEventListener("click", () => {
+      setStoredOpenWeatherKey("");
+      if (keyInput) keyInput.value = "";
+      if (modeLabel) modeLabel.textContent = "Mode: Calibrated Delhi Hydrological Feed";
+      loadLiveRainfallData(currentRainCoords.lat, currentRainCoords.lon);
+      if (rainRadarLayer && map.hasLayer(rainRadarLayer)) {
+        toggleRainRadarLayer(true);
+      }
+    });
+  }
+
+  // 2. Reset coordinates button
+  const resetCoordsBtn = document.getElementById("btn-reset-weather-coords");
+  if (resetCoordsBtn) {
+    resetCoordsBtn.addEventListener("click", () => {
+      currentRainCoords = { lat: 28.6139, lon: 77.2090 };
+      if (inspectionMarker) {
+        inspectionMarker.setLatLng([28.6139, 77.2090]);
+      }
+      map.flyTo([28.6139, 77.2090], 12, { duration: 0.8 });
+      loadLiveRainfallData(28.6139, 77.2090);
+    });
+  }
+
+  // 3. Quick Radar Overlay button
+  const radarBtn = document.getElementById("btn-toggle-rain-radar");
+  if (radarBtn) {
+    radarBtn.addEventListener("click", () => {
+      const check = document.getElementById("layer-rain-radar-check");
+      const willEnable = check ? !check.checked : !rainRadarLayer || !map.hasLayer(rainRadarLayer);
+      if (check) check.checked = willEnable;
+      toggleRainRadarLayer(willEnable);
+    });
+  }
+
+  // 4. Sync GIS Simulation to Live Rain button
+  const syncBtn = document.getElementById("btn-sync-simulation-live-rain");
+  if (syncBtn) {
+    syncBtn.addEventListener("click", () => {
+      syncGisWithLiveRain();
+    });
+  }
+
+  // 5. Initial load for Delhi center
+  setTimeout(() => {
+    loadLiveRainfallData(28.6139, 77.2090);
+  }, 100);
+}
+
+async function loadLiveRainfallData(lat = 28.6139, lon = 77.2090) {
+  currentRainCoords = { lat, lon };
+  const key = getStoredOpenWeatherKey();
+
+  if (rainDataAbortCtrl) {
+    rainDataAbortCtrl.abort();
+  }
+  rainDataAbortCtrl = new AbortController();
+  const signal = rainDataAbortCtrl.signal;
+
+  // Update coords badge immediately
+  const coordsBadge = document.getElementById("rainfall-coords-badge");
+  if (coordsBadge) {
+    const latStr = lat >= 0 ? `${lat.toFixed(4)}° N` : `${Math.abs(lat).toFixed(4)}° S`;
+    const lonStr = lon >= 0 ? `${lon.toFixed(4)}° E` : `${Math.abs(lon).toFixed(4)}° W`;
+    coordsBadge.textContent = `${latStr}, ${lonStr}`;
+  }
+
+  try {
+    const params = new URLSearchParams({
+      lat: lat.toFixed(5),
+      lon: lon.toFixed(5)
+    });
+    if (key) params.append("appid", key);
+
+    const res = await apiFetch(`/weather/live?${params.toString()}`, { signal }, 6000);
+    if (signal.aborted) return;
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    if (signal.aborted) return;
+
+    lastLiveWeather = data;
+    renderRainfallDynamicsPanel(data);
+  } catch (err) {
+    if (signal.aborted) return;
+    console.warn("Live rainfall fetch notice:", err.message);
+  }
+}
+
+function renderRainfallDynamicsPanel(data) {
+  if (!data) return;
+
+  // Source pill & Station Name
+  const sourcePill = document.getElementById("rainfall-source-pill");
+  if (sourcePill) {
+    sourcePill.textContent = data.is_fallback ? "CALIBRATED FEED" : "OWM LIVE FEED";
+    sourcePill.style.background = data.is_fallback ? "rgba(56, 189, 248, 0.15)" : "rgba(16, 185, 129, 0.2)";
+    sourcePill.style.color = data.is_fallback ? "#38bdf8" : "#34d399";
+  }
+
+  const stationName = document.getElementById("rainfall-station-name");
+  if (stationName) {
+    stationName.textContent = data.station_name || "Delhi Regional Station";
+  }
+
+  // Level badge & pulsating indicator
+  const levelBadge = document.getElementById("rainfall-level-badge");
+  const liveDot = document.getElementById("rainfall-live-dot");
+  const classification = data.classification || {};
+  const level = (classification.level || "NORMAL").toUpperCase();
+  const severity = classification.severity || "low";
+
+  if (levelBadge) {
+    levelBadge.textContent = level;
+    levelBadge.className = `scada-status-badge ${level.toLowerCase()}`;
+  }
+
+  if (liveDot) {
+    const dotColor = severity === "critical" ? "#ef4444" : severity === "high" ? "#f97316" : severity === "medium" ? "#eab308" : "#10b981";
+    liveDot.style.background = dotColor;
+    liveDot.style.boxShadow = `0 0 8px ${dotColor}`;
+  }
+
+  // Live Rain Intensity Rate KPI
+  const rateVal = document.getElementById("rainfall-rate-val");
+  if (rateVal) {
+    rateVal.textContent = (data.rainfall_intensity_mm_hr || 0.0).toFixed(1);
+  }
+
+  const intensityTag = document.getElementById("rainfall-intensity-tag");
+  if (intensityTag) {
+    intensityTag.textContent = classification.label || "LIGHT";
+    intensityTag.className = `intensity-tag tag-${severity === "critical" ? "crit" : severity === "high" ? "high" : severity === "medium" ? "med" : "low"}`;
+  }
+
+  // 1-Hour & 3-Hour Accumulations
+  const total1h = document.getElementById("rainfall-total-1h");
+  if (total1h) {
+    total1h.textContent = (data.total_precip_1h_mm || data.rainfall_intensity_mm_hr || 0.0).toFixed(1);
+  }
+
+  const total3h = document.getElementById("rainfall-total-3h");
+  if (total3h) {
+    total3h.textContent = (data.total_precip_3h_mm || (data.rainfall_intensity_mm_hr * 2.2) || 0.0).toFixed(1);
+  }
+
+  // Doppler Radar Reflectivity
+  const dbzVal = document.getElementById("rainfall-dbz-val");
+  if (dbzVal) {
+    dbzVal.textContent = (data.dbz_reflectivity || 0.0).toFixed(1);
+    if (data.radar_color) {
+      dbzVal.style.color = data.radar_color;
+    }
+  }
+
+  // Atmospheric Conditions (Humidity & Clouds)
+  const humidVal = document.getElementById("rainfall-humidity-val");
+  const cloudVal = document.getElementById("rainfall-cloud-val");
+  if (humidVal) humidVal.textContent = `${data.humidity_pct || 0}%`;
+  if (cloudVal) cloudVal.textContent = `/ ${data.cloud_cover_pct || 0}% cld`;
+
+  // Wind Vector
+  const windVal = document.getElementById("rainfall-wind-val");
+  const windDir = document.getElementById("rainfall-wind-dir");
+  if (windVal) windVal.textContent = (data.wind_speed_kmh || 0.0).toFixed(1);
+  if (windDir) windDir.textContent = `km/h ${data.wind_direction_cardinal || 'N'}`;
+
+  // Alert Box
+  const alertCard = document.getElementById("rainfall-alert-card");
+  const alertTitle = document.getElementById("rainfall-alert-title");
+  const alertDesc = document.getElementById("rainfall-alert-desc");
+  if (alertCard && alertTitle && alertDesc) {
+    if (severity === "critical") {
+      alertCard.className = "rainfall-alert-box alert-critical";
+      alertTitle.textContent = "CRITICAL EMERGENCY: TORRENTIAL EVENT";
+    } else if (severity === "high") {
+      alertCard.className = "rainfall-alert-box alert-heavy";
+      alertTitle.textContent = "HIGH WARNING: HEAVY INUNDATION THREAT";
+    } else if (severity === "medium") {
+      alertCard.className = "rainfall-alert-box alert-moderate";
+      alertTitle.textContent = "ADVISORY: MODERATE DRAINAGE SURCHARGE";
+    } else {
+      alertCard.className = "rainfall-alert-box alert-normal";
+      alertTitle.textContent = "PRECIPITATION THRESHOLD: NORMAL";
+    }
+    alertDesc.textContent = classification.alert_message || "Normal municipal gravity drainage tolerances in effect.";
+  }
+
+  // Nowcast Projections
+  const projections = data.forecast_projections || [];
+  projections.forEach((p, idx) => {
+    const rainEl = document.getElementById(`forecast-rain-${idx === 0 ? '1h' : idx === 1 ? '3h' : '6h'}`);
+    const trendEl = document.getElementById(`forecast-trend-${idx === 0 ? '1h' : idx === 1 ? '3h' : '6h'}`);
+    if (rainEl) rainEl.textContent = `${(p.rainfall_mm_hr || 0.0).toFixed(1)} mm/h`;
+    if (trendEl) {
+      trendEl.textContent = p.trend || 'steady';
+      trendEl.className = `f-trend trend-${p.trend || 'steady'}`;
+    }
+  });
+}
+
+async function toggleRainRadarLayer(enable) {
+  if (!enable) {
+    if (rainRadarLayer && map.hasLayer(rainRadarLayer)) {
+      map.removeLayer(rainRadarLayer);
+    }
+    const check = document.getElementById("layer-rain-radar-check");
+    if (check) check.checked = false;
+    return;
+  }
+
+  const check = document.getElementById("layer-rain-radar-check");
+  if (check) check.checked = true;
+
+  try {
+    const key = getStoredOpenWeatherKey();
+    const params = new URLSearchParams({
+      lat: currentRainCoords.lat.toFixed(5),
+      lon: currentRainCoords.lon.toFixed(5)
+    });
+    if (key) params.append("appid", key);
+
+    const res = await apiFetch(`/weather/radar?${params.toString()}`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const geojson = await res.json();
+
+    if (rainRadarLayer && map.hasLayer(rainRadarLayer)) {
+      map.removeLayer(rainRadarLayer);
+    }
+
+    const featureLayers = [];
+    (geojson.features || []).forEach((feat) => {
+      const p = feat.properties;
+      const coords = feat.geometry.coordinates;
+      const latLng = [coords[1], coords[0]];
+
+      const circle = L.circle(latLng, {
+        radius: p.radius_meters || 4500,
+        color: p.color || "#38bdf8",
+        weight: 2,
+        opacity: 0.85,
+        fillColor: p.color || "#38bdf8",
+        fillOpacity: 0.24,
+        className: "radar-cell-pulse"
+      });
+
+      circle.bindPopup(`
+        <div class="scada-popup">
+          <div class="popup-title-row">
+            <span class="live-dot pulse" style="background:${p.color}"></span>
+            <strong>${p.name}</strong>
+          </div>
+          <div class="popup-subtitle font-mono">${p.description}</div>
+          <div class="popup-divider"></div>
+          <div class="popup-grid">
+            <div class="popup-item">
+              <span class="p-label">Rain Intensity:</span>
+              <span class="p-value font-mono" style="color:${p.color}; font-weight:800;">${p.intensity_mm_hr} mm/hr</span>
+            </div>
+            <div class="popup-item">
+              <span class="p-label">Radar dBZ:</span>
+              <span class="p-value font-mono">${p.dbz} dBZ</span>
+            </div>
+            <div class="popup-item">
+              <span class="p-label">Catchment:</span>
+              <span class="p-value font-mono">${(p.radius_meters/1000).toFixed(1)} km</span>
+            </div>
+            <div class="popup-item">
+              <span class="p-label">Flood Threat:</span>
+              <span class="p-value font-mono" style="color:${p.color}; font-weight:700;">${p.level}</span>
+            </div>
+          </div>
+          <button class="popup-smart-router-btn" style="margin-top:8px; width:100%;" onclick="syncGisWithSpecificRain(${p.intensity_mm_hr}, '${p.level}')">
+            ⚡ Sync Simulation to Basin Rain
+          </button>
+        </div>
+      `);
+
+      featureLayers.push(circle);
+    });
+
+    rainRadarLayer = L.layerGroup(featureLayers);
+    rainRadarLayer.addTo(map);
+
+    if (key) {
+      const tileLayer = L.tileLayer(
+        `https://tile.openweathermap.org/map/precipitation_new/{z}/{x}/{y}.png?appid=${key}`,
+        { maxZoom: 18, opacity: 0.65 }
+      );
+      rainRadarLayer.addLayer(tileLayer);
+    }
+  } catch (err) {
+    console.warn("Could not load radar layer:", err);
+  }
+}
+
+async function syncGisWithLiveRain() {
+  const syncBtn = document.getElementById("btn-sync-simulation-live-rain");
+  const syncStatus = document.getElementById("rainfall-sync-status");
+
+  if (!lastLiveWeather) {
+    await loadLiveRainfallData(currentRainCoords.lat, currentRainCoords.lon);
+  }
+
+  if (!lastLiveWeather) {
+    if (syncStatus) syncStatus.textContent = "Error: Live telemetry feed unreachable.";
+    return;
+  }
+
+  const rainRate = lastLiveWeather.rainfall_intensity_mm_hr || 10.0;
+  const syncData = lastLiveWeather.simulation_sync || {};
+  const scenario = syncData.scenario || (rainRate > 50 ? "EXTREME" : rainRate > 25 ? "HEAVY" : rainRate > 10 ? "MODERATE" : "NORMAL");
+
+  if (syncBtn) {
+    syncBtn.innerHTML = `<span>⏳ Syncing to ${rainRate.toFixed(1)} mm/hr...</span>`;
+    syncBtn.disabled = true;
+  }
+
+  try {
+    await applyRainfallToGisSimulation(scenario, rainRate, syncData);
+    if (syncStatus) {
+      syncStatus.textContent = `✓ Synced! ML model & pump stations operating at ${rainRate.toFixed(1)} mm/hr (${scenario} condition)`;
+      syncStatus.style.color = "#34d399";
+      setTimeout(() => {
+        if (syncStatus) syncStatus.style.color = "";
+      }, 6000);
+    }
+  } catch (err) {
+    console.error("Simulation sync error:", err);
+    if (syncStatus) syncStatus.textContent = `Sync completed with warning: ${err.message}`;
+  } finally {
+    if (syncBtn) {
+      syncBtn.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> ⚡ Sync GIS Simulation to Live Rain`;
+      syncBtn.disabled = false;
+    }
+  }
+}
+
+window.syncGisWithSpecificRain = function(rainRate, riskLevel) {
+  const scenario = riskLevel === "EXTREME" ? "EXTREME" : riskLevel === "HEAVY" ? "HEAVY" : riskLevel === "MODERATE" ? "MODERATE" : "NORMAL";
+  applyRainfallToGisSimulation(scenario, rainRate, {
+    rainfall_1h: rainRate,
+    rainfall_3h: rainRate * 2.2,
+    rainfall_6h: rainRate * 3.8
+  });
+  if (map._popup) map.closePopup();
+};
+
+async function applyRainfallToGisSimulation(scenario, rainRate, syncData = {}) {
+  activeScenario = scenario;
+  activePresetName = scenario;
+
+  const presetBtns = document.querySelectorAll(".preset-btn, .preset-btn-4");
+  presetBtns.forEach((btn) => {
+    btn.classList.toggle("active", btn.getAttribute("data-preset") === scenario.toLowerCase());
+  });
+
+  const r1h = syncData.rainfall_1h || Math.max(5.0, rainRate);
+  const r3h = syncData.rainfall_3h || Math.max(10.0, rainRate * 2.2);
+  const r6h = syncData.rainfall_6h || Math.max(15.0, rainRate * 3.8);
+
+  const el1h = document.getElementById("rainfall_1h");
+  const el3h = document.getElementById("rainfall_3h");
+  const el6h = document.getElementById("rainfall_6h");
+  const elInt = document.getElementById("recent_rainfall_intensity");
+
+  if (el1h) el1h.value = r1h.toFixed(1);
+  if (el3h) el3h.value = r3h.toFixed(1);
+  if (el6h) el6h.value = r6h.toFixed(1);
+  if (elInt) elInt.value = rainRate.toFixed(1);
+
+  if (typeof updateScenarioSummaryCard === "function") {
+    updateScenarioSummaryCard(r1h, r3h, r6h);
+  }
+
+  if (typeof updatePumpStationsForRainfall === "function") {
+    updatePumpStationsForRainfall(activeScenario, activeTimestep, r1h);
+  }
+
+  if (typeof loadWaterloggingLayer === "function") {
+    loadWaterloggingLayer();
+  }
+  if (typeof loadPopulationPriorityLayer === "function") {
+    loadPopulationPriorityLayer();
+  }
+  if (typeof loadAlertsPanel === "function") {
+    loadAlertsPanel();
+  }
+  if (typeof updateScadaTelemetry === "function") {
+    updateScadaTelemetry();
   }
 }

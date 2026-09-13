@@ -44,6 +44,7 @@ from pumps import get_pumps_metadata
 from drainage import get_drainage_geojson
 from population_priority import get_population_priority_geojson
 from alerts import get_alerts_triage
+from weather import fetch_live_weather, get_radar_overlay_geojson
 
 
 from schemas import (
@@ -488,6 +489,32 @@ def alerts(
         recent_rainfall_intensity=recent_rainfall_intensity,
         bbox=bbox_list,
     )
+
+
+@app.get(
+    "/weather/live",
+    summary="Get Real-Time OpenWeatherMap Current Rain & Dynamics",
+    tags=["Weather & Rainfall"],
+)
+def live_weather(
+    lat: float = 28.6139,
+    lon: float = 77.2090,
+    appid: str | None = None,
+) -> Dict[str, Any]:
+    return fetch_live_weather(lat=lat, lon=lon, api_key=appid)
+
+
+@app.get(
+    "/weather/radar",
+    summary="Get Multi-Basin Precipitation Radar GeoJSON",
+    tags=["Weather & Rainfall"],
+)
+def weather_radar(
+    lat: float = 28.6139,
+    lon: float = 77.2090,
+    appid: str | None = None,
+) -> Dict[str, Any]:
+    return get_radar_overlay_geojson(base_lat=lat, base_lon=lon, api_key=appid)
 
 
 # ---------------------------------------------------------------------------
