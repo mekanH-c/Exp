@@ -395,9 +395,38 @@ def get_radar_overlay_geojson(base_lat: float = 28.6139, base_lon: float = 77.20
             }
         })
 
+    # Generate high-resolution continuous precipitation field (multi-spectral radar composite)
+    lat_min, lat_max = 28.38, 28.88
+    lon_min, lon_max = 76.84, 77.46
+    steps_lat = 38
+    steps_lon = 38
+    max_scale = max(30.0, base_intensity * 1.85)
+
+    heatmap_points = []
+    for i in range(steps_lat + 1):
+        lat_pt = round(lat_min + (lat_max - lat_min) * (i / steps_lat), 5)
+        for j in range(steps_lon + 1):
+            lon_pt = round(lon_min + (lon_max - lon_min) * (j / steps_lon), 5)
+            # Atmospheric convection & moisture drift wave
+            ambient = (base_intensity * 0.28) + (base_intensity * 0.10) * math.sin(lat_pt * 22.0 + lon_pt * 18.0)
+            pt_intensity = max(0.5, ambient)
+
+            for cell in DELHI_RAIN_CELLS:
+                cell_intensity = max(0.5, base_intensity * cell["factor"])
+                d_km = math.sqrt(((lat_pt - cell["lat"]) * 111.0)**2 + ((lon_pt - cell["lon"]) * 98.0)**2)
+                sigma_km = (cell["radius"] / 1000.0) * 0.95
+                w = math.exp(-0.5 * (d_km / sigma_km)**2)
+                pt_intensity += w * max(0.0, cell_intensity - ambient)
+
+            norm_val = round(min(1.0, max(0.08, pt_intensity / max_scale)), 3)
+            heatmap_points.append([lat_pt, lon_pt, norm_val])
+
     return {
         "type": "FeatureCollection",
         "generated_at": datetime.now(timezone.utc).isoformat(),
-        "source": center_weather.get("source", "AquaG Radar Engine"),
+        "source": center_weather.get("source", "AquaG Continuous Radar Engine"),
+        "base_intensity": base_intensity,
+        "max_scale": max_scale,
+        "heatmap_points": heatmap_points,
         "features": features
     }

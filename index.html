@@ -273,6 +273,22 @@
             </div>
           </div>
 
+          <!-- CONTEXTUAL RAINFALL RADAR / HEATMAP LEGEND SECTION -->
+          <div id="legend-radar-section" class="legend-context-section hidden">
+            <div class="legend-header-row">
+              <span class="legend-header legend-radar-title">PRECIPITATION RADAR (mm/h)</span>
+            </div>
+            <div class="radar-gradient-legend-bar"></div>
+            <div class="radar-gradient-legend-scale font-mono">
+              <span>0</span>
+              <span>5</span>
+              <span>15</span>
+              <span>25</span>
+              <span>35</span>
+              <span>&gt;50</span>
+            </div>
+          </div>
+
           <div class="legend-footer">
             Model V2 Waterlogging & Exposure Proxy
           </div>
@@ -991,6 +1007,8 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
   <!-- Leaflet MarkerCluster JS -->
   <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
+  <!-- Leaflet Heatmap Plugin (Continuous Raster Meteorological Radar) -->
+  <script src="leaflet-heat.js"></script>
   <!-- Backend API Config (Auto-detects high-speed local backend or failover to live cloud) -->
   <script>
     if (!window.AQUAG_API_URL) {

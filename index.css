@@ -4135,15 +4135,88 @@ body.theme-bright .weather-api-caption {
   color: #326491;
 }
 
-/* Radar Heatmap Leaflet Overlay */
-.radar-cell-pulse {
-  animation: radar-pulse 3s infinite ease-in-out;
+/* Radar Heatmap Continuous Legend & Radar Beacon */
+.legend-radar-title {
+  color: #38bdf8 !important;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
-@keyframes radar-pulse {
-  0% { opacity: 0.35; transform: scale(0.98); }
-  50% { opacity: 0.65; transform: scale(1.02); }
-  100% { opacity: 0.35; transform: scale(0.98); }
+.radar-gradient-legend-bar {
+  width: 100%;
+  height: 10px;
+  border-radius: 5px;
+  margin: 6px 0 3px 0;
+  background: linear-gradient(to right, 
+    #1e1b4b 0%, 
+    #312e81 15%, 
+    #1d4ed8 28%, 
+    #06b6d4 42%, 
+    #10b981 56%, 
+    #facc15 70%, 
+    #f97316 85%, 
+    #ef4444 100%
+  );
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.radar-gradient-legend-scale {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.60rem;
+  color: var(--text-muted);
+}
+
+.radar-beacon-marker {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: auto;
+}
+
+.radar-beacon-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  border: 1.5px solid #ffffff;
+  box-shadow: 0 0 8px currentColor;
+  position: relative;
+}
+
+.radar-beacon-pulse {
+  position: absolute;
+  top: -6.5px;
+  left: -6.5px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1.5px solid currentColor;
+  opacity: 0.7;
+  animation: radarBeaconWave 2.2s cubic-bezier(0, 0.2, 0.8, 1) infinite;
+  pointer-events: none;
+}
+
+@keyframes radarBeaconWave {
+  0% { transform: scale(0.5); opacity: 0.95; }
+  100% { transform: scale(2.4); opacity: 0; }
+}
+
+.radar-beacon-label {
+  position: absolute;
+  left: 14px;
+  white-space: nowrap;
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: #ffffff;
+  background: rgba(10, 18, 30, 0.85);
+  backdrop-filter: blur(4px);
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+  pointer-events: none;
 }
 
 
