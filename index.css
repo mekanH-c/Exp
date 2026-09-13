@@ -6,16 +6,13 @@
 :root {
   --bg-main: #060a12;
   --bg-workspace: #080d19;
-  --bg-glass: rgba(10, 20, 40, 0.75);
-  --bg-glass-solid: #0d1a33;
-  --bg-card: rgba(14, 28, 54, 0.65);
+  --bg-glass: rgba(10, 17, 30, 0.85);
+  --bg-glass-solid: #0a111e;
+  --bg-card: rgba(15, 25, 45, 0.7);
   
-  --border-glass: rgba(56, 189, 248, 0.25);
-  --border-glass-light: rgba(255, 255, 255, 0.12);
-  --border-cyan: rgba(6, 182, 212, 0.45);
-  --shadow-glass: rgba(0, 0, 0, 0.6);
-  --specular-glass: rgba(255, 255, 255, 0.12);
-  --blur-glass: blur(18px) saturate(180%);
+  --border-glass: rgba(56, 189, 248, 0.16);
+  --border-glass-light: rgba(255, 255, 255, 0.1);
+  --border-cyan: rgba(6, 182, 212, 0.4);
 
   --accent-cyan: #06b6d4;
   --accent-cyan-light: #38bdf8;
@@ -75,17 +72,14 @@ body.theme-bright {
 }
 
 body.theme-dark {
-  --bg-main: #050a14;
-  --bg-workspace: #070d1a;
-  --bg-glass: rgba(10, 20, 40, 0.75);
-  --bg-glass-solid: #0d1a33;
-  --bg-card: rgba(14, 28, 54, 0.65);
-  --border-glass: rgba(56, 189, 248, 0.25);
-  --border-glass-light: rgba(255, 255, 255, 0.12);
-  --border-cyan: rgba(6, 182, 212, 0.45);
-  --shadow-glass: rgba(0, 0, 0, 0.6);
-  --specular-glass: rgba(255, 255, 255, 0.12);
-  --blur-glass: blur(18px) saturate(180%);
+  --bg-main: #060a12;
+  --bg-workspace: #080d19;
+  --bg-glass: rgba(10, 17, 30, 0.85);
+  --bg-glass-solid: #0a111e;
+  --bg-card: rgba(15, 25, 45, 0.7);
+  --border-glass: rgba(56, 189, 248, 0.16);
+  --border-glass-light: rgba(255, 255, 255, 0.1);
+  --border-cyan: rgba(6, 182, 212, 0.4);
   --text-main: #f8fafc;
   --text-muted: #94a3b8;
   --text-dim: #64748b;
@@ -1308,10 +1302,10 @@ body, html {
 
 .glass-panel {
   background: var(--bg-glass);
-  backdrop-filter: blur(18px) saturate(180%);
-  -webkit-backdrop-filter: blur(18px) saturate(180%);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border: 1px solid var(--border-glass);
-  box-shadow: 0 10px 32px 0 var(--shadow-glass), inset 0 1px 0 0 var(--specular-glass);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.55), inset 0 1px 0 0 rgba(255, 255, 255, 0.08);
   border-radius: var(--radius-lg);
 }
 
@@ -1333,11 +1327,8 @@ body, html {
   margin: 8px 8px 0 8px;
   z-index: 2000;
   border-radius: var(--radius-md);
-  border: 1px solid rgba(56, 189, 248, 0.25);
-  background: rgba(8, 16, 32, 0.75);
-  backdrop-filter: blur(20px) saturate(190%);
-  -webkit-backdrop-filter: blur(20px) saturate(190%);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  border-color: rgba(56, 189, 248, 0.2);
+  background: linear-gradient(180deg, rgba(14, 23, 42, 0.9) 0%, rgba(10, 17, 30, 0.85) 100%);
 }
 
 .nav-brand {
@@ -1363,7 +1354,7 @@ body, html {
   font-size: 1.15rem;
   font-weight: 800;
   letter-spacing: -0.02em;
-  color: var(--text-main);
+  color: #fff;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -1415,13 +1406,10 @@ body, html {
   display: flex;
   align-items: center;
   gap: 4px;
-  background: rgba(15, 28, 56, 0.6);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: rgba(4, 8, 16, 0.5);
   padding: 3px;
   border-radius: var(--radius-md);
-  border: 1px solid rgba(56, 189, 248, 0.2);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border-glass-light);
 }
 
 .nav-module-btn {
@@ -1593,11 +1581,7 @@ canvas.leaflet-zoom-animated {
   flex-direction: column;
   gap: 10px;
   min-width: 230px;
-  background: rgba(10, 20, 42, 0.75);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  border: 1px solid rgba(56, 189, 248, 0.25);
-  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  background: rgba(8, 14, 26, 0.9);
 }
 
 .panel-tag {
@@ -1682,11 +1666,7 @@ canvas.leaflet-zoom-animated {
   flex-direction: column;
   gap: 6px;
   min-width: 250px;
-  background: rgba(10, 20, 42, 0.75);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  border: 1px solid rgba(56, 189, 248, 0.25);
-  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  background: rgba(8, 14, 26, 0.9);
 }
 
 .legend-header-row {
@@ -1711,9 +1691,7 @@ canvas.leaflet-zoom-animated {
 }
 
 .quick-filter-btn {
-  background: rgba(15, 28, 56, 0.6);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  background: rgba(255, 255, 255, 0.06);
   border: 1px solid var(--border-glass-light);
   color: var(--text-dim);
   font-size: 0.58rem;
@@ -1726,15 +1704,15 @@ canvas.leaflet-zoom-animated {
 }
 
 .quick-filter-btn:hover {
-  background: rgba(56, 189, 248, 0.2);
+  background: rgba(255, 255, 255, 0.12);
   color: var(--text-main);
 }
 
 .quick-filter-btn.active {
-  background: rgba(59, 130, 246, 0.35);
-  border-color: rgba(59, 130, 246, 0.6);
+  background: rgba(59, 130, 246, 0.25);
+  border-color: rgba(59, 130, 246, 0.5);
   color: #60a5fa;
-  box-shadow: 0 0 8px rgba(59, 130, 246, 0.4);
+  box-shadow: 0 0 6px rgba(59, 130, 246, 0.3);
 }
 
 .legend-items { display: flex; flex-direction: column; gap: 5px; }
@@ -1820,11 +1798,8 @@ canvas.leaflet-zoom-animated {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  background: rgba(10, 22, 46, 0.8);
-  backdrop-filter: blur(22px) saturate(190%);
-  -webkit-backdrop-filter: blur(22px) saturate(190%);
-  border: 1.5px solid rgba(56, 189, 248, 0.45);
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.65), 0 0 24px rgba(56, 189, 248, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  background: rgba(8, 14, 26, 0.92);
+  border-color: rgba(6, 182, 212, 0.35);
 }
 
 .card-title-bar {
@@ -1876,11 +1851,9 @@ canvas.leaflet-zoom-animated {
   gap: 12px;
   padding: 6px 16px;
   border-radius: 30px;
-  background: rgba(10, 20, 42, 0.78);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  background: rgba(8, 14, 26, 0.92);
   border: 1px solid rgba(56, 189, 248, 0.3);
-  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.6), 0 0 18px rgba(6, 182, 212, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6), 0 0 15px rgba(6, 182, 212, 0.15);
 }
 
 .timeline-play-btn {
@@ -1930,10 +1903,8 @@ canvas.leaflet-zoom-animated {
   gap: 4px;
   padding: 4px 11px;
   border-radius: 16px;
-  background: rgba(15, 28, 56, 0.65);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 1px solid rgba(56, 189, 248, 0.25);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-glass-light);
   color: var(--text-muted);
   font-size: 0.72rem;
   font-weight: 600;
@@ -1943,9 +1914,9 @@ canvas.leaflet-zoom-animated {
 }
 
 .time-step-btn:hover {
-  background: rgba(6, 182, 212, 0.25);
-  border-color: rgba(6, 182, 212, 0.45);
-  color: #ffffff;
+  background: rgba(6, 182, 212, 0.15);
+  border-color: var(--accent-cyan);
+  color: white;
 }
 
 .time-step-btn.active {
@@ -1978,11 +1949,8 @@ canvas.leaflet-zoom-animated {
 
 /* SCADA Operational Header & Telemetry Grid */
 .scada-header-card {
-  background: rgba(6, 12, 24, 0.85);
-  backdrop-filter: blur(18px) saturate(180%);
-  -webkit-backdrop-filter: blur(18px) saturate(180%);
-  border: 1px solid rgba(56, 189, 248, 0.2);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  background: linear-gradient(135deg, rgba(6, 182, 212, 0.12) 0%, rgba(10, 17, 30, 0.8) 100%);
+  border: 1px solid var(--border-cyan);
   border-radius: var(--radius-sm);
   padding: 8px 10px;
   display: flex;
@@ -2000,7 +1968,7 @@ canvas.leaflet-zoom-animated {
   font-size: 0.8rem;
   font-weight: 800;
   letter-spacing: 0.06em;
-  color: #ffffff;
+  color: #fff;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -2012,9 +1980,9 @@ canvas.leaflet-zoom-animated {
   font-weight: 700;
   padding: 2px 7px;
   border-radius: 4px;
-  background: rgba(30, 64, 175, 0.35);
-  border: 1px solid rgba(96, 165, 250, 0.45);
-  color: #93c5fd;
+  background: rgba(59, 130, 246, 0.25);
+  border: 1px solid rgba(59, 130, 246, 0.5);
+  color: #60a5fa;
 }
 
 .scada-status-row {
@@ -2027,7 +1995,7 @@ canvas.leaflet-zoom-animated {
   font-size: 0.62rem;
   font-weight: 600;
   letter-spacing: 0.05em;
-  color: #64748b;
+  color: var(--text-dim);
 }
 
 .scada-status-badge {
@@ -2039,10 +2007,10 @@ canvas.leaflet-zoom-animated {
   text-transform: uppercase;
 }
 
-.scada-status-badge.normal { background: rgba(16, 185, 129, 0.18); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.4); }
-.scada-status-badge.watch { background: rgba(234, 179, 8, 0.18); color: #eab308; border: 1px solid rgba(234, 179, 8, 0.4); }
-.scada-status-badge.high { background: rgba(249, 115, 22, 0.18); color: #f97316; border: 1px solid rgba(249, 115, 22, 0.45); }
-.scada-status-badge.critical { background: rgba(239, 68, 68, 0.2); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.45); }
+.scada-status-badge.normal { background: rgba(16, 185, 129, 0.2); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.4); }
+.scada-status-badge.watch { background: rgba(234, 179, 8, 0.2); color: #eab308; border: 1px solid rgba(234, 179, 8, 0.4); }
+.scada-status-badge.high { background: rgba(249, 115, 22, 0.2); color: #f97316; border: 1px solid rgba(249, 115, 22, 0.4); }
+.scada-status-badge.critical { background: rgba(239, 68, 68, 0.2); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.4); }
 
 /* SCADA Metrics Grid */
 .scada-metrics-grid {
@@ -2052,11 +2020,8 @@ canvas.leaflet-zoom-animated {
 }
 
 .scada-metric-card {
-  background: rgba(5, 9, 18, 0.88);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 2px 6px rgba(0, 0, 0, 0.4);
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--border-glass-light);
   border-radius: var(--radius-sm);
   padding: 6px 8px;
   display: flex;
@@ -2068,28 +2033,25 @@ canvas.leaflet-zoom-animated {
   font-size: 0.6rem;
   font-weight: 700;
   letter-spacing: 0.05em;
-  color: #64748b;
+  color: var(--text-dim);
   text-transform: uppercase;
 }
 
 .scada-metric-card .m-value {
   font-size: 0.95rem;
   font-weight: 700;
-  color: #00f3ff;
+  color: var(--accent-cyan-bright);
 }
 
 .scada-metric-card .m-sub {
   font-size: 0.58rem;
-  color: #475569;
+  color: var(--text-muted);
 }
 
 /* SCADA Mini Alerts Summary Box */
 .scada-alerts-summary-box {
-  background: rgba(6, 11, 22, 0.85);
-  backdrop-filter: blur(16px) saturate(180%);
-  -webkit-backdrop-filter: blur(16px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--border-glass-light);
   border-radius: var(--radius-sm);
   padding: 6px 8px;
   display: flex;
@@ -2101,21 +2063,10 @@ canvas.leaflet-zoom-animated {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: 0.64rem;
+  font-size: 0.63rem;
   font-weight: 700;
-  color: #94a3b8;
+  color: var(--text-dim);
   letter-spacing: 0.05em;
-}
-
-#scada-alerts-badge,
-.scada-alerts-summary-box .ver-tag {
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  color: #94a3b8;
-  font-size: 0.6rem;
-  padding: 1px 5px;
-  border-radius: 3px;
-  font-weight: 600;
 }
 
 .scada-alerts-list {
@@ -2128,34 +2079,31 @@ canvas.leaflet-zoom-animated {
 }
 
 .alert-item-mini {
-  padding: 4px 6px;
-  border-radius: 4px;
-  background: rgba(255, 255, 255, 0.05);
+  padding: 3px 5px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.03);
   color: var(--text-main);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  font-weight: 600;
 }
-.alert-item-mini.ok { color: #10b981; background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.25); }
-.alert-item-mini.warn { color: #eab308; background: rgba(234, 179, 8, 0.1); border: 1px solid rgba(234, 179, 8, 0.3); }
-.alert-item-mini.crit { color: #ef4444; background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.35); }
+.alert-item-mini.ok { color: var(--severity-low); }
+.alert-item-mini.warn { color: var(--severity-medium); }
+.alert-item-mini.crit { color: var(--severity-critical); }
 
 /* Simulation Details Summary Accordion */
 .sim-inputs-details {
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border-glass-light);
   border-radius: var(--radius-sm);
   padding: 6px 8px;
-  background: rgba(6, 12, 24, 0.65);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  background: rgba(0, 0, 0, 0.25);
   margin-top: 4px;
 }
 
 .sim-inputs-summary {
   font-size: 0.7rem;
   font-weight: 700;
-  color: #38bdf8;
+  color: var(--accent-cyan);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -2165,7 +2113,7 @@ canvas.leaflet-zoom-animated {
 
 .sim-summary-hint {
   font-size: 0.62rem;
-  color: #64748b;
+  color: var(--text-dim);
   font-weight: 400;
 }
 
@@ -2174,11 +2122,7 @@ canvas.leaflet-zoom-animated {
   padding: 4px;
   gap: 4px;
   border-radius: var(--radius-md);
-  background: rgba(6, 11, 22, 0.85);
-  backdrop-filter: blur(16px) saturate(180%);
-  -webkit-backdrop-filter: blur(16px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  background: rgba(6, 12, 22, 0.9);
 }
 
 .side-tab-btn {
@@ -2190,7 +2134,7 @@ canvas.leaflet-zoom-animated {
   padding: 8px 12px;
   border: none;
   background: transparent;
-  color: #94a3b8;
+  color: var(--text-muted);
   font-size: 0.78rem;
   font-weight: 600;
   border-radius: var(--radius-sm);
@@ -2200,30 +2144,26 @@ canvas.leaflet-zoom-animated {
 
 .side-tab-btn.active {
   background: linear-gradient(135deg, #0284c7 0%, #1d4ed8 100%);
-  color: #ffffff;
-  box-shadow: 0 0 12px rgba(59, 130, 246, 0.35);
-  border: 1px solid rgba(56, 189, 248, 0.35);
+  color: white;
+  box-shadow: 0 0 10px rgba(59, 130, 246, 0.45);
+  border: 1px solid rgba(56, 189, 248, 0.3);
 }
 
 .sidebar-tab-content {
   display: none;
   flex: 1;
   flex-direction: column;
-  padding: 12px;
+  padding: 14px;
   overflow-y: auto;
-  gap: 10px;
+  gap: 12px;
   border-radius: var(--radius-md);
-  background: rgba(6, 10, 20, 0.90);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  border: 1px solid rgba(56, 189, 248, 0.16);
-  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  background: rgba(8, 14, 26, 0.9);
 }
 
 .sidebar-tab-content.active { display: flex; }
 
-.section-title-box h3 { font-size: 0.92rem; font-weight: 700; color: #ffffff; }
-.sub-title-text { font-size: 0.7rem; color: #94a3b8; }
+.section-title-box h3 { font-size: 1rem; font-weight: 700; color: #fff; }
+.sub-title-text { font-size: 0.72rem; color: var(--text-muted); }
 
 /* 4 Preset Buttons: NORMAL, MODERATE, HEAVY, EXTREME */
 .scenario-presets-box {
@@ -2233,10 +2173,10 @@ canvas.leaflet-zoom-animated {
 }
 
 .box-label {
-  font-size: 0.62rem;
+  font-size: 0.65rem;
   font-weight: 700;
   text-transform: uppercase;
-  color: #64748b;
+  color: var(--text-dim);
   letter-spacing: 0.05em;
 }
 
@@ -2252,27 +2192,25 @@ canvas.leaflet-zoom-animated {
   font-weight: 700;
   font-family: var(--font-mono);
   border-radius: var(--radius-sm);
-  background: rgba(6, 12, 24, 0.8);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: #cbd5e1;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-glass-light);
+  color: var(--text-main);
   cursor: pointer;
   text-align: center;
   transition: all 0.2s;
 }
 
 .preset-btn-4:hover {
-  background: rgba(14, 42, 86, 0.9);
-  border-color: #38bdf8;
-  color: #ffffff;
+  background: var(--accent-blue);
+  border-color: var(--accent-blue);
+  color: white;
 }
 
 .preset-btn-4.active {
-  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
-  border-color: #38bdf8;
-  color: #ffffff;
-  box-shadow: 0 0 10px rgba(2, 132, 199, 0.35);
+  background: linear-gradient(135deg, #0284c7, #0369a1);
+  border-color: var(--accent-cyan-bright);
+  color: white;
+  box-shadow: 0 0 8px rgba(6, 182, 212, 0.4);
 }
 
 /* Predict Form Grid */
@@ -2353,18 +2291,16 @@ canvas.leaflet-zoom-animated {
 
 .cmd-secondary-btn {
   padding: 8px 12px;
-  background: rgba(15, 28, 56, 0.6);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 1px solid rgba(56, 189, 248, 0.25);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border-glass-light);
   border-radius: var(--radius-sm);
   color: var(--text-main);
   font-weight: 500;
   font-size: 0.78rem;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: background 0.15s;
 }
-.cmd-secondary-btn:hover { background: rgba(56, 189, 248, 0.2); border-color: rgba(56, 189, 248, 0.45); }
+.cmd-secondary-btn:hover { background: rgba(255, 255, 255, 0.15); }
 
 .coord-input-group {
   grid-column: span 2;
@@ -2377,38 +2313,33 @@ canvas.leaflet-zoom-animated {
 
 .pick-map-btn {
   padding: 5px 8px;
-  background: rgba(15, 28, 56, 0.6);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 1px solid rgba(56, 189, 248, 0.25);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border-glass-light);
   border-radius: var(--radius-sm);
   color: var(--text-main);
   font-size: 0.7rem;
   cursor: pointer;
   white-space: nowrap;
-  transition: all 0.15s ease;
+  transition: background 0.15s;
 }
-.pick-map-btn:hover { background: rgba(56, 189, 248, 0.25); border-color: var(--accent-cyan); }
+.pick-map-btn:hover { background: var(--accent-blue); }
 
 /* Scenario Summary Card */
 .scenario-summary-card {
-  background: rgba(6, 12, 24, 0.75);
-  backdrop-filter: blur(14px) saturate(180%);
-  -webkit-backdrop-filter: blur(14px) saturate(180%);
-  border: 1px solid rgba(56, 189, 248, 0.2);
+  background: rgba(6, 182, 212, 0.08);
+  border: 1px solid var(--border-cyan);
   border-radius: var(--radius-sm);
   padding: 8px 10px;
   display: flex;
   flex-direction: column;
   gap: 4px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
 .sim-card-header {
   font-size: 0.65rem;
   font-weight: 700;
   letter-spacing: 0.08em;
-  color: #38bdf8;
+  color: var(--accent-cyan-bright);
   text-transform: uppercase;
 }
 
@@ -2436,11 +2367,8 @@ canvas.leaflet-zoom-animated {
 }
 
 .outcome-card {
-  background: rgba(12, 24, 52, 0.65);
-  backdrop-filter: blur(16px) saturate(180%);
-  -webkit-backdrop-filter: blur(16px) saturate(180%);
-  border: 1px solid rgba(56, 189, 248, 0.22);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--border-glass-light);
   border-radius: var(--radius-sm);
   padding: 10px;
   display: flex;
@@ -2553,10 +2481,7 @@ canvas.leaflet-zoom-animated {
   justify-content: space-between;
   align-items: center;
   padding: 4px 6px;
-  background: rgba(15, 28, 56, 0.4);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-  border: 1px solid rgba(56, 189, 248, 0.12);
+  background: rgba(255, 255, 255, 0.03);
   border-radius: 3px;
   font-size: 0.7rem;
 }
@@ -2576,10 +2501,7 @@ canvas.leaflet-zoom-animated {
 .m-box {
   display: flex;
   flex-direction: column;
-  background: rgba(15, 28, 56, 0.55);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 1px solid rgba(56, 189, 248, 0.15);
+  background: rgba(255, 255, 255, 0.03);
   padding: 5px 7px;
   border-radius: 4px;
 }
@@ -2604,11 +2526,8 @@ canvas.leaflet-zoom-animated {
   font-size: 0.68rem;
   color: var(--text-dim);
   border-radius: var(--radius-md);
-  border: 1px solid rgba(56, 189, 248, 0.22);
-  background: rgba(8, 16, 32, 0.75);
-  backdrop-filter: blur(18px) saturate(180%);
-  -webkit-backdrop-filter: blur(18px) saturate(180%);
-  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.1);
+  background: rgba(8, 14, 26, 0.85);
 }
 
 .footer-disclaimer-text { color: var(--text-dim); font-size: 0.66rem; }
@@ -2747,12 +2666,9 @@ canvas.leaflet-zoom-animated {
   align-items: center;
   justify-content: space-between;
   padding: 6px 10px;
-  background: rgba(12, 24, 52, 0.6);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  background: rgba(0, 0, 0, 0.35);
   border-radius: var(--radius-sm);
-  border: 1px solid rgba(56, 189, 248, 0.2);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border-glass-light);
 }
 
 .basis-pill {
@@ -2775,19 +2691,13 @@ canvas.leaflet-zoom-animated {
   text-align: center;
   color: var(--text-dim);
   font-size: 0.78rem;
-  background: rgba(10, 20, 40, 0.4);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 1px solid rgba(56, 189, 248, 0.15);
+  background: rgba(0, 0, 0, 0.2);
   border-radius: var(--radius-sm);
 }
 
 .alert-card {
-  background: rgba(10, 22, 46, 0.72);
-  backdrop-filter: blur(14px) saturate(180%);
-  -webkit-backdrop-filter: blur(14px) saturate(180%);
-  border: 1px solid rgba(56, 189, 248, 0.2);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  background: rgba(8, 14, 26, 0.92);
+  border: 1px solid var(--border-glass-light);
   border-radius: var(--radius-md);
   padding: 10px;
   display: flex;
@@ -2818,7 +2728,7 @@ canvas.leaflet-zoom-animated {
   font-family: var(--font-mono);
   font-size: 0.75rem;
   font-weight: 700;
-  color: var(--text-main);
+  color: #fff;
 }
 
 .inc-badge {
@@ -2852,10 +2762,7 @@ canvas.leaflet-zoom-animated {
 .inc-action-box {
   font-size: 0.72rem;
   color: var(--text-main);
-  background: rgba(15, 28, 56, 0.55);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-  border: 1px solid rgba(56, 189, 248, 0.15);
+  background: rgba(0, 0, 0, 0.35);
   border-radius: 4px;
   padding: 6px;
   margin-top: 4px;
@@ -3347,34 +3254,12 @@ canvas.leaflet-zoom-animated {
    8. POPULATION RESPONSE PRIORITY STYLING
    -------------------------------------------------------------------------- */
 .scada-response-priority-box {
-  background: linear-gradient(135deg, rgba(20, 15, 42, 0.85) 0%, rgba(26, 18, 55, 0.80) 100%);
-  backdrop-filter: blur(14px) saturate(180%);
-  -webkit-backdrop-filter: blur(14px) saturate(180%);
-  border: 1px solid rgba(168, 85, 247, 0.38);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(168, 85, 247, 0.35);
   border-radius: 6px;
   padding: 8px;
   margin-top: 6px;
   margin-bottom: 6px;
-}
-
-.scada-response-priority-box .box-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 0.72rem;
-  font-weight: 800;
-  color: #ffffff;
-}
-
-.scada-response-priority-box .ver-tag {
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  color: #cbd5e1;
-  font-size: 0.6rem;
-  padding: 1px 6px;
-  border-radius: 3px;
-  font-weight: 600;
 }
 
 .priority-counts-row {
@@ -3392,7 +3277,7 @@ canvas.leaflet-zoom-animated {
   padding: 4px 8px;
   border-radius: 4px;
   font-size: 0.72rem;
-  font-weight: 700;
+  font-weight: 600;
   border: 1px solid transparent;
 }
 
@@ -3403,23 +3288,20 @@ canvas.leaflet-zoom-animated {
 }
 
 .p-count-pill.p2 {
-  background: rgba(99, 102, 241, 0.15);
-  border-color: rgba(99, 102, 241, 0.4);
-  color: #a5b4fc;
+  background: rgba(192, 132, 252, 0.12);
+  border-color: rgba(192, 132, 252, 0.35);
+  color: #e9d5ff;
 }
 
 .p-count-pill.p3 {
-  background: rgba(59, 130, 246, 0.15);
-  border-color: rgba(59, 130, 246, 0.4);
-  color: #93c5fd;
+  background: rgba(129, 140, 248, 0.12);
+  border-color: rgba(129, 140, 248, 0.35);
+  color: #a5b4fc;
 }
 
 .top-priority-card {
-  background: rgba(22, 14, 46, 0.85);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: rgba(30, 27, 75, 0.45);
   border: 1px solid rgba(168, 85, 247, 0.4);
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.06);
   border-radius: 5px;
   padding: 8px;
   margin-top: 6px;
@@ -3442,7 +3324,7 @@ canvas.leaflet-zoom-animated {
 .top-p-title {
   font-size: 0.8rem;
   font-weight: 700;
-  color: #ffffff;
+  color: #f8fafc;
   margin-bottom: 6px;
   word-break: break-word;
 }
@@ -3462,28 +3344,26 @@ canvas.leaflet-zoom-animated {
 }
 
 .top-p-row strong {
-  color: #ffffff;
-  font-weight: 700;
+  color: #e2e8f0;
 }
 
 .btn-focus-top-p {
   width: 100%;
-  padding: 7px 10px;
+  padding: 5px 8px;
   background: linear-gradient(135deg, #7e22ce 0%, #a855f7 100%);
   border: none;
   border-radius: 4px;
   color: #ffffff;
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.15s ease;
-  box-shadow: 0 2px 10px rgba(126, 34, 206, 0.4);
+  box-shadow: 0 2px 6px rgba(168, 85, 247, 0.35);
 }
 
 .btn-focus-top-p:hover {
   background: linear-gradient(135deg, #6b21a8 0%, #9333ea 100%);
-  box-shadow: 0 4px 14px rgba(126, 34, 206, 0.6);
-  transform: translateY(-1px);
+  box-shadow: 0 3px 10px rgba(168, 85, 247, 0.55);
 }
 
 /* Map Priority Badges (P1 / P2 / P3 Markers) */
