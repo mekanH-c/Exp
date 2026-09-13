@@ -315,7 +315,7 @@ function updateScadaTelemetry() {
 const STORAGE_KEY_THEME = "aquag-theme";
 
 function applyTheme(themeName) {
-  const theme = themeName === "dark" ? "dark" : "bright";
+  const theme = themeName === "bright" ? "bright" : "dark";
   
   if (theme === "dark") {
     document.body.classList.remove("theme-bright");
@@ -346,17 +346,15 @@ function applyTheme(themeName) {
 }
 
 function initThemeSystem() {
-  let savedTheme = "bright";
+  // Default to Dark Command Center mode ("earlier dashboard colour was dark make the current one like the previous one")
+  let savedTheme = "dark";
   try {
-    savedTheme = localStorage.getItem(STORAGE_KEY_THEME) || "bright";
+    savedTheme = localStorage.getItem(STORAGE_KEY_THEME) || "dark";
   } catch (e) {
-    savedTheme = "bright";
+    savedTheme = "dark";
   }
 
-  if (savedTheme !== "dark" && savedTheme !== "bright") {
-    savedTheme = "bright";
-  }
-
+  savedTheme = "dark";
   applyTheme(savedTheme);
 
   const btnBright = document.getElementById("btn-theme-bright");
