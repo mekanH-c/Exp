@@ -118,7 +118,7 @@
             <div class="group-title">CONTEXT</div>
             <div class="layer-item">
               <label class="custom-checkbox">
-                <input type="checkbox" id="layer-pop-priority-check" />
+                <input type="checkbox" id="layer-pop-priority-check" checked />
                 <span class="checkmark"></span>
                 <span class="layer-name">Population Priority</span>
               </label>
@@ -424,7 +424,7 @@
             </div>
             <div class="scada-status-row">
               <span class="scada-subtext font-mono">LIVE NOWCAST TELEMETRY</span>
-              <span id="scada-overall-status" class="scada-status-badge normal">NORMAL</span>
+              <span id="scada-overall-status" class="scada-status-badge high">HIGH</span>
             </div>
           </div>
 
@@ -432,17 +432,17 @@
           <div class="scada-metrics-grid">
             <div class="scada-metric-card">
               <span class="m-label">MAX WATER DEPTH</span>
-              <span id="scada-max-depth" class="m-value font-mono">0.0 cm</span>
+              <span id="scada-max-depth" class="m-value font-mono">70.3 cm</span>
               <span class="m-sub font-mono">MODEL PROXY</span>
             </div>
             <div class="scada-metric-card">
               <span class="m-label">AFFECTED STREETS</span>
-              <span id="scada-flooded-roads" class="m-value font-mono">0</span>
+              <span id="scada-flooded-roads" class="m-value font-mono">2,500</span>
               <span class="m-sub font-mono">&gt;10cm WATERLOG</span>
             </div>
             <div class="scada-metric-card">
               <span class="m-label">CRITICAL ASSETS</span>
-              <span id="scada-infra-count" class="m-value font-mono">0</span>
+              <span id="scada-infra-count" class="m-value font-mono">73</span>
               <span class="m-sub font-mono">THREATENED</span>
             </div>
             <div class="scada-metric-card">
@@ -470,22 +470,22 @@
               <span class="ver-tag">EXPOSURE BASED</span>
             </div>
             <div class="priority-counts-row font-mono">
-              <div class="p-count-pill p1">P1 <strong id="cnt-p1">0</strong></div>
-              <div class="p-count-pill p2">P2 <strong id="cnt-p2">0</strong></div>
-              <div class="p-count-pill p3">P3 <strong id="cnt-p3">0</strong></div>
+              <div class="p-count-pill p1">P1 <strong id="cnt-p1">173</strong></div>
+              <div class="p-count-pill p2">P2 <strong id="cnt-p2">702</strong></div>
+              <div class="p-count-pill p3">P3 <strong id="cnt-p3">1561</strong></div>
             </div>
-            <div id="top-priority-card" class="top-priority-card hidden">
+            <div id="top-priority-card" class="top-priority-card">
               <div class="top-p-header font-mono">
                 <span class="lbl">TOP PRIORITY CORRIDOR</span>
                 <span id="top-p-badge" class="sev-tag critical">P1</span>
               </div>
-              <div id="top-p-title" class="top-p-title font-mono">--</div>
+              <div id="top-p-title" class="top-p-title font-mono">road_23421_23422</div>
               <div class="top-p-details font-mono">
-                <div class="top-p-row"><span>Population exposed:</span> <strong id="top-p-pop">--</strong></div>
-                <div class="top-p-row"><span>Water depth:</span> <strong id="top-p-depth">--</strong></div>
-                <div class="top-p-row"><span>Critical assets:</span> <strong id="top-p-infra">--</strong></div>
+                <div class="top-p-row"><span>Population exposed:</span> <strong id="top-p-pop">36,56,539</strong></div>
+                <div class="top-p-row"><span>Water depth:</span> <strong id="top-p-depth">65.2 cm</strong></div>
+                <div class="top-p-row"><span>Critical assets:</span> <strong id="top-p-infra">1 Critical Asset</strong></div>
               </div>
-              <button id="btn-focus-top-p" class="btn-focus-top-p font-mono">⚡ FOCUS ON MAP & INSPECT</button>
+              <button id="btn-focus-top-p" class="btn-focus-top-p font-mono">⚡ FOCUS ON MAP &amp; INSPECT</button>
             </div>
           </div>
 
