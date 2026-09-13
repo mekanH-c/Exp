@@ -1528,6 +1528,9 @@ function createPumpPopup(p) {
       <div style="font-size: 10px; color: #64748b; font-family: monospace;">
         Coordinates: ${p.lat.toFixed(4)}°N, ${p.lon.toFixed(4)}°E
       </div>
+      <button class="popup-open-registry-btn" data-action="open-pump-registry" style="margin-top: 8px; width: 100%; background: linear-gradient(135deg, rgba(8, 28, 58, 0.95) 0%, rgba(14, 38, 76, 0.90) 100%); border: 1px solid rgba(56, 189, 248, 0.5); border-radius: 4px; color: #38bdf8; font-size: 11px; font-weight: 700; padding: 5px 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px; transition: all 0.15s ease;">
+        ⚡ Open Pumping Stations Registry (GET /pumps)
+      </button>
     </div>
   `;
 }
@@ -1581,16 +1584,57 @@ async function handlePumpsToggle(enabled) {
 async function loadPumpStationsMetadata() {
   const listContainer = document.getElementById("pump-stations-list");
   const countVal = document.getElementById("pump-count-val");
-  if (countVal) countVal.textContent = `${PUMP_STATIONS_DATA.length} Registered Stations`;
+  if (countVal) countVal.textContent = `${PUMP_STATIONS_DATA.length} Active`;
 
-  if (listContainer) {
-    listContainer.innerHTML = PUMP_STATIONS_DATA.map((st, i) => `
-      <div class="pump-item-row" data-station-code="${st.station_code}" data-lat="${st.lat}" data-lon="${st.lon}" style="display: flex; justify-content: space-between; align-items: center; padding: 6px 8px; border-bottom: 1px solid rgba(255,255,255,0.06); cursor: pointer; transition: background 0.15s ease;">
-        <span class="pump-num" style="color: var(--accent-cyan); font-weight: bold;">#${i + 1} (${st.station_code})</span>
-        <span class="pump-name" style="flex: 1; margin: 0 10px; color: #fff;">${st.name}</span>
-        <span class="pump-cap" style="color: ${st.load_pct >= 90 ? '#ef4444' : (st.load_pct >= 75 ? '#f59e0b' : '#38bdf8')}; font-weight: bold;">${st.load_pct}% Load</span>
-      </div>
-    `).join("");
+  if (!listContainer) return;
+
+  const searchInput = document.getElementById("pump-search-input");
+  const filterPills = document.querySelectorAll(".pump-filter-pill");
+  let currentFilter = "all";
+  let currentSearch = "";
+
+  const renderFilteredStations = () => {
+    const q = (currentSearch || "").trim().toLowerCase();
+    const filtered = PUMP_STATIONS_DATA.filter((st) => {
+      const matchSearch = !q || st.name.toLowerCase().includes(q) || st.station_code.toLowerCase().includes(q);
+      if (!matchSearch) return false;
+      if (currentFilter === "crit") return st.load_pct >= 85 || st.status === "critical";
+      if (currentFilter === "warn") return st.load_pct >= 70;
+      return true;
+    });
+
+    if (filtered.length === 0) {
+      listContainer.innerHTML = `<div class="pump-empty-search font-mono">No pumping stations match filter "${q || currentFilter}".</div>`;
+      return;
+    }
+
+    listContainer.innerHTML = filtered.map((st, i) => {
+      const isCritical = st.load_pct >= 85 || st.status === "critical";
+      const isWarning = !isCritical && (st.load_pct >= 70 || st.status === "warning");
+      const loadColor = isCritical ? "#ef4444" : (isWarning ? "#f59e0b" : "#10b981");
+      const loadBadgeClass = isCritical ? "crit" : (isWarning ? "warn" : "normal");
+      const flowRate = st.flowRateLps || Math.round((st.maxFlowLps || 2500) * (st.load_pct / 100));
+      const maxFlow = st.maxFlowLps || 2500;
+
+      return `
+        <div class="pump-item-row ${loadBadgeClass}" data-station-code="${st.station_code}" data-lat="${st.lat}" data-lon="${st.lon}" title="Click to center on map & inspect live telemetry">
+          <div class="pump-item-left">
+            <span class="pump-num-badge">#${i + 1}</span>
+            <span class="pump-code-badge">${st.station_code}</span>
+            <div class="pump-station-info">
+              <span class="pump-station-name">${st.name}</span>
+              <span class="pump-station-meta">Flow: <strong>${flowRate.toLocaleString()} L/s</strong> / Cap: <strong>${maxFlow.toLocaleString()} L/s</strong></span>
+            </div>
+          </div>
+          <div class="pump-item-right">
+            <div class="pump-meter-track" title="Capacity utilization: ${st.load_pct}%">
+              <div class="pump-meter-fill" style="width: ${Math.min(st.load_pct, 100)}%; background: ${loadColor};"></div>
+            </div>
+            <span class="pump-load-pill ${loadBadgeClass}">${st.load_pct}% LOAD</span>
+          </div>
+        </div>
+      `;
+    }).join("");
 
     listContainer.querySelectorAll(".pump-item-row").forEach(row => {
       row.addEventListener("click", () => {
@@ -1617,7 +1661,29 @@ async function loadPumpStationsMetadata() {
         }
       });
     });
+  };
+
+  renderFilteredStations();
+
+  if (searchInput && !searchInput.dataset.bound) {
+    searchInput.dataset.bound = "true";
+    searchInput.addEventListener("input", (e) => {
+      currentSearch = e.target.value;
+      renderFilteredStations();
+    });
   }
+
+  filterPills.forEach((btn) => {
+    if (!btn.dataset.bound) {
+      btn.dataset.bound = "true";
+      btn.addEventListener("click", () => {
+        filterPills.forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        currentFilter = btn.getAttribute("data-filter") || "all";
+        renderFilteredStations();
+      });
+    }
+  });
 }
 
 // --------------------------------------------------------------------------
@@ -2747,6 +2813,40 @@ function initLayerToggles() {
       if (modal) modal.classList.add("hidden");
     });
   }
+
+  const openPumpsBtn = document.getElementById("btn-open-pumps-modal");
+  if (openPumpsBtn) {
+    openPumpsBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const modal = document.getElementById("pump-modal");
+      if (modal) {
+        modal.classList.remove("hidden");
+        loadPumpStationsMetadata();
+      }
+    });
+  }
+
+  const pumpModalOverlay = document.getElementById("pump-modal");
+  if (pumpModalOverlay) {
+    pumpModalOverlay.addEventListener("click", (e) => {
+      if (e.target === pumpModalOverlay) {
+        pumpModalOverlay.classList.add("hidden");
+      }
+    });
+  }
+
+  // Delegated handler for any 'open-pump-registry' action buttons (from map popup, etc.)
+  document.addEventListener("click", (e) => {
+    const regBtn = e.target.closest("[data-action='open-pump-registry'], .popup-open-registry-btn");
+    if (regBtn) {
+      e.preventDefault();
+      const modal = document.getElementById("pump-modal");
+      if (modal) {
+        modal.classList.remove("hidden");
+        loadPumpStationsMetadata();
+      }
+    }
+  });
 
   const dCheck = document.getElementById("layer-drains-check");
   if (dCheck) {

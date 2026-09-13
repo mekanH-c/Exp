@@ -142,12 +142,13 @@
                 <span class="layer-name">Drainage Network</span>
               </label>
             </div>
-            <div class="layer-item">
+            <div class="layer-item layer-item-flex">
               <label class="custom-checkbox">
                 <input type="checkbox" id="layer-pumps-check" />
                 <span class="checkmark"></span>
                 <span class="layer-name">Pump Stations</span>
               </label>
+              <button id="btn-open-pumps-modal" class="layer-registry-btn" title="Open Pump Stations Registry (GET /pumps)">REGISTRY</button>
             </div>
             <div class="layer-item">
               <label class="custom-checkbox">
@@ -263,26 +264,67 @@
 
         <!-- PUMP STATIONS STYLED IN-APP MODAL -->
         <div id="pump-modal" class="pump-modal-overlay hidden">
-          <div class="pump-modal-card glass-panel">
+          <div class="pump-modal-card">
             <div class="pump-modal-header">
               <div class="pump-modal-title">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
-                PERMANENT PUMPING STATIONS REGISTRY (GET /pumps)
+                <div class="pump-icon-chip">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+                </div>
+                <div class="pump-title-text-group">
+                  <div class="modal-main-title">PERMANENT PUMPING STATIONS REGISTRY</div>
+                  <div class="modal-sub-title font-mono">DELHI URBAN DRAINAGE • SCADA TELEMETRY MATRIX</div>
+                </div>
+                <span class="api-endpoint-badge font-mono">GET /pumps</span>
               </div>
-              <button id="btn-close-pumps-modal" class="close-card-btn">&times;</button>
+              <button id="btn-close-pumps-modal" class="close-card-btn" title="Close Registry">&times;</button>
             </div>
+
             <div class="pump-modal-body">
-              <div class="pump-status-banner">
-                <div class="pump-status-row"><span class="lbl">Registered Stations:</span> <strong id="pump-count-val">24 Registered Stations</strong></div>
-                <div class="pump-status-row"><span class="lbl">Geographic Coordinates:</span> <span class="badge-ok" style="color: #10b981; font-weight: 600;">24 Active Stations Mapped</span></div>
-                <div class="pump-status-row"><span class="lbl">Telemetry / SCADA:</span> <span class="badge-ok" style="color: #10b981; font-weight: 600;">Active Load & Telemetry Monitoring</span></div>
-                <div class="pump-status-row"><span class="lbl">Operational Status:</span> <span>Real-Time Discharge & Sluice Gate Control</span></div>
+              <!-- 1. TELEMETRY SUMMARY GRID (4 HUD TILES) -->
+              <div class="pump-telemetry-grid">
+                <div class="pump-telemetry-tile">
+                  <span class="tile-lbl">REGISTERED STATIONS</span>
+                  <span id="pump-count-val" class="tile-val font-mono">24 Active</span>
+                  <span class="tile-sub font-mono">DELHI SCADA GRID</span>
+                </div>
+                <div class="pump-telemetry-tile">
+                  <span class="tile-lbl">MAPPED STATIONS</span>
+                  <span class="tile-val font-mono val-emerald">24 Online</span>
+                  <span class="tile-sub font-mono">GIS COORDINATES</span>
+                </div>
+                <div class="pump-telemetry-tile">
+                  <span class="tile-lbl">SCADA STREAM</span>
+                  <span class="tile-val font-mono val-live"><span class="live-dot pulse"></span> LIVE STREAM</span>
+                  <span class="tile-sub font-mono">CONTINUOUS 10S</span>
+                </div>
+                <div class="pump-telemetry-tile">
+                  <span class="tile-lbl">DISCHARGE CONTROL</span>
+                  <span class="tile-val font-mono val-cyan">Automated</span>
+                  <span class="tile-sub font-mono">SLUICE &amp; SUMP</span>
+                </div>
               </div>
+
+              <!-- 2. QUICK SEARCH & SEVERITY FILTER BAR -->
+              <div class="pump-controls-bar">
+                <div class="pump-search-input-box">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                  <input type="text" id="pump-search-input" placeholder="Filter by station name or code (e.g. Minto, Yamuna, KLA)..." autocomplete="off" />
+                </div>
+                <div class="pump-quick-filters">
+                  <button class="pump-filter-pill active" data-filter="all">ALL (24)</button>
+                  <button class="pump-filter-pill crit-filter" data-filter="crit">CRIT (&ge;85%)</button>
+                  <button class="pump-filter-pill warn-filter" data-filter="warn">WARN (&ge;70%)</button>
+                </div>
+              </div>
+
+              <!-- 3. STATION ITEMS SCROLLABLE LIST -->
               <div id="pump-stations-list" class="pump-stations-list font-mono">
                 <div class="pump-list-loading">Fetching pumping station metadata...</div>
               </div>
+
+              <!-- 4. FOOTER NOTE -->
               <div class="pump-notice-footer">
-                <em>Note: High-capacity permanent pumping facilities mapped to key outfalls and underpass sumps across Delhi.</em>
+                <span class="footer-hint font-mono">⚡ Click any station row to fly to geographic coordinates and inspect live telemetry marker.</span>
               </div>
             </div>
           </div>
