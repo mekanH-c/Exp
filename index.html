@@ -271,8 +271,6 @@
                 </div>
               </div>
             </div>
-          </div>
-
           <!-- CONTEXTUAL RAINFALL RADAR / HEATMAP LEGEND SECTION -->
           <div id="legend-radar-section" class="legend-context-section hidden">
             <div class="legend-header-row">
@@ -280,10 +278,9 @@
             </div>
             <div class="radar-gradient-legend-bar"></div>
             <div class="radar-gradient-legend-scale font-mono">
-              <span>0</span>
-              <span>5</span>
-              <span>15</span>
-              <span>25</span>
+              <span>&lt;2</span>
+              <span>10</span>
+              <span>20</span>
               <span>35</span>
               <span>&gt;50</span>
             </div>
@@ -950,8 +947,14 @@
               </div>
               <p class="loc-card-help">Click anywhere on the GIS map to sample micro-climate precipitation, cloud cover, and runoff rate for that specific coordinate.</p>
               <div class="loc-card-actions">
-                <button id="btn-reset-weather-coords" class="secondary-btn btn-sm" title="Center on Delhi Capital Core">Reset to Delhi Center</button>
-                <button id="btn-toggle-rain-radar" class="secondary-btn btn-sm" title="Toggle Live Rain Radar on Map">Radar Overlay</button>
+                <button id="btn-reset-weather-coords" class="hud-action-btn" title="Center View on Delhi Capital Core">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/></svg>
+                  <span>Reset to Delhi Center</span>
+                </button>
+                <button id="btn-toggle-rain-radar" class="hud-action-btn radar-toggle-btn" title="Toggle Live Rain Radar on Map">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 2a10 10 0 0 0-10 10c0 4.42 2.87 8.17 6.84 9.49"/><path d="M12 6a6 6 0 0 0-6 6c0 2.65 1.72 4.9 4.1 5.7"/><path d="M12 10a2 2 0 0 0-2 2c0 .88.58 1.63 1.37 1.9"/><circle cx="12" cy="12" r="1"/></svg>
+                  <span>Radar Overlay</span>
+                </button>
               </div>
             </div>
 

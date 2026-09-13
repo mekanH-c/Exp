@@ -3883,6 +3883,8 @@ function initRainfallDynamics() {
   if (resetCoordsBtn) {
     resetCoordsBtn.addEventListener("click", () => {
       currentRainCoords = { lat: 28.6139, lon: 77.2090 };
+      const badge = document.getElementById("rainfall-coords-badge");
+      if (badge) badge.textContent = "28.6139° N, 77.2090° E";
       if (inspectionMarker) {
         inspectionMarker.setLatLng([28.6139, 77.2090]);
       }
@@ -3891,19 +3893,13 @@ function initRainfallDynamics() {
     });
   }
 
-  // 3. Quick Radar Overlay button & Checkbox
-  const radarCheck = document.getElementById("layer-rain-radar-check");
-  if (radarCheck) {
-    radarCheck.addEventListener("change", (e) => {
-      toggleRainRadarLayer(e.target.checked);
-    });
-  }
-
+  // 3. Quick Radar Overlay button
   const radarBtn = document.getElementById("btn-toggle-rain-radar");
   if (radarBtn) {
     radarBtn.addEventListener("click", () => {
-      const willEnable = radarCheck ? !radarCheck.checked : !rainRadarLayer || !map.hasLayer(rainRadarLayer);
-      if (radarCheck) radarCheck.checked = willEnable;
+      const check = document.getElementById("layer-rain-radar-check");
+      const willEnable = check ? !check.checked : !rainRadarLayer || !map.hasLayer(rainRadarLayer);
+      if (check) check.checked = willEnable;
       toggleRainRadarLayer(willEnable);
     });
   }
@@ -4074,20 +4070,24 @@ function renderRainfallDynamicsPanel(data) {
 }
 
 async function toggleRainRadarLayer(enable) {
-  const radarLegend = document.getElementById("legend-radar-section");
-  const check = document.getElementById("layer-rain-radar-check");
+  const radarBtn = document.getElementById("btn-toggle-rain-radar");
+  const legendRadar = document.getElementById("legend-radar-section");
 
   if (!enable) {
     if (rainRadarLayer && map.hasLayer(rainRadarLayer)) {
       map.removeLayer(rainRadarLayer);
     }
+    const check = document.getElementById("layer-rain-radar-check");
     if (check) check.checked = false;
-    if (radarLegend) radarLegend.classList.add("hidden");
+    if (radarBtn) radarBtn.classList.remove("radar-active");
+    if (legendRadar) legendRadar.classList.add("hidden");
     return;
   }
 
+  const check = document.getElementById("layer-rain-radar-check");
   if (check) check.checked = true;
-  if (radarLegend) radarLegend.classList.remove("hidden");
+  if (radarBtn) radarBtn.classList.add("radar-active");
+  if (legendRadar) legendRadar.classList.remove("hidden");
 
   try {
     const key = getStoredOpenWeatherKey();
@@ -4107,60 +4107,53 @@ async function toggleRainRadarLayer(enable) {
 
     const featureLayers = [];
 
-    // 1. Continuous Multi-Spectral Radar Heatmap (Image 1 Color Gradient)
-    // Deep Indigo/Blue -> Cyan -> Emerald Green -> Golden Yellow -> Orange -> Crimson Red
+    // 1. Continuous Multi-Spectral Meteorological Heatmap Raster (Leaflet.heat)
+    // Replicating meteorological Doppler satellite composite: Deep Indigo -> Blue -> Cyan -> Green -> Yellow -> Orange -> Crimson Red
     const METEO_RADAR_GRADIENT = {
-      0.05: "#1e1b4b", // Deep indigo
-      0.15: "#312e81", // Indigo
-      0.28: "#1d4ed8", // Deep royal blue
-      0.42: "#06b6d4", // Electric cyan
-      0.56: "#10b981", // Emerald green
-      0.70: "#facc15", // Bright golden yellow
-      0.85: "#f97316", // Fiery orange
-      1.00: "#ef4444"  // Intense crimson red
+      0.04: "rgba(30, 27, 75, 0.45)",  // Deep indigo fringe (<2 mm/h)
+      0.14: "#312e81",                  // Indigo
+      0.28: "#1d4ed8",                  // Deep royal blue (5-10 mm/h)
+      0.44: "#06b6d4",                  // Electric cyan (10-18 mm/h)
+      0.58: "#10b981",                  // Emerald green (18-25 mm/h)
+      0.72: "#facc15",                  // Vibrant yellow (25-35 mm/h)
+      0.86: "#f97316",                  // Fiery convective orange (35-48 mm/h)
+      1.00: "#ef4444"                   // Intense cloudburst crimson (>50 mm/h)
     };
 
-    let points = geojson.heatmap_points;
-    if (!points || points.length === 0) {
-      points = generateClientRadarGrid(geojson.features || [], currentRainCoords);
-    }
-
-    if (typeof L.heatLayer === "function" && points && points.length > 0) {
-      const heat = L.heatLayer(points, {
-        radius: 36,
-        blur: 24,
+    const heatPoints = geojson.heatmap_points || [];
+    if (heatPoints.length > 0 && typeof L.heatLayer === "function") {
+      const heatLayer = L.heatLayer(heatPoints, {
+        radius: 42,
+        blur: 28,
         maxZoom: 16,
         max: 1.0,
         minOpacity: 0.45,
         gradient: METEO_RADAR_GRADIENT
       });
-      featureLayers.push(heat);
+      featureLayers.push(heatLayer);
     }
 
-    // 2. Sleek Meteorological Basin Centroid Beacons (replacing giant orange circle hoops)
+    // 2. High-Tech Minimalist Basin Radar Centroid Beacons (replacing giant orange circle hoops)
     (geojson.features || []).forEach((feat) => {
       const p = feat.properties;
       const coords = feat.geometry.coordinates;
       const latLng = [coords[1], coords[0]];
 
-      const beaconHtml = `
-        <div class="radar-beacon-marker" style="color:${p.color || '#38bdf8'};">
-          <div class="radar-beacon-dot">
-            <div class="radar-beacon-pulse"></div>
-          </div>
-          <div class="radar-beacon-label font-mono">${p.name.replace(" Basin", "").replace(" Corridor", "")} · ${p.intensity_mm_hr}mm/h</div>
-        </div>
-      `;
-
-      const beacon = L.marker(latLng, {
-        icon: L.divIcon({
-          className: "custom-radar-beacon-wrap",
-          html: beaconHtml,
-          iconSize: [20, 20],
-          iconAnchor: [5, 5]
-        }),
-        zIndexOffset: 1000
+      // Glowing pulsing radar beacon dot
+      const beacon = L.circleMarker(latLng, {
+        radius: 7,
+        color: "#ffffff",
+        weight: 2,
+        fillColor: p.color || "#38bdf8",
+        fillOpacity: 0.95,
+        className: "radar-beacon-pulse"
       });
+
+      beacon.bindTooltip(`
+        <div class="radar-tooltip font-mono">
+          <strong>${p.name}</strong>: <span style="color:${p.color}; font-weight:700;">${p.intensity_mm_hr} mm/h (${p.dbz} dBZ)</span>
+        </div>
+      `, { direction: "top", offset: [0, -7], className: "radar-custom-tooltip" });
 
       beacon.bindPopup(`
         <div class="scada-popup">
@@ -4197,50 +4190,19 @@ async function toggleRainRadarLayer(enable) {
       featureLayers.push(beacon);
     });
 
-    if (key && key !== "YOUR_API_KEY") {
-      const tileLayer = L.tileLayer(
-        `https://tile.openweathermap.org/map/precipitation_new/{z}/{x}/{y}.png?appid=${key}`,
-        { maxZoom: 18, opacity: 0.55 }
-      );
-      featureLayers.push(tileLayer);
-    }
-
     rainRadarLayer = L.layerGroup(featureLayers);
     rainRadarLayer.addTo(map);
+
+    if (key) {
+      const tileLayer = L.tileLayer(
+        `https://tile.openweathermap.org/map/precipitation_new/{z}/{x}/{y}.png?appid=${key}`,
+        { maxZoom: 18, opacity: 0.65 }
+      );
+      rainRadarLayer.addLayer(tileLayer);
+    }
   } catch (err) {
     console.warn("Could not load radar layer:", err);
   }
-}
-
-function generateClientRadarGrid(features, center) {
-  const latMin = 28.38, latMax = 28.88;
-  const lonMin = 76.84, lonMax = 77.46;
-  const steps = 36;
-  const baseIntensity = lastLiveWeather ? (lastLiveWeather.rainfall_intensity_mm_hr || 12.0) : 12.0;
-  const maxScale = Math.max(30.0, baseIntensity * 1.85);
-
-  const points = [];
-  for (let i = 0; i <= steps; i++) {
-    const lat = latMin + (latMax - latMin) * (i / steps);
-    for (let j = 0; j <= steps; j++) {
-      const lon = lonMin + (lonMax - lonMin) * (j / steps);
-      const ambient = (baseIntensity * 0.28) + (baseIntensity * 0.10) * Math.sin(lat * 22.0 + lon * 18.0);
-      let intensity = Math.max(0.5, ambient);
-
-      features.forEach(f => {
-        const c = f.geometry.coordinates;
-        const p = f.properties;
-        const dKm = Math.sqrt(Math.pow((lat - c[1]) * 111.0, 2) + Math.pow((lon - c[0]) * 98.0, 2));
-        const sigmaKm = ((p.radius_meters || 4500) / 1000.0) * 0.95;
-        const w = Math.exp(-0.5 * Math.pow(dKm / sigmaKm, 2));
-        intensity += w * Math.max(0.0, (p.intensity_mm_hr || baseIntensity) - ambient);
-      });
-
-      const norm = Math.min(1.0, Math.max(0.08, intensity / maxScale));
-      points.push([Number(lat.toFixed(5)), Number(lon.toFixed(5)), Number(norm.toFixed(3))]);
-    }
-  }
-  return points;
 }
 
 async function syncGisWithLiveRain() {
