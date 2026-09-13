@@ -1614,6 +1614,47 @@ canvas.leaflet-zoom-animated {
 
 .layer-item { display: flex; align-items: center; }
 
+.layer-item.layer-item-flex,
+.layer-item-flex {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+}
+
+.layer-registry-btn {
+  background: rgba(59, 130, 246, 0.25);
+  border: 1px solid rgba(59, 130, 246, 0.5);
+  color: #60a5fa;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 4px;
+  cursor: pointer;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  line-height: 1.2;
+  transition: all 0.15s ease;
+}
+
+.layer-registry-btn:hover {
+  background: rgba(59, 130, 246, 0.45);
+  border-color: #38bdf8;
+  color: #ffffff;
+  box-shadow: 0 0 8px rgba(56, 189, 248, 0.4);
+  transform: translateY(-1px);
+}
+
+.layer-registry-btn:focus {
+  outline: none;
+}
+
+.layer-registry-btn:active {
+  transform: scale(0.95);
+}
+
 .custom-checkbox {
   display: flex;
   align-items: center;
