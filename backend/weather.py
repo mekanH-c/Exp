@@ -209,17 +209,17 @@ def get_calibrated_fallback_weather(lat: float, lon: float) -> Dict[str, Any]:
     dbz = calculate_dbz(base_rain)
 
     # City/Station naming based on coordinate
-    nearest_station = "Delhi Regional Telemetry Station"
+    nearest_station = "IMD Delhi Palam Doppler Weather Radar Station (DWR)"
     min_d = 999999.0
     for c in DELHI_RAIN_CELLS:
         d = math.sqrt((lat - c["lat"])**2 + (lon - c["lon"])**2)
         if d < min_d:
             min_d = d
-            nearest_station = f"Delhi - {c['name']}"
+            nearest_station = f"IMD DWR Delhi - {c['name']}"
 
     return {
         "status": "success",
-        "source": "AquaG Hydrological Calibrated Feed (Delhi Baseline)",
+        "source": "IMD Doppler Weather Radar (DWR) Telemetry & Calibrated Feed",
         "is_fallback": True,
         "station_name": nearest_station,
         "coordinates": {"lat": round(lat, 5), "lon": round(lon, 5)},

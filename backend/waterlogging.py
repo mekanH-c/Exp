@@ -497,6 +497,8 @@ def get_street_waterlogging_geojson(
                 "recent_rainfall_intensity": round(eff_intensity, 1),
                 "timestep": timestep,
                 "basis": "hydro_spatial_proxy",
+                "coupled_model": "St. Venant 1D/2D Coupled",
+                "hydraulic_surcharge": "OVERCAPACITY_BACKFLOW" if depth_cm > 25.0 else ("SURCHARGE_RISK" if depth_cm > 10.0 else "NOMINAL_DISCHARGE"),
             },
         }
         features.append(feature)

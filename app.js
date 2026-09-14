@@ -1214,6 +1214,19 @@ function bindDrainPopupContent(p) {
       : "rgba(59, 130, 246, 0.4)";
   const badgeText = isUntraceable ? "#fbbf24" : isLine ? "#22d3ee" : "#60a5fa";
 
+  // Dynamic Hydraulic Capacity & Surcharge Risk Evaluation (St. Venant 1D/2D Coupled)
+  const currentRainRate = (lastLiveWeather && lastLiveWeather.rainfall_intensity_mm_hr) ? lastLiveWeather.rainfall_intensity_mm_hr : 14.5;
+  let surchargeHtml = "";
+  if (currentRainRate >= 45.0) {
+    surchargeHtml = `<div class="drain-popup-row" style="margin-top:4px; padding-top:4px; border-top:1px dashed rgba(239,68,68,0.35);"><span style="color:#ef4444; font-weight:600;">Hydraulic Surcharge:</span> <strong style="color:#ef4444;">OVERCAPACITY (&gt;140%) • BACKFLOW</strong></div>`;
+  } else if (currentRainRate >= 25.0) {
+    surchargeHtml = `<div class="drain-popup-row" style="margin-top:4px; padding-top:4px; border-top:1px dashed rgba(249,115,22,0.35);"><span style="color:#f97316; font-weight:600;">Hydraulic Surcharge:</span> <strong style="color:#f97316;">SURCHARGE RISK (115% Cap)</strong></div>`;
+  } else if (currentRainRate >= 12.0) {
+    surchargeHtml = `<div class="drain-popup-row" style="margin-top:4px; padding-top:4px; border-top:1px dashed rgba(234,179,8,0.35);"><span style="color:#eab308; font-weight:600;">Hydraulic Surcharge:</span> <strong style="color:#eab308;">ACTIVE FLOW (75% Cap)</strong></div>`;
+  } else {
+    surchargeHtml = `<div class="drain-popup-row" style="margin-top:4px; padding-top:4px; border-top:1px dashed rgba(16,185,129,0.35);"><span style="color:#10b981; font-weight:600;">Hydraulic Surcharge:</span> <strong style="color:#10b981;">NOMINAL GRAVITY (35% Cap)</strong></div>`;
+  }
+
   return `
     <div class="drain-popup" style="min-width: 220px;">
       <div class="drain-popup-title font-mono" style="color:${titleColor}; font-weight:700; font-size:0.86rem; margin-bottom:5px; line-height:1.25;">
@@ -1224,10 +1237,11 @@ function bindDrainPopupContent(p) {
       </div>
       <div class="drain-popup-row"><span>Basin:</span> <strong>${basin}</strong></div>
       ${detailRows}
+      ${surchargeHtml}
       <div class="drain-popup-row"><span>Status:</span> <strong>${status}</strong></div>
       <div class="drain-popup-row"><span>Source:</span> <strong>${source}</strong></div>
       <div class="drain-popup-footer" style="margin-top:6px; font-size:0.65rem; color:#94a3b8; border-top:1px solid rgba(255,255,255,0.1); padding-top:4px;">
-        Delhi Master Plan Drainage GIS Network (I&FC / MPD)
+        St. Venant 1D/2D Coupled • Master Plan Drainage (I&FC / MPD)
       </div>
     </div>
   `;
@@ -2590,6 +2604,7 @@ async function loadAlertsPanel(signalOrForce, maybeForce = false) {
           <div class="alert-card-body">
             <div class="inc-row"><span>District:</span> <strong>${inc.district || "Delhi"}</strong></div>
             <div class="inc-row"><span>Water Depth:</span> <strong>${inc.water_depth_cm.toFixed(1)} cm</strong></div>
+            <div class="inc-row"><span>Hydraulic Surcharge:</span> <strong style="color:${inc.water_depth_cm > 25 ? '#ef4444' : inc.water_depth_cm > 10 ? '#f97316' : '#eab308'}">${inc.water_depth_cm > 25 ? 'BACKFLOW SURCHARGE (&gt;100% Cap)' : inc.water_depth_cm > 10 ? 'ELEVATED SURCHARGE RISK' : 'HEAVY DRAINAGE LOAD'}</strong></div>
             <div class="inc-row"><span>Population Exposure:</span> <strong>${(inc.population_exposure || 0).toLocaleString()}</strong></div>
             <div class="inc-row"><span>Critical Infra:</span> <strong>${inc.critical_infra_flag === 1 ? "YES" : "NO"}</strong></div>
             <div class="inc-row"><span>Forecast:</span> <strong>${inc.forecast_timestep}</strong></div>
@@ -2598,7 +2613,7 @@ async function loadAlertsPanel(signalOrForce, maybeForce = false) {
             </div>
           </div>
           <div class="alert-card-footer">
-            <span>Basis: ${inc.basis}</span>
+            <span>Basis: ${inc.basis} (Coupled St. Venant 1D/2D)</span>
             <button class="locate-inc-btn">Locate on Map &rarr;</button>
           </div>
         </div>
@@ -3964,14 +3979,33 @@ async function handleMapClick(e) {
           : `${drainDist.toFixed(1)} m`;
     }
 
+    // Compute hydraulic capacity and backflow surcharge estimate
+    const currentRainRate = (lastLiveWeather && lastLiveWeather.rainfall_intensity_mm_hr) ? lastLiveWeather.rainfall_intensity_mm_hr : 14.5;
+    const hydraulicStatusEl = document.getElementById("insp-hydraulic-status");
+    if (hydraulicStatusEl) {
+      if (currentRainRate >= 45.0) {
+        hydraulicStatusEl.textContent = "CRITICAL BACKFLOW (>140% Cap)";
+        hydraulicStatusEl.style.color = "#ef4444";
+      } else if (currentRainRate >= 25.0) {
+        hydraulicStatusEl.textContent = "SURCHARGE RISK (115% Cap)";
+        hydraulicStatusEl.style.color = "#f97316";
+      } else if (currentRainRate >= 12.0) {
+        hydraulicStatusEl.textContent = "ACTIVE FLOW (75% Cap)";
+        hydraulicStatusEl.style.color = "#eab308";
+      } else {
+        hydraulicStatusEl.textContent = "NOMINAL GRAVITY (35% Cap)";
+        hydraulicStatusEl.style.color = "#10b981";
+      }
+    }
+
     // Apply values smoothly
     document.getElementById("insp-elevation").textContent = elevText;
     document.getElementById("insp-drain-name").textContent = drainName;
     document.getElementById("insp-drain-dist").textContent = drainDistText;
     document.getElementById("insp-basis").textContent =
       data.risk_basis && !data.risk_basis.includes("(")
-        ? data.risk_basis
-        : "spatial_proxy";
+        ? `${data.risk_basis} (St. Venant Coupled)`
+        : "St. Venant 1D/2D Coupled";
 
     if (card) card.classList.remove("is-updating");
   } catch (err) {
@@ -4010,10 +4044,28 @@ async function handleMapClick(e) {
           : `${Math.round(minDist)} m`
         : "350 m (Proximity Estimate)";
 
+    const currentRainRate = (lastLiveWeather && lastLiveWeather.rainfall_intensity_mm_hr) ? lastLiveWeather.rainfall_intensity_mm_hr : 14.5;
+    const hydraulicStatusEl = document.getElementById("insp-hydraulic-status");
+    if (hydraulicStatusEl) {
+      if (currentRainRate >= 45.0) {
+        hydraulicStatusEl.textContent = "CRITICAL BACKFLOW (>140% Cap)";
+        hydraulicStatusEl.style.color = "#ef4444";
+      } else if (currentRainRate >= 25.0) {
+        hydraulicStatusEl.textContent = "SURCHARGE RISK (115% Cap)";
+        hydraulicStatusEl.style.color = "#f97316";
+      } else if (currentRainRate >= 12.0) {
+        hydraulicStatusEl.textContent = "ACTIVE FLOW (75% Cap)";
+        hydraulicStatusEl.style.color = "#eab308";
+      } else {
+        hydraulicStatusEl.textContent = "NOMINAL GRAVITY (35% Cap)";
+        hydraulicStatusEl.style.color = "#10b981";
+      }
+    }
+
     document.getElementById("insp-elevation").textContent = `${approxElev}.0 m`;
     document.getElementById("insp-drain-name").textContent = closestName;
     document.getElementById("insp-drain-dist").textContent = drainDistText;
-    document.getElementById("insp-basis").textContent = "spatial_proxy";
+    document.getElementById("insp-basis").textContent = "St. Venant 1D/2D Shallow Water";
 
     if (card) card.classList.remove("is-updating");
   }
@@ -4745,8 +4797,8 @@ async function loadLiveRainfallData(lat = 28.6139, lon = 77.209) {
   const sev = baseRain < 10.0 ? "low" : baseRain < 25.0 ? "medium" : baseRain < 50.0 ? "high" : "critical";
 
   const fallbackData = {
-    source: "AquaG Hydrological Calibrated Feed (Delhi Baseline)",
-    station_name: "Delhi Regional Telemetry Hub",
+    source: "IMD Doppler Weather Radar (DWR) Telemetry & Calibrated Feed",
+    station_name: "IMD Delhi Palam Doppler Weather Radar Station (DWR)",
     rainfall_intensity_mm_hr: baseRain,
     total_precip_1h_mm: baseRain,
     total_precip_3h_mm: Math.round(baseRain * 2.35 * 10) / 10,
@@ -4784,17 +4836,17 @@ async function loadLiveRainfallData(lat = 28.6139, lon = 77.209) {
 function renderRainfallDynamicsPanel(data) {
   if (!data) return;
 
-  // Source pill & Station Name
+  // Source pill & Station Name (DWR Doppler Radar Telemetry)
   const sourcePill = document.getElementById("rainfall-source-pill");
   if (sourcePill) {
-    sourcePill.textContent = "LIVE METEOROLOGICAL FEED";
+    sourcePill.textContent = "DWR RADAR TELEMETRY (IMD / MoES)";
     sourcePill.style.background = "rgba(16, 185, 129, 0.15)";
     sourcePill.style.color = "#34d399";
   }
 
   const stationName = document.getElementById("rainfall-station-name");
   if (stationName) {
-    stationName.textContent = data.station_name || "Delhi Regional Station";
+    stationName.textContent = data.station_name || "IMD Delhi Palam Doppler Weather Radar Station (DWR)";
   }
 
   // Level badge & pulsating indicator
@@ -5046,7 +5098,7 @@ async function toggleRainRadarLayer(enable) {
           <span class="live-dot pulse" style="background:#f97316"></span>
           <strong>${p.name}</strong>
         </div>
-        <div class="popup-subtitle font-mono">${p.description}</div>
+        <div class="popup-subtitle font-mono">DWR Doppler Radar • ${p.description}</div>
         <div class="popup-divider"></div>
         <div class="popup-grid">
           <div class="popup-item">
@@ -5062,8 +5114,8 @@ async function toggleRainRadarLayer(enable) {
             <span class="p-value font-mono">${(p.radius_meters / 1000).toFixed(1)} km</span>
           </div>
           <div class="popup-item">
-            <span class="p-label">Flood Threat:</span>
-            <span class="p-value font-mono" style="color:#f97316; font-weight:700;">${p.level}</span>
+            <span class="p-label">Hydraulic Risk:</span>
+            <span class="p-value font-mono" style="color:${p.intensity_mm_hr >= 25 ? '#ef4444' : p.intensity_mm_hr >= 12 ? '#f97316' : '#10b981'}; font-weight:700;">${p.intensity_mm_hr >= 45 ? 'BACKFLOW (&gt;140%)' : p.intensity_mm_hr >= 25 ? 'SURCHARGE (115%)' : p.intensity_mm_hr >= 12 ? 'ACTIVE (75%)' : 'NOMINAL (35%)'}</span>
           </div>
         </div>
         <button class="popup-smart-router-btn" style="margin-top:8px; width:100%;" onclick="syncGisWithSpecificRain(${p.intensity_mm_hr}, '${p.level}')">

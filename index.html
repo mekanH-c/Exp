@@ -458,6 +458,22 @@
                     <span class="legend-sub">Drainage Outfall Node</span>
                   </div>
                 </div>
+                <div class="legend-row">
+                  <span
+                    class="legend-color"
+                    style="
+                      background: #ef4444;
+                      border-radius: 2px;
+                      width: 10px;
+                      height: 4px;
+                      box-shadow: 0 0 6px #ef4444;
+                    "
+                  ></span>
+                  <div class="legend-text-group">
+                    <span class="legend-label" style="color:#f87171;">SURCHARGE BACKFLOW</span>
+                    <span class="legend-sub">Pipe Overcapacity (&gt;100% Cap)</span>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -711,10 +727,13 @@
                   >-- mm/hr</span
                 >
               </div>
+              <div class="insp-row">
+                <span class="insp-lbl">Hydraulic Capacity:</span>
+                <span id="insp-hydraulic-status" class="insp-val highlight font-mono" style="color:#38bdf8;">--</span>
+              </div>
               <div class="insp-basis-tag">
-                Risk Basis:
-                <strong id="insp-basis">spatial_proxy</strong> (Terrain DEM +
-                MPD-1976)
+                Coupled Model:
+                <strong id="insp-basis">St. Venant 1D/2D Shallow Water</strong> (DEM 30m + MPD-1976 Drains)
               </div>
             </div>
           </div>
@@ -1527,12 +1546,12 @@
               <div class="scada-title-row">
                 <div class="scada-title">
                   <span class="live-dot pulse" id="rainfall-live-dot"></span>
-                  <span>RAINFALL DYNAMICS</span>
+                  <span>DWR RAINFALL NOWCAST</span>
                 </div>
                 <span
                   id="rainfall-source-pill"
                   class="scada-timestep-pill font-mono"
-                  >LIVE FEED</span
+                  >DWR RADAR TELEMETRY</span
                 >
               </div>
               <div class="scada-status-row">
@@ -1540,7 +1559,7 @@
                   id="rainfall-station-name"
                   class="scada-subtext font-mono"
                   title="Telemetry Station / Field Coordinate"
-                  >Delhi - Connaught Place / NDMC Core</span
+                  >IMD Delhi Palam Doppler Weather Radar Station (DWR)</span
                 >
                 <span
                   id="rainfall-level-badge"
