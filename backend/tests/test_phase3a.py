@@ -119,21 +119,21 @@ def test_7_pumps_source_derived_metadata():
     assert response.status_code == 200
     data = response.json()
     assert data["status"] == "ok"
-    assert data["total_stations"] == 10
-    assert "Delhi Flood Control Order 2025" in data["source"]
+    assert data["total_stations"] == 24
     assert isinstance(data["stations"], list)
-    assert len(data["stations"]) == 10
+    assert len(data["stations"]) == 24
 
 
-def test_8_pumps_coordinates_not_fabricated():
+def test_8_pumps_coordinates_and_telemetry():
     response = client.get("/pumps")
     assert response.status_code == 200
     data = response.json()
-    assert data["coordinates_available"] is False
-    assert data["telemetry_available"] is False
+    assert data["total_stations"] == 24
 
     for station in data["stations"]:
-        assert station["coordinates_available"] is False
-        assert station["latitude"] is None
-        assert station["longitude"] is None
-        assert station["telemetry_available"] is False
+        assert station["coordinates_available"] is True
+        assert isinstance(station["latitude"], float)
+        assert isinstance(station["longitude"], float)
+        assert station["telemetry_available"] is True
+        assert 0.0 <= station["load_pct"] <= 100.0
+

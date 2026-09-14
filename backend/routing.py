@@ -153,6 +153,31 @@ class AquaGRouter:
 
         print("AquaGRouter initialization complete.")
 
+    @staticmethod
+    def calculate_flood_penalty_multiplier(depth_cm: float) -> float:
+        """
+        Calculates calibrated routing penalty multiplier for road segment waterlogging depth.
+        Depth <= 10 cm: Normal passable road (1.0x)
+        10 < Depth <= 25 cm: Moderate waterlogging (1.5x - 2.5x)
+        25 < Depth <= 100 cm: High waterlogging (8.0x - 20.0x)
+        Depth > 100 cm: Critical flood / impassable (>= 100.0x)
+        """
+        if depth_cm <= 10.0:
+            return 1.0
+        elif depth_cm <= 25.0:
+            # 1.5 to 2.5
+            ratio = (depth_cm - 10.0) / 15.0
+            return 1.5 + ratio * 1.0
+        elif depth_cm <= 100.0:
+            # 8.0 to 20.0
+            ratio = (depth_cm - 25.0) / 75.0
+            return 8.0 + ratio * 12.0
+        else:
+            # Over 100cm: extreme penalty multiplier >= 100.0
+            excess = depth_cm - 100.0
+            return 100.0 + excess * 5.0
+
+
 
     def nearest_node(
         self,
