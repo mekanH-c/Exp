@@ -55,38 +55,73 @@ let activeSpatialAbortController = null;
 let lastRenderedCenter = null;
 let lastRenderedZoom = null;
 
-/**
- * Resilient API Fetch with automatic timeout, abort, and dual-tier auto-failover
- */
-async function apiFetch(endpoint, options = {}, timeoutMs = 10000) {
+async function apiFetch(endpoint, options = {}, timeoutMs = null) {
   const url = endpoint.startsWith("http")
     ? endpoint
     : `${API_BASE_URL}${endpoint.startsWith("/") ? "" : "/"}${endpoint}`;
 
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  // Render cold starts can take 30-60s — use longer timeouts for cloud backend
+  const isCloudBackend = API_BASE_URL.includes("onrender.com");
+  const effectiveTimeout = timeoutMs || (isCloudBackend ? 45000 : 12000);
+  const maxRetries = isCloudBackend ? 3 : 2;
 
-  // Propagate caller abort signal
-  if (options.signal) {
-    options.signal.addEventListener("abort", () => {
+  let lastError = null;
+
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), effectiveTimeout);
+
+    // Propagate caller abort signal
+    if (options.signal) {
+      if (options.signal.aborted) { clearTimeout(timer); throw new DOMException("Aborted", "AbortError"); }
+      options.signal.addEventListener("abort", () => {
+        clearTimeout(timer);
+        controller.abort();
+      });
+    }
+
+    const fetchOpts = {
+      ...options,
+      signal: controller.signal,
+    };
+
+    try {
+      const res = await fetch(url, fetchOpts);
       clearTimeout(timer);
-      controller.abort();
-    });
+
+      // Mark backend as online on any successful response
+      if (!isBackendOnline) {
+        isBackendOnline = true;
+        updateHealthBadge(true, `Online (${lastKnownBackendSource || "Reconnected"})`);
+      }
+
+      return res;
+    } catch (err) {
+      clearTimeout(timer);
+      lastError = err;
+
+      // If caller explicitly aborted, don't retry
+      if (options.signal && options.signal.aborted) throw err;
+
+      // Log and retry after backoff
+      const backoffMs = Math.min(1000 * Math.pow(2, attempt), 8000);
+      console.warn(`[AquaG] API fetch attempt ${attempt + 1}/${maxRetries} failed for ${endpoint}:`, err.message, `— retrying in ${backoffMs}ms`);
+
+      if (attempt < maxRetries - 1) {
+        await new Promise(r => setTimeout(r, backoffMs));
+      }
+    }
   }
 
-  const fetchOpts = {
-    ...options,
-    signal: controller.signal,
-  };
-
-  try {
-    const res = await fetch(url, fetchOpts);
-    clearTimeout(timer);
-    return res;
-  } catch (err) {
-    clearTimeout(timer);
-    throw err;
+  // All retries exhausted — trigger background re-probe and throw
+  if (isBackendOnline) {
+    isBackendOnline = false;
+    updateHealthBadge(false, "Reconnecting...");
+    // Background re-probe to find working backend
+    setTimeout(() => probeAndSelectBackend(), 500);
   }
+
+  throw lastError;
 }
 
 function updateHealthBadge(online, text, data = null) {
@@ -129,12 +164,18 @@ async function probeAndSelectBackend() {
       window.location.protocol === "file:");
 
   const candidates = [];
-  // If hosted on cloud or unified host, probe same-origin first for 0ms zero-CORS connection
+  // If hosted on a unified backend host (not static hosting like github.io/netlify), probe same-origin first
+  const isStaticHost = typeof window !== "undefined" && window.location &&
+    (window.location.hostname.includes("github.io") ||
+     window.location.hostname.includes("netlify.app") ||
+     window.location.hostname.includes("vercel.app") ||
+     window.location.hostname.includes("pages.dev"));
   if (
     typeof window !== "undefined" &&
     window.location &&
     window.location.origin &&
-    !isLocalHost
+    !isLocalHost &&
+    !isStaticHost
   ) {
     candidates.push({
       url: window.location.origin,
@@ -174,7 +215,10 @@ async function probeAndSelectBackend() {
   for (const c of candidates) {
     try {
       const ctrl = new AbortController();
-      const t = setTimeout(() => ctrl.abort(), 2000);
+      // Render free-tier cold-starts can take 30-60s — give it enough time
+      const probeTimeout = c.url.includes("onrender.com") ? 45000 : 3000;
+      const t = setTimeout(() => ctrl.abort(), probeTimeout);
+      updateHealthBadge(false, `Connecting to ${c.label}...`);
       const res = await fetch(`${c.url}/health`, {
         signal: ctrl.signal,
         cache: "no-store",
@@ -213,17 +257,43 @@ async function probeAndSelectBackend() {
   return API_BASE_URL;
 }
 
-// Render Anti-Spindown Keepalive (Runs every 9 minutes)
+// Render Anti-Spindown Keepalive (Every 4 minutes — Render sleeps after ~5 min idle)
 setInterval(
   async () => {
     if (API_BASE_URL && API_BASE_URL.includes("onrender.com")) {
       try {
-        await fetch(`${API_BASE_URL}/health`, { cache: "no-store" });
+        const ctrl = new AbortController();
+        const t = setTimeout(() => ctrl.abort(), 10000);
+        const res = await fetch(`${API_BASE_URL}/health`, { cache: "no-store", signal: ctrl.signal });
+        clearTimeout(t);
+        if (res.ok && !isBackendOnline) {
+          isBackendOnline = true;
+          updateHealthBadge(true, `Online (${lastKnownBackendSource || "Cloud (Render)"})`);
+          console.log("[AquaG] Backend reconnected via keepalive.");
+        }
         console.log("[AquaG] Keep-alive heartbeat delivered to cloud backend.");
-      } catch (_) {}
+      } catch (_) {
+        // If keepalive fails and we were online, trigger reconnect
+        if (isBackendOnline) {
+          isBackendOnline = false;
+          updateHealthBadge(false, "Reconnecting...");
+          probeAndSelectBackend();
+        }
+      }
     }
   },
-  9 * 60 * 1000,
+  4 * 60 * 1000,
+);
+
+// Periodic reconnect check — if offline, re-probe every 30 seconds
+setInterval(
+  async () => {
+    if (!isBackendOnline) {
+      console.log("[AquaG] Backend offline — attempting reconnect...");
+      await probeAndSelectBackend();
+    }
+  },
+  30 * 1000,
 );
 
 // Global State Variables
