@@ -5018,35 +5018,6 @@ async function toggleRainRadarLayer(enable) {
     geojson = generateClientRadarData(currentRainCoords.lat, currentRainCoords.lon);
   }
 
-  if (rainRadarLayer && map.hasLayer(rainRadarLayer)) {
-    map.removeLayer(rainRadarLayer);
-  }
-
-  const heatPoints = (geojson.heatmap_points || []).map(([lat, lon, w]) => [lat, lon, w]);
-  let heatLayer = null;
-
-  if (typeof L.heatLayer === "function") {
-    heatLayer = L.heatLayer(heatPoints, {
-      radius: 50,
-      blur: 38,
-      maxZoom: 13,
-      max: 1.0,
-      minOpacity: 0.38,
-      gradient: {
-        0.00: "#060b61",
-        0.12: "#0a39b0",
-        0.25: "#1d91c0",
-        0.40: "#41b6c4",
-        0.55: "#7fcdbb",
-        0.68: "#c7e9b4",
-        0.78: "#edf8b1",
-        0.87: "#fec44f",
-        0.94: "#f03b20",
-        1.00: "#bd0026"
-      }
-    });
-  }
-
   const featureLayers = [];
   (geojson.features || []).forEach((feat) => {
     const p = feat.properties;
@@ -5055,18 +5026,18 @@ async function toggleRainRadarLayer(enable) {
 
     const circle = L.circle(latLng, {
       radius: p.radius_meters || 4500,
-      color: p.color || "#38bdf8",
-      weight: 1.5,
-      opacity: 0.65,
-      fillColor: p.color || "#38bdf8",
-      fillOpacity: heatLayer ? 0.05 : 0.22,
+      color: "#f97316",
+      weight: 2,
+      opacity: 0.85,
+      fillColor: "#ea580c",
+      fillOpacity: 0.32,
       className: "radar-cell-pulse",
     });
 
     circle.bindPopup(`
       <div class="scada-popup">
         <div class="popup-title-row">
-          <span class="live-dot pulse" style="background:${p.color}"></span>
+          <span class="live-dot pulse" style="background:#f97316"></span>
           <strong>${p.name}</strong>
         </div>
         <div class="popup-subtitle font-mono">${p.description}</div>
@@ -5074,7 +5045,7 @@ async function toggleRainRadarLayer(enable) {
         <div class="popup-grid">
           <div class="popup-item">
             <span class="p-label">Rain Intensity:</span>
-            <span class="p-value font-mono" style="color:${p.color}; font-weight:800;">${p.intensity_mm_hr} mm/hr</span>
+            <span class="p-value font-mono" style="color:#f97316; font-weight:800;">${p.intensity_mm_hr} mm/hr</span>
           </div>
           <div class="popup-item">
             <span class="p-label">Radar dBZ:</span>
@@ -5086,7 +5057,7 @@ async function toggleRainRadarLayer(enable) {
           </div>
           <div class="popup-item">
             <span class="p-label">Flood Threat:</span>
-            <span class="p-value font-mono" style="color:${p.color}; font-weight:700;">${p.level}</span>
+            <span class="p-value font-mono" style="color:#f97316; font-weight:700;">${p.level}</span>
           </div>
         </div>
         <button class="popup-smart-router-btn" style="margin-top:8px; width:100%;" onclick="syncGisWithSpecificRain(${p.intensity_mm_hr}, '${p.level}')">
@@ -5098,14 +5069,7 @@ async function toggleRainRadarLayer(enable) {
     featureLayers.push(circle);
   });
 
-  const interactionLayer = L.layerGroup(featureLayers);
-
-  if (heatLayer) {
-    rainRadarLayer = L.layerGroup([heatLayer, interactionLayer]);
-  } else {
-    rainRadarLayer = interactionLayer;
-  }
-
+  rainRadarLayer = L.layerGroup(featureLayers);
   rainRadarLayer.addTo(map);
 
   const key = getStoredOpenWeatherKey();
@@ -5113,7 +5077,7 @@ async function toggleRainRadarLayer(enable) {
     try {
       const tileLayer = L.tileLayer(
         `https://tile.openweathermap.org/map/precipitation_new/{z}/{x}/{y}.png?appid=${key}`,
-        { maxZoom: 18, opacity: 0.55 },
+        { maxZoom: 18, opacity: 0.65 },
       );
       rainRadarLayer.addLayer(tileLayer);
     } catch (_) {}
