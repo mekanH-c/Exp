@@ -3974,109 +3974,13 @@ canvas.leaflet-zoom-animated {
 
 .loc-card-actions {
   display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-top: 6px;
-}
-
-.hud-action-btn {
-  flex: 1;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
   gap: 6px;
-  padding: 7px 10px;
-  background: rgba(15, 23, 42, 0.75);
-  border: 1px solid rgba(56, 189, 248, 0.35);
-  border-radius: var(--radius-sm);
-  color: #e0f2fe;
-  font-family: var(--font-sans);
-  font-size: 0.70rem;
-  font-weight: 600;
-  cursor: pointer;
-  white-space: nowrap;
-  backdrop-filter: blur(8px);
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
+  margin-top: 2px;
 }
 
-.hud-action-btn svg {
-  color: #38bdf8;
-  flex-shrink: 0;
-  transition: transform 0.2s ease, color 0.2s ease;
-}
-
-.hud-action-btn:hover {
-  background: linear-gradient(135deg, rgba(2, 132, 199, 0.35) 0%, rgba(3, 105, 161, 0.45) 100%);
-  border-color: #38bdf8;
-  color: #ffffff;
-  box-shadow: 0 0 10px rgba(56, 189, 248, 0.35);
-  transform: translateY(-1px);
-}
-
-.hud-action-btn:hover svg {
-  color: #ffffff;
-  transform: scale(1.1);
-}
-
-.hud-action-btn:active {
-  transform: translateY(0);
-  box-shadow: 0 0 4px rgba(56, 189, 248, 0.2);
-}
-
-.hud-action-btn.radar-active {
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.25) 0%, rgba(5, 150, 105, 0.35) 100%);
-  border-color: #34d399;
-  color: #ecfdf5;
-  box-shadow: 0 0 10px rgba(16, 185, 129, 0.35);
-}
-
-.hud-action-btn.radar-active svg {
-  color: #34d399;
-}
-
-/* Radar Heatmap Legend Bar */
-.legend-radar-title {
-  color: #38bdf8 !important;
-  font-weight: 700;
-}
-
-.radar-gradient-legend-bar {
-  width: 100%;
-  height: 8px;
-  border-radius: 4px;
-  background: linear-gradient(to right, #1e1b4b 0%, #312e81 14%, #1d4ed8 28%, #06b6d4 44%, #10b981 58%, #facc15 72%, #f97316 86%, #ef4444 100%);
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  margin: 6px 0 4px 0;
-  box-shadow: 0 0 8px rgba(6, 182, 212, 0.25);
-}
-
-.radar-gradient-legend-scale {
-  display: flex;
-  justify-content: space-between;
-  font-size: 0.60rem;
-  color: var(--text-muted);
-}
-
-/* Radar Beacon Point Styling */
-.radar-beacon-pulse {
-  animation: radarBeaconPulse 2s infinite ease-in-out;
-}
-
-@keyframes radarBeaconPulse {
-  0%, 100% { stroke-width: 1.5px; stroke-opacity: 0.9; }
-  50% { stroke-width: 3.5px; stroke-opacity: 1; }
-}
-
-.radar-custom-tooltip {
-  background: rgba(15, 23, 42, 0.90) !important;
-  backdrop-filter: blur(8px) !important;
-  border: 1px solid rgba(56, 189, 248, 0.45) !important;
-  border-radius: 6px !important;
-  color: #fff !important;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45) !important;
-  font-size: 0.70rem !important;
-  padding: 4px 8px !important;
+.btn-sm {
+  padding: 4px 10px;
+  font-size: 0.68rem;
 }
 
 /* Sync Container */
@@ -4229,35 +4133,6 @@ body.theme-bright .loc-card-help,
 body.theme-bright .sync-status-caption,
 body.theme-bright .weather-api-caption {
   color: #326491;
-}
-
-body.theme-bright .hud-action-btn {
-  background: #f8fafc;
-  border-color: #cbd5e1;
-  color: #0f172a;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-}
-
-body.theme-bright .hud-action-btn svg {
-  color: #0284c7;
-}
-
-body.theme-bright .hud-action-btn:hover {
-  background: #e0f2fe;
-  border-color: #0284c7;
-  color: #0369a1;
-  box-shadow: 0 0 10px rgba(2, 132, 199, 0.25);
-}
-
-body.theme-bright .hud-action-btn.radar-active {
-  background: #dcfce7;
-  border-color: #16a34a;
-  color: #15803d;
-  box-shadow: 0 0 10px rgba(22, 163, 74, 0.25);
-}
-
-body.theme-bright .hud-action-btn.radar-active svg {
-  color: #16a34a;
 }
 
 /* Radar Heatmap Leaflet Overlay */

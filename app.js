@@ -1,7 +1,7 @@
 /**
  * AquaG — Operational Urban Flood GIS Command Center
  * Phase 3A Frontend Controller (Vanilla JavaScript + Leaflet.js)
- * 
+ *
  * Centralized API_BASE_URL connecting strictly to Stage 7 FastAPI backend.
  * Integrates:
  * - Street-Level Waterlogging GeoJSON Layer (POST /waterlogging)
@@ -13,12 +13,15 @@
  */
 
 // Dynamic Multi-Tier Backend Discovery & Safe State
-let API_BASE_URL = (function() {
+let API_BASE_URL = (function () {
   if (typeof window !== "undefined" && window.AQUAG_LOCAL_API_URL) {
     return window.AQUAG_LOCAL_API_URL;
   }
   if (typeof window !== "undefined" && window.AQUAG_API_URL) {
     return window.AQUAG_API_URL;
+  }
+  if (typeof window !== "undefined" && window.AQUAG_CLOUD_API_URL) {
+    return window.AQUAG_CLOUD_API_URL;
   }
   if (typeof window !== "undefined" && window.location) {
     const hostname = window.location.hostname;
@@ -100,14 +103,16 @@ function updateHealthBadge(online, text, data = null) {
     }
   }
   if (healthText) {
-    healthText.textContent = text || (online ? "System Online" : "Backend Offline");
+    healthText.textContent =
+      text || (online ? "System Online" : "Backend Offline");
   }
 
   if (data) {
     const tModel = document.getElementById("t-model");
     const tRouter = document.getElementById("t-router");
     if (tModel) tModel.textContent = data.model_version || "AquaG Model V2";
-    if (tRouter) tRouter.textContent = data.router_loaded ? "AquaGraph A*" : "Loaded";
+    if (tRouter)
+      tRouter.textContent = data.router_loaded ? "AquaGraph A*" : "Loaded";
   }
 }
 
@@ -115,26 +120,53 @@ async function probeAndSelectBackend() {
   if (isProbingBackend) return API_BASE_URL;
   isProbingBackend = true;
 
-  const isLocalHost = typeof window !== "undefined" && window.location && (
-    window.location.hostname === "localhost" ||
-    window.location.hostname === "127.0.0.1" ||
-    window.location.hostname === "::1" ||
-    window.location.protocol === "file:"
-  );
+  const isLocalHost =
+    typeof window !== "undefined" &&
+    window.location &&
+    (window.location.hostname === "localhost" ||
+      window.location.hostname === "127.0.0.1" ||
+      window.location.hostname === "::1" ||
+      window.location.protocol === "file:");
 
   const candidates = [];
   // If hosted on cloud or unified host, probe same-origin first for 0ms zero-CORS connection
-  if (typeof window !== "undefined" && window.location && window.location.origin && !isLocalHost) {
-    candidates.push({ url: window.location.origin, label: "Cloud Host (Same Origin)" });
+  if (
+    typeof window !== "undefined" &&
+    window.location &&
+    window.location.origin &&
+    !isLocalHost
+  ) {
+    candidates.push({
+      url: window.location.origin,
+      label: "Cloud Host (Same Origin)",
+    });
   }
   if (isLocalHost) {
-    candidates.push({ url: "http://127.0.0.1:8001", label: "Local (Port 8001)" });
-    candidates.push({ url: "http://127.0.0.1:8000", label: "Local (Port 8000)" });
+    candidates.push({
+      url: "http://127.0.0.1:8001",
+      label: "Local (Port 8001)",
+    });
+    candidates.push({
+      url: "http://127.0.0.1:8000",
+      label: "Local (Port 8000)",
+    });
   }
-  if (window.AQUAG_API_URL && !candidates.some(c => c.url === window.AQUAG_API_URL)) {
+  if (
+    window.AQUAG_API_URL &&
+    !candidates.some((c) => c.url === window.AQUAG_API_URL)
+  ) {
     candidates.push({ url: window.AQUAG_API_URL, label: "Configured API" });
   }
-  candidates.push({ url: "https://aquag.onrender.com", label: "Cloud (Render)" });
+  if (
+    window.AQUAG_CLOUD_API_URL &&
+    !candidates.some((c) => c.url === window.AQUAG_CLOUD_API_URL)
+  ) {
+    candidates.push({ url: window.AQUAG_CLOUD_API_URL, label: "Cloud API" });
+  }
+  candidates.push({
+    url: "https://aquag.onrender.com",
+    label: "Cloud (Render)",
+  });
 
   let selectedUrl = null;
   let healthPayload = null;
@@ -143,7 +175,10 @@ async function probeAndSelectBackend() {
     try {
       const ctrl = new AbortController();
       const t = setTimeout(() => ctrl.abort(), 2000);
-      const res = await fetch(`${c.url}/health`, { signal: ctrl.signal, cache: "no-store" });
+      const res = await fetch(`${c.url}/health`, {
+        signal: ctrl.signal,
+        cache: "no-store",
+      });
       clearTimeout(t);
       if (res.ok) {
         const data = await res.json();
@@ -162,7 +197,11 @@ async function probeAndSelectBackend() {
   if (selectedUrl) {
     API_BASE_URL = selectedUrl;
     isBackendOnline = true;
-    updateHealthBadge(true, `Online (${lastKnownBackendSource})`, healthPayload);
+    updateHealthBadge(
+      true,
+      `Online (${lastKnownBackendSource})`,
+      healthPayload,
+    );
     console.log(`[AquaG] Active backend established: ${selectedUrl}`);
   } else {
     isBackendOnline = false;
@@ -175,14 +214,17 @@ async function probeAndSelectBackend() {
 }
 
 // Render Anti-Spindown Keepalive (Runs every 9 minutes)
-setInterval(async () => {
-  if (API_BASE_URL && API_BASE_URL.includes("onrender.com")) {
-    try {
-      await fetch(`${API_BASE_URL}/health`, { cache: "no-store" });
-      console.log("[AquaG] Keep-alive heartbeat delivered to cloud backend.");
-    } catch (_) {}
-  }
-}, 9 * 60 * 1000);
+setInterval(
+  async () => {
+    if (API_BASE_URL && API_BASE_URL.includes("onrender.com")) {
+      try {
+        await fetch(`${API_BASE_URL}/health`, { cache: "no-store" });
+        console.log("[AquaG] Keep-alive heartbeat delivered to cloud backend.");
+      } catch (_) {}
+    }
+  },
+  9 * 60 * 1000,
+);
 
 // Global State Variables
 let map = null;
@@ -225,7 +267,7 @@ function updateScadaTelemetry() {
 
   if (lastLoadedWaterloggingGeojson && lastLoadedWaterloggingGeojson.features) {
     lastLoadedWaterloggingGeojson.features.forEach((feat) => {
-      const depth = feat.properties ? (feat.properties.water_depth_cm || 0) : 0;
+      const depth = feat.properties ? feat.properties.water_depth_cm || 0 : 0;
       if (depth > maxDepth) maxDepth = depth;
       if (depth > 10.0) floodedCount++;
     });
@@ -234,7 +276,8 @@ function updateScadaTelemetry() {
   const maxDepthEl = document.getElementById("scada-max-depth");
   const floodedCountEl = document.getElementById("scada-flooded-roads");
   if (maxDepthEl) maxDepthEl.textContent = `${maxDepth.toFixed(1)} cm`;
-  if (floodedCountEl) floodedCountEl.textContent = floodedCount.toLocaleString();
+  if (floodedCountEl)
+    floodedCountEl.textContent = floodedCount.toLocaleString();
 
   const statusBadge = document.getElementById("scada-overall-status");
   if (statusBadge) {
@@ -259,7 +302,10 @@ function updateScadaTelemetry() {
   let infraCount = 0;
   if (lastLoadedInfraGeojson && lastLoadedInfraGeojson.features) {
     infraCount = lastLoadedInfraGeojson.features.filter(
-      (f) => f.properties && f.properties.critical_asset !== false && f.properties.category !== "other"
+      (f) =>
+        f.properties &&
+        f.properties.critical_asset !== false &&
+        f.properties.category !== "other",
     ).length;
   } else if (infraLayer && typeof infraLayer.getLayers === "function") {
     infraCount = infraLayer.getLayers().length;
@@ -276,18 +322,27 @@ function updateScadaTelemetry() {
 
     if (alertsListEl) {
       if (incs.length === 0) {
-        alertsListEl.innerHTML = '<div class="alert-item-mini ok">● Standard operational monitoring active</div>';
+        alertsListEl.innerHTML =
+          '<div class="alert-item-mini ok">● Standard operational monitoring active</div>';
       } else {
         const top3 = incs.slice(0, 3);
-        alertsListEl.innerHTML = top3.map((inc) => {
-          const pLvl = (inc.priority_level || "LOW").toLowerCase();
-          const cls = pLvl === "critical" || pLvl === "high" ? "crit" : pLvl === "medium" ? "warn" : "ok";
-          return `<div class="alert-item-mini ${cls}" title="${inc.road_id}: ${inc.recommended_action}">● ${inc.priority_level}: ${inc.road_id} (${inc.water_depth_cm.toFixed(0)}cm)</div>`;
-        }).join("");
+        alertsListEl.innerHTML = top3
+          .map((inc) => {
+            const pLvl = (inc.priority_level || "LOW").toLowerCase();
+            const cls =
+              pLvl === "critical" || pLvl === "high"
+                ? "crit"
+                : pLvl === "medium"
+                  ? "warn"
+                  : "ok";
+            return `<div class="alert-item-mini ${cls}" title="${inc.road_id}: ${inc.recommended_action}">● ${inc.priority_level}: ${inc.road_id} (${inc.water_depth_cm.toFixed(0)}cm)</div>`;
+          })
+          .join("");
       }
     }
   } else if (alertsListEl) {
-    alertsListEl.innerHTML = '<div class="alert-item-mini ok">● Standard operational monitoring active</div>';
+    alertsListEl.innerHTML =
+      '<div class="alert-item-mini ok">● Standard operational monitoring active</div>';
   }
 
   const alertsCountEl = document.getElementById("scada-alerts-count");
@@ -316,7 +371,7 @@ const STORAGE_KEY_THEME = "aquag-theme";
 
 function applyTheme(themeName) {
   const theme = themeName === "bright" ? "bright" : "dark";
-  
+
   if (theme === "dark") {
     document.body.classList.remove("theme-bright");
     document.body.classList.add("theme-dark");
@@ -401,7 +456,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     loadAlertsPanel();
     updateScadaTelemetry();
     const initR1h = parseFloat(document.getElementById("rainfall_1h")?.value);
-    updatePumpStationsForRainfall(activeScenario, activeTimestep, isNaN(initR1h) ? null : initR1h);
+    updatePumpStationsForRainfall(
+      activeScenario,
+      activeTimestep,
+      isNaN(initR1h) ? null : initR1h,
+    );
     if (typeof calculateActiveRoute === "function") {
       calculateActiveRoute(true);
     }
@@ -415,11 +474,11 @@ function initMap() {
   // Center on Delhi coordinates [28.6139, 77.2090] bounded by Delhi/NCR study domain
   const delhiBounds = L.latLngBounds(
     L.latLng(28.35, 76.75), // SW margin
-    L.latLng(28.95, 77.45)  // NE margin
+    L.latLng(28.95, 77.45), // NE margin
   );
 
   map = L.map("map", {
-    center: [28.6139, 77.2090],
+    center: [28.6139, 77.209],
     zoom: 12,
     minZoom: 10,
     maxZoom: 19,
@@ -435,7 +494,8 @@ function initMap() {
   // OpenStreetMap Open Source Tile Layer
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     maxZoom: 19,
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    attribution:
+      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
   }).addTo(map);
 
   // GeoJSON & Vector Layer Groups using Hardware Canvas Renderer
@@ -444,7 +504,8 @@ function initMap() {
     style: getRoadStyle,
     onEachFeature: bindRoadPopup,
   });
-  if (document.getElementById("layer-waterlogging-check")?.checked) waterloggingLayer.addTo(map);
+  if (document.getElementById("layer-waterlogging-check")?.checked)
+    waterloggingLayer.addTo(map);
 
   // MarkerCluster Group for Critical Infrastructure to eliminate low-zoom clutter
   if (typeof L.markerClusterGroup === "function") {
@@ -460,7 +521,8 @@ function initMap() {
       onEachFeature: bindInfraPopup,
     });
   }
-  if (document.getElementById("layer-infra-check")?.checked) infraLayer.addTo(map);
+  if (document.getElementById("layer-infra-check")?.checked)
+    infraLayer.addTo(map);
 
   drainageNetworkLayer = L.geoJSON(null, {
     renderer: sharedCanvasRenderer,
@@ -468,14 +530,16 @@ function initMap() {
     onEachFeature: function (feature, layer) {
       const popupContent = bindDrainPopupContent(feature.properties || {});
       layer.bindPopup(popupContent, {
-        className: "dark-leaflet-popup"
+        className: "dark-leaflet-popup",
       });
     },
   });
-  if (document.getElementById("layer-drains-check")?.checked) drainageNetworkLayer.addTo(map);
+  if (document.getElementById("layer-drains-check")?.checked)
+    drainageNetworkLayer.addTo(map);
 
   zonesLayer = L.layerGroup();
-  if (document.getElementById("layer-zones-check")?.checked) zonesLayer.addTo(map);
+  if (document.getElementById("layer-zones-check")?.checked)
+    zonesLayer.addTo(map);
 
   drainsLayer = L.layerGroup().addTo(map);
 
@@ -488,7 +552,8 @@ function initMap() {
   markersLayer = L.layerGroup().addTo(map);
 
   populationPriorityLayer = L.layerGroup();
-  if (document.getElementById("layer-pop-priority-check")?.checked) populationPriorityLayer.addTo(map);
+  if (document.getElementById("layer-pop-priority-check")?.checked)
+    populationPriorityLayer.addTo(map);
 
   pumpsLayer = L.layerGroup();
   if (document.getElementById("layer-pumps-check")?.checked) {
@@ -514,7 +579,7 @@ function getMapViewportBbox() {
     bounds.getWest(),
     bounds.getSouth(),
     bounds.getEast(),
-    bounds.getNorth()
+    bounds.getNorth(),
   ];
 }
 
@@ -548,13 +613,17 @@ function onMapMoveOrZoom() {
     const sig = activeSpatialAbortController.signal;
 
     // Trigger layers with micro-staggering to keep frame rates high
-    if (document.getElementById("layer-waterlogging-check")?.checked) loadWaterloggingLayer(sig);
+    if (document.getElementById("layer-waterlogging-check")?.checked)
+      loadWaterloggingLayer(sig);
 
     setTimeout(() => {
       if (sig.aborted) return;
-      if (document.getElementById("layer-infra-check")?.checked) loadInfraLayer(sig);
-      if (document.getElementById("layer-drains-check")?.checked) loadDrainageNetworkLayer(sig);
-      if (document.getElementById("layer-pop-priority-check")?.checked) loadPopulationPriorityLayer(sig);
+      if (document.getElementById("layer-infra-check")?.checked)
+        loadInfraLayer(sig);
+      if (document.getElementById("layer-drains-check")?.checked)
+        loadDrainageNetworkLayer(sig);
+      if (document.getElementById("layer-pop-priority-check")?.checked)
+        loadPopulationPriorityLayer(sig);
       loadAlertsPanel(sig);
     }, 60);
   }, 450);
@@ -582,9 +651,18 @@ function initWaterloggingCategoryFilters() {
     filterCritical = cCheck ? cCheck.checked : true;
 
     if (btnAll && btnHigh && btnCrit) {
-      btnAll.classList.toggle("active", filterMedium && filterHigh && filterCritical);
-      btnHigh.classList.toggle("active", !filterMedium && filterHigh && filterCritical);
-      btnCrit.classList.toggle("active", !filterMedium && !filterHigh && filterCritical);
+      btnAll.classList.toggle(
+        "active",
+        filterMedium && filterHigh && filterCritical,
+      );
+      btnHigh.classList.toggle(
+        "active",
+        !filterMedium && filterHigh && filterCritical,
+      );
+      btnCrit.classList.toggle(
+        "active",
+        !filterMedium && !filterHigh && filterCritical,
+      );
     }
 
     applyWaterloggingFilter();
@@ -627,13 +705,13 @@ function applyWaterloggingFilter() {
 // --------------------------------------------------------------------------
 function getRoadColor(depth) {
   if (depth > 100) return "#ef4444"; // >100 cm: Critical / Red
-  if (depth > 25) return "#f97316";  // >25-100 cm: High / Orange
-  if (depth > 10) return "#eab308";  // >10-25 cm: Medium / Yellow
-  return "transparent";              // 0-10 cm: Normal / Base-map road (uncoloured)
+  if (depth > 25) return "#f97316"; // >25-100 cm: High / Orange
+  if (depth > 10) return "#eab308"; // >10-25 cm: Medium / Yellow
+  return "transparent"; // 0-10 cm: Normal / Base-map road (uncoloured)
 }
 
 function getRoadStyle(feature) {
-  const depth = feature.properties ? (feature.properties.water_depth_cm || 0) : 0;
+  const depth = feature.properties ? feature.properties.water_depth_cm || 0 : 0;
 
   // 1. NORMAL (0-10 cm): Normal base-map road, NO flood color at all
   if (depth <= 10.0) {
@@ -641,7 +719,7 @@ function getRoadStyle(feature) {
       color: "transparent",
       weight: 0,
       opacity: 0,
-      fillOpacity: 0
+      fillOpacity: 0,
     };
   }
 
@@ -655,7 +733,7 @@ function getRoadStyle(feature) {
       weight: 3.5,
       opacity: 0.85,
       lineCap: "round",
-      lineJoin: "round"
+      lineJoin: "round",
     };
   }
 
@@ -669,7 +747,7 @@ function getRoadStyle(feature) {
       weight: 5.5,
       opacity: 0.95,
       lineCap: "round",
-      lineJoin: "round"
+      lineJoin: "round",
     };
   }
 
@@ -682,19 +760,25 @@ function getRoadStyle(feature) {
     weight: 7.5,
     opacity: 1.0,
     lineCap: "round",
-    lineJoin: "round"
+    lineJoin: "round",
   };
 }
 
 function bindRoadPopup(feature, layer) {
   const p = feature.properties || {};
   const roadId = p.road_id || "Unknown Segment";
-  const depthVal = typeof p.water_depth_cm === "number" ? p.water_depth_cm.toFixed(1) : (p.water_depth_cm || "0.0");
-  const depthNum = typeof p.water_depth_cm === "number" ? p.water_depth_cm : parseFloat(p.water_depth_cm || 0);
+  const depthVal =
+    typeof p.water_depth_cm === "number"
+      ? p.water_depth_cm.toFixed(1)
+      : p.water_depth_cm || "0.0";
+  const depthNum =
+    typeof p.water_depth_cm === "number"
+      ? p.water_depth_cm
+      : parseFloat(p.water_depth_cm || 0);
 
   let displaySeverity = "Normal";
   let displayBand = "0-10 cm";
-  
+
   if (depthNum <= 10.0) {
     displaySeverity = "Normal";
     displayBand = "0-10 cm";
@@ -709,9 +793,16 @@ function bindRoadPopup(feature, layer) {
     displayBand = ">100 cm";
   }
 
-  const elevation = typeof p.elevation_m === "number" ? `${p.elevation_m.toFixed(1)} m` : "N/A";
-  const drainDist = typeof p.distance_to_drain_m === "number" ? `${p.distance_to_drain_m.toFixed(1)} m` : "N/A";
-  const popExp = typeof p.population_exposure === "number" ? p.population_exposure.toLocaleString() : "N/A";
+  const elevation =
+    typeof p.elevation_m === "number" ? `${p.elevation_m.toFixed(1)} m` : "N/A";
+  const drainDist =
+    typeof p.distance_to_drain_m === "number"
+      ? `${p.distance_to_drain_m.toFixed(1)} m`
+      : "N/A";
+  const popExp =
+    typeof p.population_exposure === "number"
+      ? p.population_exposure.toLocaleString()
+      : "N/A";
   const critInfra = p.critical_infra_flag ? "Yes" : "No";
   const forecastTimestep = p.timestep || activeTimestep;
 
@@ -727,7 +818,7 @@ function bindRoadPopup(feature, layer) {
       <div class="wl-popup-row"><span>Critical infrastructure:</span> <strong>${critInfra}</strong></div>
       <div class="wl-popup-row"><span>Forecast:</span> <strong>${forecastTimestep}</strong></div>
       <div class="wl-popup-action-row" style="margin-top:8px; padding-top:6px; border-top:1px solid rgba(255,255,255,0.1);">
-        <button class="${isSmartRouterActive ? 'btn-open-smart-router font-mono active-on' : 'btn-open-smart-router font-mono'}" style="width:100%; padding:5px 8px; background:${isSmartRouterActive ? 'linear-gradient(135deg, #10b981, #059669)' : 'linear-gradient(135deg, #0284c7, #06b6d4)'}; border:none; border-radius:4px; color:#fff; font-size:0.72rem; font-weight:700; cursor:pointer;">${isSmartRouterActive ? '⚡ Smart Router ON' : '⚡ Launch Smart Router'}</button>
+        <button class="${isSmartRouterActive ? "btn-open-smart-router font-mono active-on" : "btn-open-smart-router font-mono"}" style="width:100%; padding:5px 8px; background:${isSmartRouterActive ? "linear-gradient(135deg, #10b981, #059669)" : "linear-gradient(135deg, #0284c7, #06b6d4)"}; border:none; border-radius:4px; color:#fff; font-size:0.72rem; font-weight:700; cursor:pointer;">${isSmartRouterActive ? "⚡ Smart Router ON" : "⚡ Launch Smart Router"}</button>
       </div>
       <div class="wl-popup-footer" style="margin-top:4px;">Model-derived waterlogging depth proxy</div>
     </div>
@@ -740,7 +831,7 @@ async function loadWaterloggingLayer(signal) {
   if (wCheck && !wCheck.checked) return;
 
   const bbox = getMapViewportBbox();
-  const roundedBbox = bbox.map(v => Math.round(v * 100) / 100);
+  const roundedBbox = bbox.map((v) => Math.round(v * 100) / 100);
   const cacheKey = `wl_${activeScenario}_${activeTimestep}_${roundedBbox.join("_")}`;
 
   if (spatialGeojsonCache.has(cacheKey)) {
@@ -766,16 +857,20 @@ async function loadWaterloggingLayer(signal) {
     rainfall_3h: r3hEl ? parseFloat(r3hEl.value) || 20.0 : 20.0,
     rainfall_6h: r6hEl ? parseFloat(r6hEl.value) || 30.0 : 30.0,
     recent_rainfall_intensity: intEl ? parseFloat(intEl.value) || 5.0 : 5.0,
-    bbox: bbox
+    bbox: bbox,
   };
 
   try {
-    const res = await apiFetch("/waterlogging", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-      signal: signal
-    }, 12000);
+    const res = await apiFetch(
+      "/waterlogging",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+        signal: signal,
+      },
+      12000,
+    );
 
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const geojson = await res.json();
@@ -812,18 +907,33 @@ function createInfraMarker(feature, latlng) {
   let iconChar = "⚡";
   let bgClass = "power";
 
-  if (cat === "medical" || cat === "hospital") { iconChar = "🏥"; bgClass = "medical"; }
-  else if (cat === "police") { iconChar = "🛡️"; bgClass = "police"; }
-  else if (cat === "fire" || cat === "emergency") { iconChar = "🚨"; bgClass = "fire"; }
-  else if (cat === "transport" || cat === "metro" || cat === "railway") { iconChar = "🚇"; bgClass = "metro"; }
-  else if (cat === "water/utility" || cat === "water" || cat === "water_drainage") { iconChar = "💧"; bgClass = "water"; }
+  if (cat === "medical" || cat === "hospital") {
+    iconChar = "🏥";
+    bgClass = "medical";
+  } else if (cat === "police") {
+    iconChar = "🛡️";
+    bgClass = "police";
+  } else if (cat === "fire" || cat === "emergency") {
+    iconChar = "🚨";
+    bgClass = "fire";
+  } else if (cat === "transport" || cat === "metro" || cat === "railway") {
+    iconChar = "🚇";
+    bgClass = "metro";
+  } else if (
+    cat === "water/utility" ||
+    cat === "water" ||
+    cat === "water_drainage"
+  ) {
+    iconChar = "💧";
+    bgClass = "water";
+  }
 
   const html = `<div class="infra-map-badge ${bgClass} is-critical">${iconChar}</div>`;
   const customIcon = L.divIcon({
     html: html,
     className: "infra-div-icon",
     iconSize: [26, 26],
-    iconAnchor: [13, 13]
+    iconAnchor: [13, 13],
   });
 
   return L.marker(latlng, { icon: customIcon });
@@ -832,23 +942,34 @@ function createInfraMarker(feature, latlng) {
 function bindInfraPopup(feature, layer) {
   const p = feature.properties || {};
   const name = p.name || "Critical Infrastructure Facility";
-  
+
   const catRaw = (p.category || "General").toUpperCase();
   let catDisplay = "CRITICAL UTILITY";
   if (catRaw === "HOSPITAL" || catRaw === "MEDICAL") catDisplay = "MEDICAL";
   else if (catRaw === "POLICE") catDisplay = "POLICE";
   else if (catRaw === "FIRE" || catRaw === "EMERGENCY") catDisplay = "FIRE";
-  else if (catRaw === "TRANSPORT" || catRaw === "METRO" || catRaw === "RAILWAY") catDisplay = "TRANSPORT";
+  else if (catRaw === "TRANSPORT" || catRaw === "METRO" || catRaw === "RAILWAY")
+    catDisplay = "TRANSPORT";
   else if (catRaw === "POWER") catDisplay = "POWER";
-  else if (catRaw === "WATER/UTILITY" || catRaw === "WATER") catDisplay = "WATER / UTILITY";
+  else if (catRaw === "WATER/UTILITY" || catRaw === "WATER")
+    catDisplay = "WATER / UTILITY";
 
   const forecastStatus = p.forecast_status || "Forecast Threatened";
-  const nearestDepth = typeof p.nearest_water_depth_cm === "number" ? `${p.nearest_water_depth_cm.toFixed(1)} cm` : "N/A";
-  const proximityDist = typeof p.proximity_distance_m === "number" ? `${p.proximity_distance_m.toFixed(1)} m` : "N/A";
+  const nearestDepth =
+    typeof p.nearest_water_depth_cm === "number"
+      ? `${p.nearest_water_depth_cm.toFixed(1)} cm`
+      : "N/A";
+  const proximityDist =
+    typeof p.proximity_distance_m === "number"
+      ? `${p.proximity_distance_m.toFixed(1)} m`
+      : "N/A";
   const forecastTimestep = p.timestep || activeTimestep;
-  const exposureBasis = p.flood_exposure_basis === "high_critical_waterlogging" ? "High flood proximity"
-    : p.flood_exposure_basis === "critical_waterlogging_proximity" ? "Critical flood proximity"
-    : p.flood_exposure_basis || "Waterlogging proximity";
+  const exposureBasis =
+    p.flood_exposure_basis === "high_critical_waterlogging"
+      ? "High flood proximity"
+      : p.flood_exposure_basis === "critical_waterlogging_proximity"
+        ? "Critical flood proximity"
+        : p.flood_exposure_basis || "Waterlogging proximity";
 
   const content = `
     <div class="infra-popup">
@@ -860,7 +981,7 @@ function bindInfraPopup(feature, layer) {
       <div class="infra-popup-row"><span>Forecast Timestep:</span> <strong>${forecastTimestep}</strong></div>
       <div class="infra-popup-row"><span>Exposure Basis:</span> <strong>${exposureBasis}</strong></div>
       <div class="infra-popup-action-row" style="margin-top:8px; padding-top:6px; border-top:1px solid rgba(255,255,255,0.1);">
-        <button class="${isSmartRouterActive ? 'btn-open-smart-router font-mono active-on' : 'btn-open-smart-router font-mono'}" style="width:100%; padding:5px 8px; background:${isSmartRouterActive ? 'linear-gradient(135deg, #10b981, #059669)' : 'linear-gradient(135deg, #0284c7, #06b6d4)'}; border:none; border-radius:4px; color:#fff; font-size:0.72rem; font-weight:700; cursor:pointer;">${isSmartRouterActive ? '⚡ Smart Router ON' : '⚡ Launch Smart Router'}</button>
+        <button class="${isSmartRouterActive ? "btn-open-smart-router font-mono active-on" : "btn-open-smart-router font-mono"}" style="width:100%; padding:5px 8px; background:${isSmartRouterActive ? "linear-gradient(135deg, #10b981, #059669)" : "linear-gradient(135deg, #0284c7, #06b6d4)"}; border:none; border-radius:4px; color:#fff; font-size:0.72rem; font-weight:700; cursor:pointer;">${isSmartRouterActive ? "⚡ Smart Router ON" : "⚡ Launch Smart Router"}</button>
       </div>
       <div class="infra-popup-footer" style="margin-top:4px;">Model-derived flood exposure proxy</div>
     </div>
@@ -892,11 +1013,15 @@ async function loadInfraLayer(signal) {
     rainfall_3h: r3h,
     rainfall_6h: r6h,
     recent_rainfall_intensity: intVal,
-    bbox: bboxStr
+    bbox: bboxStr,
   });
 
   try {
-    const res = await apiFetch(`/infrastructure?${params.toString()}`, { signal }, 10000);
+    const res = await apiFetch(
+      `/infrastructure?${params.toString()}`,
+      { signal },
+      10000,
+    );
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const geojson = await res.json();
 
@@ -904,14 +1029,26 @@ async function loadInfraLayer(signal) {
 
     if (infraLayer) {
       infraLayer.clearLayers();
-      if (typeof infraLayer.addLayer === "function" && typeof L.markerClusterGroup === "function" && infraLayer instanceof L.MarkerClusterGroup) {
+      if (
+        typeof infraLayer.addLayer === "function" &&
+        typeof L.markerClusterGroup === "function" &&
+        infraLayer instanceof L.MarkerClusterGroup
+      ) {
         (geojson.features || []).forEach((feat) => {
           const props = feat.properties || {};
           // Hard Critical-Asset Rule: Discard non-critical, category OTHER, or missing flood proximity evidence
-          if (!props.critical || props.critical_asset === false || props.category === "other" || props.category === "OTHER") {
+          if (
+            !props.critical ||
+            props.critical_asset === false ||
+            props.category === "other" ||
+            props.category === "OTHER"
+          ) {
             return;
           }
-          if (typeof props.nearest_water_depth_cm !== "number" || typeof props.proximity_distance_m !== "number") {
+          if (
+            typeof props.nearest_water_depth_cm !== "number" ||
+            typeof props.proximity_distance_m !== "number"
+          ) {
             return;
           }
 
@@ -958,7 +1095,9 @@ function bindDrainPopupContent(p) {
   const status = p.status || "Existing / Remodeling";
   const source = p.source || "MPD-1976";
   const isLine = p.geometry_type === "LineString" || p.length_km !== undefined;
-  const drainType = p.drain_type || (isLine ? "Primary Drainage Trunk Canal" : "Outfall / Sump Node");
+  const drainType =
+    p.drain_type ||
+    (isLine ? "Primary Drainage Trunk Canal" : "Outfall / Sump Node");
 
   let detailRows = "";
   if (p.length_km !== undefined) {
@@ -974,11 +1113,21 @@ function bindDrainPopupContent(p) {
     detailRows += `<div class="drain-popup-row"><span>Sequence No:</span> <strong>#${p.seq_no}</strong></div>`;
   }
 
-  const isUntraceable = (status || "").toLowerCase().includes("untraceable") || (source || "").toLowerCase().includes("untraceable");
+  const isUntraceable =
+    (status || "").toLowerCase().includes("untraceable") ||
+    (source || "").toLowerCase().includes("untraceable");
   const titleColor = isUntraceable ? "#f59e0b" : "#00f3ff";
-  const badgeBg = isUntraceable ? "rgba(245, 158, 11, 0.15)" : (isLine ? "rgba(6, 182, 212, 0.2)" : "rgba(59, 130, 246, 0.15)");
-  const badgeBorder = isUntraceable ? "rgba(245, 158, 11, 0.4)" : (isLine ? "rgba(6, 182, 212, 0.45)" : "rgba(59, 130, 246, 0.4)");
-  const badgeText = isUntraceable ? "#fbbf24" : (isLine ? "#22d3ee" : "#60a5fa");
+  const badgeBg = isUntraceable
+    ? "rgba(245, 158, 11, 0.15)"
+    : isLine
+      ? "rgba(6, 182, 212, 0.2)"
+      : "rgba(59, 130, 246, 0.15)";
+  const badgeBorder = isUntraceable
+    ? "rgba(245, 158, 11, 0.4)"
+    : isLine
+      ? "rgba(6, 182, 212, 0.45)"
+      : "rgba(59, 130, 246, 0.4)";
+  const badgeText = isUntraceable ? "#fbbf24" : isLine ? "#22d3ee" : "#60a5fa";
 
   return `
     <div class="drain-popup" style="min-width: 220px;">
@@ -1001,7 +1150,9 @@ function bindDrainPopupContent(p) {
 
 async function loadDrainageNetworkLayer(signal) {
   const dCheck = document.getElementById("layer-drains-check");
-  const legendDrainage = document.getElementById("legend-drainage-section") || document.getElementById("legend-drainage-status");
+  const legendDrainage =
+    document.getElementById("legend-drainage-section") ||
+    document.getElementById("legend-drainage-status");
   if (dCheck && !dCheck.checked) {
     if (drainageNetworkLayer) drainageNetworkLayer.clearLayers();
     if (legendDrainage) legendDrainage.classList.add("hidden");
@@ -1014,7 +1165,11 @@ async function loadDrainageNetworkLayer(signal) {
   const bboxStr = bbox.join(",");
 
   try {
-    const res = await apiFetch(`/drainage?bbox=${bboxStr}&include_channels=true`, { signal }, 10000);
+    const res = await apiFetch(
+      `/drainage?bbox=${bboxStr}&include_channels=true`,
+      { signal },
+      10000,
+    );
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const geojson = await res.json();
 
@@ -1024,18 +1179,26 @@ async function loadDrainageNetworkLayer(signal) {
 
     const features = geojson.features || [];
     let renderedFeatureCount = 0;
-    const lineOpts = sharedCanvasRenderer ? { renderer: sharedCanvasRenderer } : {};
+    const lineOpts = sharedCanvasRenderer
+      ? { renderer: sharedCanvasRenderer }
+      : {};
 
     features.forEach((feat) => {
       const geom = feat.geometry || {};
       const props = feat.properties || {};
 
       // 1. LineString Features: Genuine Master Plan Drainage Channels & Arterials
-      if (geom.type === "LineString" && Array.isArray(geom.coordinates) && geom.coordinates.length >= 2) {
+      if (
+        geom.type === "LineString" &&
+        Array.isArray(geom.coordinates) &&
+        geom.coordinates.length >= 2
+      ) {
         renderedFeatureCount++;
         // GeoJSON has [lon, lat], Leaflet polyline expects [lat, lon]
         const latlngs = geom.coordinates.map((c) => [c[1], c[0]]);
-        const isPrimary = props.drain_type === "Primary Arterial Trunk" || props.drain_type === "Major River Corridor";
+        const isPrimary =
+          props.drain_type === "Primary Arterial Trunk" ||
+          props.drain_type === "Major River Corridor";
         const strokeColor = props.color || (isPrimary ? "#00f3ff" : "#38bdf8");
         const coreWeight = props.weight || (isPrimary ? 4.5 : 3.0);
         const popupContent = bindDrainPopupContent(props);
@@ -1044,13 +1207,14 @@ async function loadDrainageNetworkLayer(signal) {
           ...lineOpts,
           color: strokeColor,
           weight: coreWeight + 5,
-          opacity: 0.40,
+          opacity: 0.4,
           lineCap: "round",
           lineJoin: "round",
-          interactive: false
+          interactive: false,
         });
 
-        const isSecondary = props.drain_type && props.drain_type.includes("Secondary");
+        const isSecondary =
+          props.drain_type && props.drain_type.includes("Secondary");
         const innerCoreLine = L.polyline(latlngs, {
           ...lineOpts,
           color: strokeColor,
@@ -1059,10 +1223,12 @@ async function loadDrainageNetworkLayer(signal) {
           lineCap: "round",
           lineJoin: "round",
           dashArray: isSecondary ? "8, 6" : undefined,
-          interactive: true
+          interactive: true,
         });
 
-        innerCoreLine.bindPopup(popupContent, { className: "dark-leaflet-popup" });
+        innerCoreLine.bindPopup(popupContent, {
+          className: "dark-leaflet-popup",
+        });
         innerCoreLine.on("mouseover", function () {
           this.setStyle({ weight: coreWeight + 2.5, opacity: 1.0 });
         });
@@ -1073,11 +1239,17 @@ async function loadDrainageNetworkLayer(signal) {
         drainageNetworkLayer.addLayer(outerGlowLine);
         drainageNetworkLayer.addLayer(innerCoreLine);
 
-      // 2. Point Features: Individual Outfall / Sump / Regulator Inventory Nodes
-      } else if (geom.type === "Point" && Array.isArray(geom.coordinates) && geom.coordinates.length >= 2) {
+        // 2. Point Features: Individual Outfall / Sump / Regulator Inventory Nodes
+      } else if (
+        geom.type === "Point" &&
+        Array.isArray(geom.coordinates) &&
+        geom.coordinates.length >= 2
+      ) {
         renderedFeatureCount++;
         const latlng = [geom.coordinates[1], geom.coordinates[0]];
-        const isUntraceable = (props.status || "").toLowerCase().includes("untraceable") || (props.source || "").toLowerCase().includes("untraceable");
+        const isUntraceable =
+          (props.status || "").toLowerCase().includes("untraceable") ||
+          (props.source || "").toLowerCase().includes("untraceable");
 
         const marker = L.circleMarker(latlng, {
           ...lineOpts,
@@ -1085,18 +1257,22 @@ async function loadDrainageNetworkLayer(signal) {
           color: isUntraceable ? "#f59e0b" : "#00f3ff",
           fillColor: isUntraceable ? "#d97706" : "#06b6d4",
           fillOpacity: 0.85,
-          weight: 1.5
+          weight: 1.5,
         });
 
-        marker.bindPopup(bindDrainPopupContent(props), { className: "dark-leaflet-popup" });
+        marker.bindPopup(bindDrainPopupContent(props), {
+          className: "dark-leaflet-popup",
+        });
         drainageNetworkLayer.addLayer(marker);
       }
     });
 
     window.AQUAG_LAST_DRAINAGE_COUNT = renderedFeatureCount;
-
   } catch (err) {
-    console.warn("Drainage network layer fetch non-blocking warning:", err.message);
+    console.warn(
+      "Drainage network layer fetch non-blocking warning:",
+      err.message,
+    );
   }
 }
 
@@ -1116,7 +1292,7 @@ const PUMP_STATIONS_DATA = [
     load_pct: 45.0,
     status: "nominal",
     ringColor: null,
-    flowRateLps: 1200
+    flowRateLps: 1200,
   },
   {
     station_code: "YAM",
@@ -1129,7 +1305,7 @@ const PUMP_STATIONS_DATA = [
     load_pct: 92.5,
     status: "critical",
     ringColor: "#f59e0b",
-    flowRateLps: 2450
+    flowRateLps: 2450,
   },
   {
     station_code: "SLM",
@@ -1142,7 +1318,7 @@ const PUMP_STATIONS_DATA = [
     load_pct: 76.5,
     status: "warning",
     ringColor: null,
-    flowRateLps: 1850
+    flowRateLps: 1850,
   },
   {
     station_code: "MNT",
@@ -1155,7 +1331,7 @@ const PUMP_STATIONS_DATA = [
     load_pct: 65.0,
     status: "nominal",
     ringColor: "#eab308",
-    flowRateLps: 975
+    flowRateLps: 975,
   },
   {
     station_code: "MNT",
@@ -1168,7 +1344,7 @@ const PUMP_STATIONS_DATA = [
     load_pct: 88.0,
     status: "warning",
     ringColor: "#ef4444",
-    flowRateLps: 1750
+    flowRateLps: 1750,
   },
   {
     station_code: "ITO",
@@ -1181,7 +1357,7 @@ const PUMP_STATIONS_DATA = [
     load_pct: 94.0,
     status: "critical",
     ringColor: "#ef4444",
-    flowRateLps: 2350
+    flowRateLps: 2350,
   },
   {
     station_code: "BRP",
@@ -1194,7 +1370,7 @@ const PUMP_STATIONS_DATA = [
     load_pct: 78.0,
     status: "warning",
     ringColor: null,
-    flowRateLps: 3120
+    flowRateLps: 3120,
   },
   {
     station_code: "MTH",
@@ -1207,7 +1383,7 @@ const PUMP_STATIONS_DATA = [
     load_pct: 52.0,
     status: "nominal",
     ringColor: null,
-    flowRateLps: 1560
+    flowRateLps: 1560,
   },
   {
     station_code: "OKH",
@@ -1220,20 +1396,20 @@ const PUMP_STATIONS_DATA = [
     load_pct: 96.0,
     status: "critical",
     ringColor: null,
-    flowRateLps: 2850
+    flowRateLps: 2850,
   },
   {
     station_code: "OKH",
     name: "Okhla Outfall Pump Station",
     lat: 28.5355,
-    lon: 77.2710,
+    lon: 77.271,
     maxFlowLps: 3000,
     loads: { NORMAL: 36.0, MODERATE: 73.0, HEAVY: 96.0, EXTREME: 99.5 },
     heavyRing: "#f59e0b",
     load_pct: 96.0,
     status: "critical",
     ringColor: "#f59e0b",
-    flowRateLps: 2900
+    flowRateLps: 2900,
   },
   {
     station_code: "TLK",
@@ -1246,7 +1422,7 @@ const PUMP_STATIONS_DATA = [
     load_pct: 85.0,
     status: "warning",
     ringColor: null,
-    flowRateLps: 1700
+    flowRateLps: 1700,
   },
   {
     station_code: "MLC",
@@ -1259,7 +1435,7 @@ const PUMP_STATIONS_DATA = [
     load_pct: 88.0,
     status: "warning",
     ringColor: null,
-    flowRateLps: 1760
+    flowRateLps: 1760,
   },
   {
     station_code: "PLP",
@@ -1272,7 +1448,7 @@ const PUMP_STATIONS_DATA = [
     load_pct: 97.5,
     status: "critical",
     ringColor: "#ef4444",
-    flowRateLps: 2920
+    flowRateLps: 2920,
   },
   {
     station_code: "MHP",
@@ -1285,7 +1461,7 @@ const PUMP_STATIONS_DATA = [
     load_pct: 93.0,
     status: "critical",
     ringColor: "#ef4444",
-    flowRateLps: 2790
+    flowRateLps: 2790,
   },
   {
     station_code: "DWK",
@@ -1298,7 +1474,7 @@ const PUMP_STATIONS_DATA = [
     load_pct: 65.0,
     status: "nominal",
     ringColor: null,
-    flowRateLps: 1300
+    flowRateLps: 1300,
   },
   {
     station_code: "MYP",
@@ -1311,7 +1487,7 @@ const PUMP_STATIONS_DATA = [
     load_pct: 89.0,
     status: "warning",
     ringColor: null,
-    flowRateLps: 1780
+    flowRateLps: 1780,
   },
   {
     station_code: "RJR",
@@ -1324,7 +1500,7 @@ const PUMP_STATIONS_DATA = [
     load_pct: 84.5,
     status: "warning",
     ringColor: null,
-    flowRateLps: 1690
+    flowRateLps: 1690,
   },
   {
     station_code: "PJB",
@@ -1337,7 +1513,7 @@ const PUMP_STATIONS_DATA = [
     load_pct: 91.0,
     status: "critical",
     ringColor: "#ef4444",
-    flowRateLps: 2730
+    flowRateLps: 2730,
   },
   {
     station_code: "MKR",
@@ -1350,7 +1526,7 @@ const PUMP_STATIONS_DATA = [
     load_pct: 95.0,
     status: "critical",
     ringColor: "#ef4444",
-    flowRateLps: 2850
+    flowRateLps: 2850,
   },
   {
     station_code: "AZD",
@@ -1363,7 +1539,7 @@ const PUMP_STATIONS_DATA = [
     load_pct: 87.0,
     status: "warning",
     ringColor: null,
-    flowRateLps: 1740
+    flowRateLps: 1740,
   },
   {
     station_code: "ROH",
@@ -1376,7 +1552,7 @@ const PUMP_STATIONS_DATA = [
     load_pct: 58.0,
     status: "nominal",
     ringColor: null,
-    flowRateLps: 1160
+    flowRateLps: 1160,
   },
   {
     station_code: "ANV",
@@ -1389,7 +1565,7 @@ const PUMP_STATIONS_DATA = [
     load_pct: 89.0,
     status: "warning",
     ringColor: null,
-    flowRateLps: 1780
+    flowRateLps: 1780,
   },
   {
     station_code: "GZP",
@@ -1402,7 +1578,7 @@ const PUMP_STATIONS_DATA = [
     load_pct: 88.5,
     status: "warning",
     ringColor: null,
-    flowRateLps: 1770
+    flowRateLps: 1770,
   },
   {
     station_code: "JNK",
@@ -1415,15 +1591,19 @@ const PUMP_STATIONS_DATA = [
     load_pct: 68.0,
     status: "nominal",
     ringColor: null,
-    flowRateLps: 1360
-  }
+    flowRateLps: 1360,
+  },
 ];
 
 /**
  * Adjusts all pump station capacity utilization percentages dynamically
  * based on rainfall condition (Normal, Moderate, Heavy, Extreme), timestep, and rainfall intensity.
  */
-function updatePumpStationsForRainfall(scenario = activeScenario, timestep = activeTimestep, rainfall1h = null) {
+function updatePumpStationsForRainfall(
+  scenario = activeScenario,
+  timestep = activeTimestep,
+  rainfall1h = null,
+) {
   const scClean = (scenario || "NORMAL").toUpperCase().trim();
 
   // Timestep runoff accumulation surge
@@ -1448,19 +1628,26 @@ function updatePumpStationsForRainfall(scenario = activeScenario, timestep = act
       }
 
       // Smooth interpolation if custom 1h rainfall is provided
-      if (typeof rainfall1h === "number" && !isNaN(rainfall1h) && rainfall1h > 0) {
+      if (
+        typeof rainfall1h === "number" &&
+        !isNaN(rainfall1h) &&
+        rainfall1h > 0
+      ) {
         if (rainfall1h <= 10.0) {
           const ratio = Math.max(0, rainfall1h / 10.0);
           baseLoad = st.loads.NORMAL * (0.6 + 0.4 * ratio);
         } else if (rainfall1h <= 45.0) {
           const ratio = (rainfall1h - 10.0) / (45.0 - 10.0);
-          baseLoad = st.loads.NORMAL + (st.loads.MODERATE - st.loads.NORMAL) * ratio;
+          baseLoad =
+            st.loads.NORMAL + (st.loads.MODERATE - st.loads.NORMAL) * ratio;
         } else if (rainfall1h <= 75.0) {
           const ratio = (rainfall1h - 45.0) / (75.0 - 45.0);
-          baseLoad = st.loads.MODERATE + (st.loads.HEAVY - st.loads.MODERATE) * ratio;
+          baseLoad =
+            st.loads.MODERATE + (st.loads.HEAVY - st.loads.MODERATE) * ratio;
         } else if (rainfall1h <= 110.0) {
           const ratio = (rainfall1h - 75.0) / (110.0 - 75.0);
-          baseLoad = st.loads.HEAVY + (st.loads.EXTREME - st.loads.HEAVY) * ratio;
+          baseLoad =
+            st.loads.HEAVY + (st.loads.EXTREME - st.loads.HEAVY) * ratio;
         } else {
           const ratio = Math.min(1.0, (rainfall1h - 110.0) / 40.0);
           baseLoad = st.loads.EXTREME + (100.0 - st.loads.EXTREME) * ratio;
@@ -1468,16 +1655,25 @@ function updatePumpStationsForRainfall(scenario = activeScenario, timestep = act
       }
     }
 
-    const calculatedLoad = Math.min(100.0, Math.max(10.0, Math.round((baseLoad + timestepSurge) * 10) / 10));
+    const calculatedLoad = Math.min(
+      100.0,
+      Math.max(10.0, Math.round((baseLoad + timestepSurge) * 10) / 10),
+    );
     st.load_pct = calculatedLoad;
 
     // Determine operational status and pulse ring color based on capacity utilization
     if (calculatedLoad >= 90.0) {
       st.status = "critical";
-      st.ringColor = (scClean === "HEAVY" && st.heavyRing) ? st.heavyRing : "#ef4444";
+      st.ringColor =
+        scClean === "HEAVY" && st.heavyRing ? st.heavyRing : "#ef4444";
     } else if (calculatedLoad >= 75.0) {
       st.status = "warning";
-      st.ringColor = (scClean === "HEAVY" && st.heavyRing) ? st.heavyRing : (scClean === "EXTREME" ? "#f59e0b" : null);
+      st.ringColor =
+        scClean === "HEAVY" && st.heavyRing
+          ? st.heavyRing
+          : scClean === "EXTREME"
+            ? "#f59e0b"
+            : null;
     } else if (scClean === "HEAVY" && st.heavyRing) {
       st.status = "nominal";
       st.ringColor = st.heavyRing;
@@ -1502,11 +1698,13 @@ function updatePumpStationsForRainfall(scenario = activeScenario, timestep = act
 function createPumpMarkerIcon(p) {
   const isCritical = p.status === "critical" || p.load_pct >= 90;
   const isWarning = !isCritical && (p.status === "warning" || p.load_pct >= 75);
-  const color = isCritical ? "#ef4444" : (isWarning ? "#f59e0b" : "#0284c7");
+  const color = isCritical ? "#ef4444" : isWarning ? "#f59e0b" : "#0284c7";
 
   // Pulse halo ring: use custom ringColor if specified, else status color
   const ringColor = p.ringColor;
-  const ringHtml = ringColor ? `<div class="pump-ping-ring" style="border-color: ${ringColor};"></div>` : "";
+  const ringHtml = ringColor
+    ? `<div class="pump-ping-ring" style="border-color: ${ringColor};"></div>`
+    : "";
 
   const html = `
     <div class="pump-station-marker-wrapper" title="${p.name} (${p.station_code}) - ${p.load_pct}% Load">
@@ -1524,15 +1722,19 @@ function createPumpMarkerIcon(p) {
     html: html,
     className: "pump-station-leaflet-marker",
     iconSize: [0, 0],
-    iconAnchor: [0, 0]
+    iconAnchor: [0, 0],
   });
 }
 
 function createPumpPopup(p) {
   const isCritical = p.status === "critical" || p.load_pct >= 90;
   const isWarning = !isCritical && (p.status === "warning" || p.load_pct >= 75);
-  const color = isCritical ? "#ef4444" : (isWarning ? "#f59e0b" : "#0284c7");
-  const statusLabel = isCritical ? "CRITICAL" : (isWarning ? "WARNING" : "NOMINAL");
+  const color = isCritical ? "#ef4444" : isWarning ? "#f59e0b" : "#0284c7";
+  const statusLabel = isCritical
+    ? "CRITICAL"
+    : isWarning
+      ? "WARNING"
+      : "NOMINAL";
 
   return `
     <div style="font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; min-width: 210px; color: #dce4e5; padding: 4px;">
@@ -1584,7 +1786,7 @@ function renderPumpStationMarkers() {
       marker.bindPopup(popupContent, {
         className: "dark-leaflet-popup",
         closeButton: true,
-        offset: [0, -14]
+        offset: [0, -14],
       });
       st._marker = marker;
       pumpsLayer.addLayer(marker);
@@ -1627,9 +1829,13 @@ async function loadPumpStationsMetadata() {
   const renderFilteredStations = () => {
     const q = (currentSearch || "").trim().toLowerCase();
     const filtered = PUMP_STATIONS_DATA.filter((st) => {
-      const matchSearch = !q || st.name.toLowerCase().includes(q) || st.station_code.toLowerCase().includes(q);
+      const matchSearch =
+        !q ||
+        st.name.toLowerCase().includes(q) ||
+        st.station_code.toLowerCase().includes(q);
       if (!matchSearch) return false;
-      if (currentFilter === "crit") return st.load_pct >= 85 || st.status === "critical";
+      if (currentFilter === "crit")
+        return st.load_pct >= 85 || st.status === "critical";
       if (currentFilter === "warn") return st.load_pct >= 70;
       return true;
     });
@@ -1639,15 +1845,27 @@ async function loadPumpStationsMetadata() {
       return;
     }
 
-    listContainer.innerHTML = filtered.map((st, i) => {
-      const isCritical = st.load_pct >= 85 || st.status === "critical";
-      const isWarning = !isCritical && (st.load_pct >= 70 || st.status === "warning");
-      const loadColor = isCritical ? "#ef4444" : (isWarning ? "#f59e0b" : "#10b981");
-      const loadBadgeClass = isCritical ? "crit" : (isWarning ? "warn" : "normal");
-      const flowRate = st.flowRateLps || Math.round((st.maxFlowLps || 2500) * (st.load_pct / 100));
-      const maxFlow = st.maxFlowLps || 2500;
+    listContainer.innerHTML = filtered
+      .map((st, i) => {
+        const isCritical = st.load_pct >= 85 || st.status === "critical";
+        const isWarning =
+          !isCritical && (st.load_pct >= 70 || st.status === "warning");
+        const loadColor = isCritical
+          ? "#ef4444"
+          : isWarning
+            ? "#f59e0b"
+            : "#10b981";
+        const loadBadgeClass = isCritical
+          ? "crit"
+          : isWarning
+            ? "warn"
+            : "normal";
+        const flowRate =
+          st.flowRateLps ||
+          Math.round((st.maxFlowLps || 2500) * (st.load_pct / 100));
+        const maxFlow = st.maxFlowLps || 2500;
 
-      return `
+        return `
         <div class="pump-item-row ${loadBadgeClass}" data-station-code="${st.station_code}" data-lat="${st.lat}" data-lon="${st.lon}" title="Click to center on map & inspect live telemetry">
           <div class="pump-item-left">
             <span class="pump-num-badge">#${i + 1}</span>
@@ -1665,9 +1883,10 @@ async function loadPumpStationsMetadata() {
           </div>
         </div>
       `;
-    }).join("");
+      })
+      .join("");
 
-    listContainer.querySelectorAll(".pump-item-row").forEach(row => {
+    listContainer.querySelectorAll(".pump-item-row").forEach((row) => {
       row.addEventListener("click", () => {
         const lat = parseFloat(row.getAttribute("data-lat"));
         const lon = parseFloat(row.getAttribute("data-lon"));
@@ -1681,10 +1900,13 @@ async function loadPumpStationsMetadata() {
         if (map) {
           map.flyTo([lat, lon], 14, { duration: 1.2 });
           if (pumpsLayer) {
-            pumpsLayer.eachLayer(marker => {
+            pumpsLayer.eachLayer((marker) => {
               const mLat = marker.getLatLng().lat;
               const mLon = marker.getLatLng().lng;
-              if (Math.abs(mLat - lat) < 0.001 && Math.abs(mLon - lon) < 0.001) {
+              if (
+                Math.abs(mLat - lat) < 0.001 &&
+                Math.abs(mLon - lon) < 0.001
+              ) {
                 setTimeout(() => marker.openPopup(), 400);
               }
             });
@@ -1725,24 +1947,46 @@ let topPriorityFeatureGlobal = null;
 function createPriorityPopupContent(p) {
   const roadId = p.road_id || "Priority Corridor";
   const rawLevel = (p.priority_level || "MEDIUM").toUpperCase();
-  const pCode = rawLevel === "CRITICAL" ? "P1" : rawLevel === "HIGH" ? "P2" : "P3";
-  const tagClass = rawLevel === "CRITICAL" ? "critical" : rawLevel === "HIGH" ? "high" : "medium";
+  const pCode =
+    rawLevel === "CRITICAL" ? "P1" : rawLevel === "HIGH" ? "P2" : "P3";
+  const tagClass =
+    rawLevel === "CRITICAL"
+      ? "critical"
+      : rawLevel === "HIGH"
+        ? "high"
+        : "medium";
 
-  const depthNum = typeof p.water_depth_cm === "number" ? p.water_depth_cm : parseFloat(p.water_depth_cm || 0);
+  const depthNum =
+    typeof p.water_depth_cm === "number"
+      ? p.water_depth_cm
+      : parseFloat(p.water_depth_cm || 0);
   const depthVal = depthNum.toFixed(1);
-  let floodSev = depthNum > 100 ? "CRITICAL (>100 cm)" : depthNum > 25 ? "HIGH (>25-100 cm)" : "MEDIUM (>10-25 cm)";
+  let floodSev =
+    depthNum > 100
+      ? "CRITICAL (>100 cm)"
+      : depthNum > 25
+        ? "HIGH (>25-100 cm)"
+        : "MEDIUM (>10-25 cm)";
 
-  const popExp = typeof p.population_exposure === "number" ? p.population_exposure.toLocaleString() : (p.population_exposure || "N/A");
-  const critInfra = p.critical_infra_flag === 1 ? "1 Critical Asset" : "0 Assets";
+  const popExp =
+    typeof p.population_exposure === "number"
+      ? p.population_exposure.toLocaleString()
+      : p.population_exposure || "N/A";
+  const critInfra =
+    p.critical_infra_flag === 1 ? "1 Critical Asset" : "0 Assets";
   const timestepVal = p.timestep || activeTimestep;
 
-  let recAction = "Deploy high-capacity dewatering pumps & clear key transit arteries";
+  let recAction =
+    "Deploy high-capacity dewatering pumps & clear key transit arteries";
   if (rawLevel === "CRITICAL") {
-    recAction = "Immediate emergency response: deploy heavy pumps, reroute traffic & protect critical assets";
+    recAction =
+      "Immediate emergency response: deploy heavy pumps, reroute traffic & protect critical assets";
   } else if (rawLevel === "HIGH") {
-    recAction = "High response priority: dispatch mobile pump units & issue localized traffic warnings";
+    recAction =
+      "High response priority: dispatch mobile pump units & issue localized traffic warnings";
   } else {
-    recAction = "Monitor corridor: maintain SCADA telemetry & prepare drainage clearing";
+    recAction =
+      "Monitor corridor: maintain SCADA telemetry & prepare drainage clearing";
   }
 
   return `
@@ -1756,7 +2000,7 @@ function createPriorityPopupContent(p) {
       <div class="wl-popup-row"><span>Recommended action:</span> <strong style="color:#c084fc;">${recAction}</strong></div>
       <div class="wl-popup-row"><span>Forecast Timestep:</span> <strong>${timestepVal}</strong></div>
       <div class="wl-popup-action-row" style="margin-top:8px; padding-top:6px; border-top:1px solid rgba(255,255,255,0.1);">
-        <button class="${isSmartRouterActive ? 'btn-open-smart-router font-mono active-on' : 'btn-open-smart-router font-mono'}" style="width:100%; padding:5px 8px; background:${isSmartRouterActive ? 'linear-gradient(135deg, #10b981, #059669)' : 'linear-gradient(135deg, #0284c7, #06b6d4)'}; border:none; border-radius:4px; color:#fff; font-size:0.72rem; font-weight:700; cursor:pointer;">${isSmartRouterActive ? '⚡ Smart Router ON' : '⚡ Launch Smart Router'}</button>
+        <button class="${isSmartRouterActive ? "btn-open-smart-router font-mono active-on" : "btn-open-smart-router font-mono"}" style="width:100%; padding:5px 8px; background:${isSmartRouterActive ? "linear-gradient(135deg, #10b981, #059669)" : "linear-gradient(135deg, #0284c7, #06b6d4)"}; border:none; border-radius:4px; color:#fff; font-size:0.72rem; font-weight:700; cursor:pointer;">${isSmartRouterActive ? "⚡ Smart Router ON" : "⚡ Launch Smart Router"}</button>
       </div>
       <div class="wl-popup-footer" style="margin-top:4px; font-size:0.65rem; color:#94a3b8;">
         Population used as response exposure factor (not simple density)
@@ -1774,7 +2018,9 @@ function initTopPriorityFocusHandler() {
       const bounds = tempLayer.getBounds();
       map.fitBounds(bounds, { maxZoom: 16, padding: [60, 60] });
 
-      const popupHtml = createPriorityPopupContent(topPriorityFeatureGlobal.properties || {});
+      const popupHtml = createPriorityPopupContent(
+        topPriorityFeatureGlobal.properties || {},
+      );
       const center = bounds.getCenter();
       L.popup({ className: "dark-leaflet-popup" })
         .setLatLng(center)
@@ -1792,7 +2038,7 @@ async function loadPopulationPriorityLayer(signal) {
   }
 
   const bbox = getMapViewportBbox();
-  const roundedBbox = bbox.map(v => Math.round(v * 100) / 100);
+  const roundedBbox = bbox.map((v) => Math.round(v * 100) / 100);
   const cacheKey = `pop_${activeScenario}_${activeTimestep}_${roundedBbox.join("_")}`;
 
   let geojson = null;
@@ -1803,7 +2049,11 @@ async function loadPopulationPriorityLayer(signal) {
     const encodedTimestep = encodeURIComponent(activeTimestep);
 
     try {
-      const res = await apiFetch(`/population-priority?scenario=${activeScenario}&timestep=${encodedTimestep}&bbox=${bboxStr}`, { signal }, 10000);
+      const res = await apiFetch(
+        `/population-priority?scenario=${activeScenario}&timestep=${encodedTimestep}&bbox=${bboxStr}`,
+        { signal },
+        10000,
+      );
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       geojson = await res.json();
       if (signal && signal.aborted) return;
@@ -1825,7 +2075,10 @@ async function loadPopulationPriorityLayer(signal) {
   // ONLY SHOW OPERATIONAL PRIORITY: Filter out unflooded roads (water_depth_cm <= 10.0) or priority LOW
   const priorityFeatures = rawFeatures.filter((f) => {
     const p = f.properties || {};
-    const depth = typeof p.water_depth_cm === "number" ? p.water_depth_cm : parseFloat(p.water_depth_cm || 0);
+    const depth =
+      typeof p.water_depth_cm === "number"
+        ? p.water_depth_cm
+        : parseFloat(p.water_depth_cm || 0);
     const level = (p.priority_level || "LOW").toUpperCase();
     return depth > 10.0 && level !== "LOW";
   });
@@ -1866,8 +2119,14 @@ async function loadPopulationPriorityLayer(signal) {
 
     const topP = topF.properties || {};
     const rawLevel = (topP.priority_level || "MEDIUM").toUpperCase();
-    const pCode = rawLevel === "CRITICAL" ? "P1" : rawLevel === "HIGH" ? "P2" : "P3";
-    const tagClass = rawLevel === "CRITICAL" ? "critical" : rawLevel === "HIGH" ? "high" : "medium";
+    const pCode =
+      rawLevel === "CRITICAL" ? "P1" : rawLevel === "HIGH" ? "P2" : "P3";
+    const tagClass =
+      rawLevel === "CRITICAL"
+        ? "critical"
+        : rawLevel === "HIGH"
+          ? "high"
+          : "medium";
 
     const badgeEl = document.getElementById("top-p-badge");
     const titleEl = document.getElementById("top-p-title");
@@ -1880,33 +2139,53 @@ async function loadPopulationPriorityLayer(signal) {
       badgeEl.className = `sev-tag ${tagClass}`;
     }
     if (titleEl) titleEl.textContent = topP.road_id || "Top Priority Segment";
-    if (popEl) popEl.textContent = typeof topP.population_exposure === "number" ? topP.population_exposure.toLocaleString() : (topP.population_exposure || "--");
-    if (depthEl) depthEl.textContent = typeof topP.water_depth_cm === "number" ? `${topP.water_depth_cm.toFixed(1)} cm` : "--";
-    if (infraEl) infraEl.textContent = topP.critical_infra_flag === 1 ? "1 Critical Asset" : "0 Assets";
+    if (popEl)
+      popEl.textContent =
+        typeof topP.population_exposure === "number"
+          ? topP.population_exposure.toLocaleString()
+          : topP.population_exposure || "--";
+    if (depthEl)
+      depthEl.textContent =
+        typeof topP.water_depth_cm === "number"
+          ? `${topP.water_depth_cm.toFixed(1)} cm`
+          : "--";
+    if (infraEl)
+      infraEl.textContent =
+        topP.critical_infra_flag === 1 ? "1 Critical Asset" : "0 Assets";
   } else if (topCardEl) {
     topCardEl.classList.add("hidden");
     topPriorityFeatureGlobal = null;
   }
 
   // Render Polylines directly onto Hardware Canvas in a single batch (60 FPS, zero UI lag)
-  const lineOpts = sharedCanvasRenderer ? { renderer: sharedCanvasRenderer } : {};
+  const lineOpts = sharedCanvasRenderer
+    ? { renderer: sharedCanvasRenderer }
+    : {};
   const layersBatch = [];
 
   priorityFeatures.forEach((feature) => {
     if (!feature.geometry || !feature.geometry.coordinates) return;
     const rawCoords = feature.geometry.coordinates;
     const latlngs = Array.isArray(rawCoords[0][0])
-      ? rawCoords[0].map(c => [c[1], c[0]])
-      : rawCoords.map(c => [c[1], c[0]]);
+      ? rawCoords[0].map((c) => [c[1], c[0]])
+      : rawCoords.map((c) => [c[1], c[0]]);
 
     if (latlngs.length < 2) return;
 
     const p = feature.properties || {};
     const level = (p.priority_level || "MEDIUM").toUpperCase();
-    const depth = typeof p.water_depth_cm === "number" ? p.water_depth_cm : parseFloat(p.water_depth_cm || 0);
+    const depth =
+      typeof p.water_depth_cm === "number"
+        ? p.water_depth_cm
+        : parseFloat(p.water_depth_cm || 0);
 
     // High-visibility vivid priority styling
-    const color = level === "CRITICAL" ? "#a855f7" : level === "HIGH" ? "#c084fc" : "#818cf8";
+    const color =
+      level === "CRITICAL"
+        ? "#a855f7"
+        : level === "HIGH"
+          ? "#c084fc"
+          : "#818cf8";
     const weight = level === "CRITICAL" ? 5.5 : level === "HIGH" ? 4.2 : 3.2;
 
     const priorityLine = L.polyline(latlngs, {
@@ -1916,7 +2195,7 @@ async function loadPopulationPriorityLayer(signal) {
       opacity: 0.92,
       lineCap: "round",
       lineJoin: "round",
-      interactive: true
+      interactive: true,
     });
 
     // Lazy popup on click (zero upfront DOM string thrashing)
@@ -1937,8 +2216,8 @@ async function loadPopulationPriorityLayer(signal) {
     if (!feature.geometry || !feature.geometry.coordinates) return;
     const rawCoords = feature.geometry.coordinates;
     const latlngs = Array.isArray(rawCoords[0][0])
-      ? rawCoords[0].map(c => [c[1], c[0]])
-      : rawCoords.map(c => [c[1], c[0]]);
+      ? rawCoords[0].map((c) => [c[1], c[0]])
+      : rawCoords.map((c) => [c[1], c[0]]);
 
     if (latlngs.length === 0) return;
     const center = latlngs[Math.floor(latlngs.length / 2)];
@@ -1952,7 +2231,7 @@ async function loadPopulationPriorityLayer(signal) {
       className: "priority-badge-div",
       html: `<div class="priority-badge-marker ${pClass}"><span>⚡</span> ${pCode}</div>`,
       iconSize: [36, 18],
-      iconAnchor: [18, 9]
+      iconAnchor: [18, 9],
     });
 
     const badgeMarker = L.marker(center, { icon: customIcon });
@@ -1997,7 +2276,11 @@ async function loadAlertsPanel(signalOrForce, maybeForce = false) {
   const countBadge = document.getElementById("alerts-count-badge");
 
   try {
-    const res = await apiFetch(`/alerts?scenario=${activeScenario}&timestep=${encodedTimestep}&bbox=${bboxStr}`, { signal }, 10000);
+    const res = await apiFetch(
+      `/alerts?scenario=${activeScenario}&timestep=${encodedTimestep}&bbox=${bboxStr}`,
+      { signal },
+      10000,
+    );
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
     lastLoadedAlertsData = data;
@@ -2008,14 +2291,16 @@ async function loadAlertsPanel(signalOrForce, maybeForce = false) {
 
     if (!container) return;
     if (incidents.length === 0) {
-      container.innerHTML = '<div class="alert-empty-msg">No high priority incidents for current viewport.</div>';
+      container.innerHTML =
+        '<div class="alert-empty-msg">No high priority incidents for current viewport.</div>';
       return;
     }
 
-    container.innerHTML = incidents.map((inc) => {
-      const coordsJson = JSON.stringify(inc.coordinates || []);
-      const pLevel = (inc.priority_level || "LOW").toUpperCase();
-      return `
+    container.innerHTML = incidents
+      .map((inc) => {
+        const coordsJson = JSON.stringify(inc.coordinates || []);
+        const pLevel = (inc.priority_level || "LOW").toUpperCase();
+        return `
         <div class="alert-card priority-${pLevel.toLowerCase()}" data-coords='${coordsJson}'>
           <div class="alert-card-header">
             <span class="inc-id">${inc.incident_id} • ${inc.road_id}</span>
@@ -2025,7 +2310,7 @@ async function loadAlertsPanel(signalOrForce, maybeForce = false) {
             <div class="inc-row"><span>District:</span> <strong>${inc.district || "Delhi"}</strong></div>
             <div class="inc-row"><span>Water Depth:</span> <strong>${inc.water_depth_cm.toFixed(1)} cm</strong></div>
             <div class="inc-row"><span>Population Exposure:</span> <strong>${(inc.population_exposure || 0).toLocaleString()}</strong></div>
-            <div class="inc-row"><span>Critical Infra:</span> <strong>${inc.critical_infra_flag === 1 ? 'YES' : 'NO'}</strong></div>
+            <div class="inc-row"><span>Critical Infra:</span> <strong>${inc.critical_infra_flag === 1 ? "YES" : "NO"}</strong></div>
             <div class="inc-row"><span>Forecast:</span> <strong>${inc.forecast_timestep}</strong></div>
             <div class="inc-action-box">
               <strong>Recommended Action:</strong> ${inc.recommended_action}
@@ -2037,7 +2322,8 @@ async function loadAlertsPanel(signalOrForce, maybeForce = false) {
           </div>
         </div>
       `;
-    }).join("");
+      })
+      .join("");
 
     // Add click listeners to locate incidents on Leaflet map
     container.querySelectorAll(".alert-card").forEach((card) => {
@@ -2058,7 +2344,8 @@ async function loadAlertsPanel(signalOrForce, maybeForce = false) {
             }).addTo(map);
 
             setTimeout(() => {
-              if (map.hasLayer(highlightPolyline)) map.removeLayer(highlightPolyline);
+              if (map.hasLayer(highlightPolyline))
+                map.removeLayer(highlightPolyline);
             }, 3000);
           }
         } catch (e) {
@@ -2067,7 +2354,8 @@ async function loadAlertsPanel(signalOrForce, maybeForce = false) {
       });
     });
   } catch (err) {
-    if (container) container.innerHTML = `<div class="alert-empty-msg">Alerts load notice: ${err.message}</div>`;
+    if (container)
+      container.innerHTML = `<div class="alert-empty-msg">Alerts load notice: ${err.message}</div>`;
   }
 }
 
@@ -2084,25 +2372,27 @@ const SMART_ALTERNATE_ROUTES = [
     glowColor: "rgba(16, 185, 129, 0.45)",
     origin: "Mundka / Alipur (NH-44)",
     destination: "Dwarka Sector 21 / IGI Airport",
-    avoidedCorridor: "Rohtak Road (Nangloi) & Uttam Nagar-Dwarka Mor bottleneck",
+    avoidedCorridor:
+      "Rohtak Road (Nangloi) & Uttam Nagar-Dwarka Mor bottleneck",
     distanceKm: "18.4 km",
     freeFlowSpeed: "75 km/h",
     floodClearance: "0 cm (Elevated Grade)",
-    recommendation: "Take UER-II to completely bypass waterlogged Nangloi & the Uttam Nagar gridlock.",
+    recommendation:
+      "Take UER-II to completely bypass waterlogged Nangloi & the Uttam Nagar gridlock.",
     badge: {
       text: "⚡ UER-II (NH-344M) • SAFE BYPASS",
-      position: [28.6480, 77.0090]
+      position: [28.648, 77.009],
     },
     coordinates: [
-      [28.7180, 77.0350],
-      [28.6980, 77.0250],
-      [28.6750, 77.0120],
-      [28.6480, 77.0090],
-      [28.6220, 77.0210],
-      [28.5950, 77.0380],
-      [28.5700, 77.0520],
-      [28.5550, 77.0580]
-    ]
+      [28.718, 77.035],
+      [28.698, 77.025],
+      [28.675, 77.012],
+      [28.648, 77.009],
+      [28.622, 77.021],
+      [28.595, 77.038],
+      [28.57, 77.052],
+      [28.555, 77.058],
+    ],
   },
   {
     id: "DWARKA_EXPWY",
@@ -2117,20 +2407,21 @@ const SMART_ALTERNATE_ROUTES = [
     distanceKm: "12.8 km",
     freeFlowSpeed: "70 km/h",
     floodClearance: "0 cm (Grade-Separated)",
-    recommendation: "Grade-separated flood-free link between Najafgarh, Dwarka sectors, and South Delhi.",
+    recommendation:
+      "Grade-separated flood-free link between Najafgarh, Dwarka sectors, and South Delhi.",
     badge: {
       text: "⚡ DWARKA EXPWY • FREE-FLOW DETOUR",
-      position: [28.5520, 77.0450]
+      position: [28.552, 77.045],
     },
     coordinates: [
-      [28.5280, 76.9950],
-      [28.5380, 77.0150],
-      [28.5520, 77.0450],
-      [28.5580, 77.0620],
-      [28.5560, 77.0880],
-      [28.5500, 77.1120],
-      [28.5440, 77.1320]
-    ]
+      [28.528, 76.995],
+      [28.538, 77.015],
+      [28.552, 77.045],
+      [28.558, 77.062],
+      [28.556, 77.088],
+      [28.55, 77.112],
+      [28.544, 77.132],
+    ],
   },
   {
     id: "OUTER_RING_ELEVATED",
@@ -2141,23 +2432,25 @@ const SMART_ALTERNATE_ROUTES = [
     glowColor: "rgba(56, 189, 248, 0.4)",
     origin: "Peeragarhi Grade Separator",
     destination: "Janakpuri / Tilak Nagar Elevated Overpass",
-    avoidedCorridor: "Surface waterlogging at District Centre & Hastsal intersections",
+    avoidedCorridor:
+      "Surface waterlogging at District Centre & Hastsal intersections",
     distanceKm: "7.9 km",
     freeFlowSpeed: "60 km/h",
     floodClearance: "0 cm (Continuous Flyover Deck)",
-    recommendation: "Take the elevated flyover deck to avoid surface street flooding on Najafgarh Road.",
+    recommendation:
+      "Take the elevated flyover deck to avoid surface street flooding on Najafgarh Road.",
     badge: {
       text: "⚡ OUTER RING • ELEVATED CORRIDOR",
-      position: [28.6450, 77.0790]
+      position: [28.645, 77.079],
     },
     coordinates: [
-      [28.6850, 77.0950],
-      [28.6650, 77.0870],
-      [28.6450, 77.0790],
-      [28.6320, 77.0780],
-      [28.6180, 77.0860],
-      [28.6080, 77.0980]
-    ]
+      [28.685, 77.095],
+      [28.665, 77.087],
+      [28.645, 77.079],
+      [28.632, 77.078],
+      [28.618, 77.086],
+      [28.608, 77.098],
+    ],
   },
   {
     id: "CHHAWLA_DHANSA",
@@ -2172,18 +2465,19 @@ const SMART_ALTERNATE_ROUTES = [
     distanceKm: "9.2 km",
     freeFlowSpeed: "50 km/h",
     floodClearance: "0 cm (Raised Embankment)",
-    recommendation: "High embankment rural-urban link avoiding congested inner Najafgarh market streets.",
+    recommendation:
+      "High embankment rural-urban link avoiding congested inner Najafgarh market streets.",
     badge: {
       text: "⚡ CHHAWLA LINK • SOUTH NAJAFGARH BYPASS",
-      position: [28.5800, 77.0120]
+      position: [28.58, 77.012],
     },
     coordinates: [
-      [28.6120, 76.9820],
-      [28.5950, 76.9950],
-      [28.5800, 77.0120],
-      [28.5650, 77.0300],
-      [28.5520, 77.0480]
-    ]
+      [28.612, 76.982],
+      [28.595, 76.995],
+      [28.58, 77.012],
+      [28.565, 77.03],
+      [28.552, 77.048],
+    ],
   },
   {
     id: "BARAPULLAH_ELEVATED",
@@ -2198,18 +2492,19 @@ const SMART_ALTERNATE_ROUTES = [
     distanceKm: "8.5 km",
     freeFlowSpeed: "70 km/h",
     floodClearance: "0 cm (Elevated Structure)",
-    recommendation: "Fly over flooded South Delhi nallah corridors with zero waterlogging risk.",
+    recommendation:
+      "Fly over flooded South Delhi nallah corridors with zero waterlogging risk.",
     badge: {
       text: "⚡ BARAPULLAH • ELEVATED EXPRESSWAY",
-      position: [28.5800, 77.2300]
+      position: [28.58, 77.23],
     },
     coordinates: [
-      [28.5880, 77.2580],
-      [28.5850, 77.2450],
-      [28.5800, 77.2300],
-      [28.5740, 77.2180],
-      [28.5680, 77.2100]
-    ]
+      [28.588, 77.258],
+      [28.585, 77.245],
+      [28.58, 77.23],
+      [28.574, 77.218],
+      [28.568, 77.21],
+    ],
   },
   {
     id: "RIDGE_CORRIDOR",
@@ -2224,18 +2519,19 @@ const SMART_ALTERNATE_ROUTES = [
     distanceKm: "11.2 km",
     freeFlowSpeed: "60 km/h",
     floodClearance: "0 cm (Natural Ridge Elevation)",
-    recommendation: "High-ground ridge bypass immune to storm drainage backflow.",
+    recommendation:
+      "High-ground ridge bypass immune to storm drainage backflow.",
     badge: {
       text: "⚡ RIDGE ROAD • HIGH-GROUND BYPASS",
-      position: [28.6320, 77.1910]
+      position: [28.632, 77.191],
     },
     coordinates: [
-      [28.6750, 77.2150],
-      [28.6550, 77.2020],
-      [28.6320, 77.1910],
-      [28.6150, 77.1780],
-      [28.5950, 77.1680]
-    ]
+      [28.675, 77.215],
+      [28.655, 77.202],
+      [28.632, 77.191],
+      [28.615, 77.178],
+      [28.595, 77.168],
+    ],
   },
   // WATERLOGGED BOTTLENECK CORRIDORS (AVOID)
   {
@@ -2252,18 +2548,19 @@ const SMART_ALTERNATE_ROUTES = [
     distanceKm: "3.6 km",
     freeFlowSpeed: "6 km/h (Standstill)",
     floodClearance: "55 cm (Flooded Underpasses)",
-    recommendation: "DO NOT USE. Divert immediately via UER-II / NH-344M or Outer Ring Road.",
+    recommendation:
+      "DO NOT USE. Divert immediately via UER-II / NH-344M or Outer Ring Road.",
     badge: {
       text: "⛔ AVOID • 55cm WATERLOGGED",
-      position: [28.6130, 77.0510]
+      position: [28.613, 77.051],
     },
     coordinates: [
-      [28.6280, 77.0420],
-      [28.6220, 77.0460],
-      [28.6130, 77.0510],
-      [28.6010, 77.0560],
-      [28.5920, 77.0600]
-    ]
+      [28.628, 77.042],
+      [28.622, 77.046],
+      [28.613, 77.051],
+      [28.601, 77.056],
+      [28.592, 77.06],
+    ],
   },
   {
     id: "AVOID_NANGLOI",
@@ -2279,50 +2576,65 @@ const SMART_ALTERNATE_ROUTES = [
     distanceKm: "2.8 km",
     freeFlowSpeed: "8 km/h (Gridlock)",
     floodClearance: "48 cm (Heavy Waterlogging)",
-    recommendation: "DO NOT USE. Divert North onto UER-II (NH-344M) towards Mundka/Dwarka.",
+    recommendation:
+      "DO NOT USE. Divert North onto UER-II (NH-344M) towards Mundka/Dwarka.",
     badge: {
       text: "⛔ AVOID • 48cm WATERLOGGED",
-      position: [28.6835, 77.0620]
+      position: [28.6835, 77.062],
     },
     coordinates: [
-      [28.6820, 77.0480],
-      [28.6835, 77.0620],
-      [28.6845, 77.0780]
-    ]
-  }
+      [28.682, 77.048],
+      [28.6835, 77.062],
+      [28.6845, 77.078],
+    ],
+  },
 ];
 
 function createAlternateRoutePopup(r) {
   const isAvoid = r.type === "AVOID_CORRIDOR";
   const isSafe = r.type === "SAFE_BYPASS";
-  const statusColor = isAvoid ? "#ef4444" : (isSafe ? "#10b981" : "#06b6d4");
-  const badgeLabel = isAvoid ? "CRITICAL CONGESTION • AVOID" : (isSafe ? "REALISTIC ELEVATED ROAD BYPASS" : "REALISTIC DETOUR ROUTE");
+  const statusColor = isAvoid ? "#ef4444" : isSafe ? "#10b981" : "#06b6d4";
+  const badgeLabel = isAvoid
+    ? "CRITICAL CONGESTION • AVOID"
+    : isSafe
+      ? "REALISTIC ELEVATED ROAD BYPASS"
+      : "REALISTIC DETOUR ROUTE";
 
   let dynamicPumpContext = r.pumpContext || "";
   if (dynamicPumpContext) {
     PUMP_STATIONS_DATA.forEach((p) => {
       if (dynamicPumpContext.includes(p.station_code)) {
-        const regex = new RegExp(`(${p.station_code}[^\\)]*?\\()([0-9.]+%)(\\s*Load[^\)]*?\\))`, "gi");
+        const regex = new RegExp(
+          `(${p.station_code}[^\\)]*?\\()([0-9.]+%)(\\s*Load[^\)]*?\\))`,
+          "gi",
+        );
         if (regex.test(dynamicPumpContext)) {
-          dynamicPumpContext = dynamicPumpContext.replace(regex, `$1${p.load_pct}%$3`);
+          dynamicPumpContext = dynamicPumpContext.replace(
+            regex,
+            `$1${p.load_pct}%$3`,
+          );
         }
       }
     });
   }
 
-  const pumpRow = dynamicPumpContext ? `
+  const pumpRow = dynamicPumpContext
+    ? `
     <div style="display: flex; justify-content: space-between; font-size: 10px; color: #94a3b8; margin-top: 3px; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 3px;">
       <span>Pump Station Catchment:</span>
       <span style="color: #38bdf8; font-weight: 600; text-align: right; max-width: 60%;">${dynamicPumpContext}</span>
     </div>
-  ` : "";
+  `
+    : "";
 
-  const popRow = r.popDensity ? `
+  const popRow = r.popDensity
+    ? `
     <div style="display: flex; justify-content: space-between; font-size: 10px; color: #94a3b8; margin-top: 3px;">
       <span>Population Context:</span>
       <span style="color: #c084fc; font-weight: 600; text-align: right; max-width: 60%;">${r.popDensity}</span>
     </div>
-  ` : "";
+  `
+    : "";
 
   return `
     <div style="font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; min-width: 270px; color: #dce4e5; padding: 4px;">
@@ -2330,7 +2642,7 @@ function createAlternateRoutePopup(r) {
         <span style="font-size: 10px; font-weight: 800; color: ${statusColor}; text-transform: uppercase; letter-spacing: 0.5px;">
           ${badgeLabel}
         </span>
-        <span style="font-size: 11px; font-weight: 800; color: #ffffff; font-family: monospace;">${r.distanceKm || ''}</span>
+        <span style="font-size: 11px; font-weight: 800; color: #ffffff; font-family: monospace;">${r.distanceKm || ""}</span>
       </div>
       <div style="font-size: 13px; font-weight: 800; color: #c3f5ff; margin-bottom: 3px; line-height: 1.3;">
         ${r.name}
@@ -2354,7 +2666,7 @@ function createAlternateRoutePopup(r) {
         ${pumpRow}
         ${popRow}
       </div>
-      <div style="font-size: 11px; line-height: 1.4; color: ${isAvoid ? '#fca5a5' : '#a7f3d0'}; background: ${isAvoid ? 'rgba(239,68,68,0.12)' : 'rgba(16,185,129,0.12)'}; padding: 6px 8px; border-radius: 4px; border-left: 3px solid ${statusColor};">
+      <div style="font-size: 11px; line-height: 1.4; color: ${isAvoid ? "#fca5a5" : "#a7f3d0"}; background: ${isAvoid ? "rgba(239,68,68,0.12)" : "rgba(16,185,129,0.12)"}; padding: 6px 8px; border-radius: 4px; border-left: 3px solid ${statusColor};">
         💡 <strong>Advisory:</strong> ${r.recommendation}
       </div>
     </div>
@@ -2414,7 +2726,7 @@ async function renderSmartAlternateRoutes() {
     routePolyline.bindPopup(popupHtml, {
       className: "dark-leaflet-popup",
       maxWidth: 340,
-      offset: [0, -5]
+      offset: [0, -5],
     });
 
     // Hover effect
@@ -2427,19 +2739,26 @@ async function renderSmartAlternateRoutes() {
 
     // 3. Compact high-contrast badge along the route
     if (r.badge && r.badge.position) {
-      const badgeClass = r.type === "AVOID_CORRIDOR" ? "avoid" : (r.type === "SAFE_BYPASS" ? "safe" : "detour");
+      const badgeClass =
+        r.type === "AVOID_CORRIDOR"
+          ? "avoid"
+          : r.type === "SAFE_BYPASS"
+            ? "safe"
+            : "detour";
       const badgeIcon = L.divIcon({
         html: `<div class="route-map-badge ${badgeClass}">${r.badge.text}</div>`,
         className: "route-badge-divicon",
         iconSize: [0, 0],
-        iconAnchor: [0, 0]
+        iconAnchor: [0, 0],
       });
 
-      const badgeMarker = L.marker(r.badge.position, { icon: badgeIcon }).addTo(routeLayer);
+      const badgeMarker = L.marker(r.badge.position, { icon: badgeIcon }).addTo(
+        routeLayer,
+      );
       badgeMarker.bindPopup(popupHtml, {
         className: "dark-leaflet-popup",
         maxWidth: 340,
-        offset: [0, -10]
+        offset: [0, -10],
       });
     }
   });
@@ -2471,17 +2790,23 @@ function setSmartRouterState(enabled, options = {}) {
   // 3. Synchronize right sidebar tab (#tab-routing) & automatically expand Smart Router Finder accordion
   if (options.openTab !== false && isSmartRouterActive) {
     const sideTabBtns = document.querySelectorAll(".side-tab-btn");
-    const routerTabBtn = document.querySelector('.side-tab-btn[data-tab="tab-routing"]');
+    const routerTabBtn = document.querySelector(
+      '.side-tab-btn[data-tab="tab-routing"]',
+    );
     if (routerTabBtn) {
       sideTabBtns.forEach((b) => b.classList.remove("active"));
-      document.querySelectorAll(".sidebar-tab-content").forEach((c) => c.classList.remove("active"));
+      document
+        .querySelectorAll(".sidebar-tab-content")
+        .forEach((c) => c.classList.remove("active"));
       routerTabBtn.classList.add("active");
       const targetEl = document.getElementById("tab-routing");
       if (targetEl) {
         targetEl.classList.add("active");
 
         // Action 2: Automatically open/expand the Smart Router Finder accordion (<details>)
-        const accordion = targetEl.querySelector("details, #route-finder-accordion");
+        const accordion = targetEl.querySelector(
+          "details, #route-finder-accordion",
+        );
         if (accordion) {
           accordion.open = true;
         }
@@ -2504,7 +2829,9 @@ function setSmartRouterState(enabled, options = {}) {
   }
 
   // 4. Synchronize all popup buttons (.btn-open-smart-router) across DOM
-  const routerBtns = document.querySelectorAll(".btn-open-smart-router, [data-action='open-smart-router'], .popup-smart-router-btn, [data-action='route']");
+  const routerBtns = document.querySelectorAll(
+    ".btn-open-smart-router, [data-action='open-smart-router'], .popup-smart-router-btn, [data-action='route']",
+  );
   routerBtns.forEach((btn) => {
     if (isSmartRouterActive) {
       btn.classList.add("active-on");
@@ -2569,7 +2896,8 @@ function initSideTabs() {
         const btnAnalytics = document.getElementById("nav-btn-analytics");
         if (btnAnalytics) btnAnalytics.classList.add("active");
         setTimeout(() => {
-          if (typeof calculateActiveRoute === "function") calculateActiveRoute(true);
+          if (typeof calculateActiveRoute === "function")
+            calculateActiveRoute(true);
         }, 30);
       } else if (targetTab === "tab-rainfall") {
         navBtns.forEach((b) => b.classList.remove("active"));
@@ -2590,14 +2918,18 @@ function initSideTabs() {
   const navAlertsBtn = document.getElementById("nav-alerts-btn");
   if (navAlertsBtn) {
     navAlertsBtn.addEventListener("click", () => {
-      const alertTabBtn = document.querySelector('.side-tab-btn[data-tab="tab-alerts"]');
+      const alertTabBtn = document.querySelector(
+        '.side-tab-btn[data-tab="tab-alerts"]',
+      );
       if (alertTabBtn) alertTabBtn.click();
     });
   }
 
   // Global delegated click handler connecting initial/popup Smart Router buttons to Smart Router state controller
   document.addEventListener("click", (e) => {
-    const routerBtn = e.target.closest(".btn-open-smart-router, [data-action='open-smart-router'], .popup-smart-router-btn, [data-action='route']");
+    const routerBtn = e.target.closest(
+      ".btn-open-smart-router, [data-action='open-smart-router'], .popup-smart-router-btn, [data-action='route']",
+    );
     if (routerBtn) {
       e.preventDefault();
       toggleSmartRouterState({ openTab: true });
@@ -2646,9 +2978,14 @@ function initTopNavModuleButtons() {
       switchActiveTab("tab-situation");
 
       // Smooth scroll inside tab-situation to SCADA telemetry header
-      const scadaHeader = document.querySelector(".scada-header-card") || document.querySelector(".scada-metrics-grid");
+      const scadaHeader =
+        document.querySelector(".scada-header-card") ||
+        document.querySelector(".scada-metrics-grid");
       if (scadaHeader) {
-        smoothScrollTabContent("tab-situation", Math.max(0, scadaHeader.offsetTop - 12));
+        smoothScrollTabContent(
+          "tab-situation",
+          Math.max(0, scadaHeader.offsetTop - 12),
+        );
       }
 
       // Micro-defer layer activations to maintain smooth 60fps tab transition
@@ -2795,10 +3132,18 @@ function initPresetButtons() {
       });
 
       // Update Summary Card Preview
-      updateScenarioSummaryCard(data.rainfall_1h, data.rainfall_3h, data.rainfall_6h);
+      updateScenarioSummaryCard(
+        data.rainfall_1h,
+        data.rainfall_3h,
+        data.rainfall_6h,
+      );
 
       // Dynamically adjust pump station capacity utilization percentages for rainfall condition
-      updatePumpStationsForRainfall(activeScenario, activeTimestep, data.rainfall_1h);
+      updatePumpStationsForRainfall(
+        activeScenario,
+        activeTimestep,
+        data.rainfall_1h,
+      );
 
       // Trigger Waterlogging & Population Priority & Alerts Refresh
       loadWaterloggingLayer();
@@ -2823,7 +3168,8 @@ function renderScenarioLog() {
   if (!listEl) return;
 
   if (scenarioHistory.length === 0) {
-    listEl.innerHTML = '<div class="log-empty-msg">Run simulations to compare scenario outcomes...</div>';
+    listEl.innerHTML =
+      '<div class="log-empty-msg">Run simulations to compare scenario outcomes...</div>';
     return;
   }
 
@@ -2843,7 +3189,7 @@ function renderScenarioLog() {
         <span class="log-score">Score: ${item.score}/100</span>
       </div>
     </div>
-  `
+  `,
     )
     .join("");
 }
@@ -2911,7 +3257,9 @@ function initLayerToggles() {
 
   // Delegated handler for any 'open-pump-registry' action buttons (from map popup, etc.)
   document.addEventListener("click", (e) => {
-    const regBtn = e.target.closest("[data-action='open-pump-registry'], .popup-open-registry-btn");
+    const regBtn = e.target.closest(
+      "[data-action='open-pump-registry'], .popup-open-registry-btn",
+    );
     if (regBtn) {
       e.preventDefault();
       const modal = document.getElementById("pump-modal");
@@ -2925,13 +3273,17 @@ function initLayerToggles() {
   const dCheck = document.getElementById("layer-drains-check");
   if (dCheck) {
     dCheck.addEventListener("change", (e) => {
-      const legendDrainage = document.getElementById("legend-drainage-section") || document.getElementById("legend-drainage-status");
+      const legendDrainage =
+        document.getElementById("legend-drainage-section") ||
+        document.getElementById("legend-drainage-status");
       if (e.target.checked) {
-        if (!map.hasLayer(drainageNetworkLayer)) map.addLayer(drainageNetworkLayer);
+        if (!map.hasLayer(drainageNetworkLayer))
+          map.addLayer(drainageNetworkLayer);
         loadDrainageNetworkLayer();
         if (legendDrainage) legendDrainage.classList.remove("hidden");
       } else {
-        if (map.hasLayer(drainageNetworkLayer)) map.removeLayer(drainageNetworkLayer);
+        if (map.hasLayer(drainageNetworkLayer))
+          map.removeLayer(drainageNetworkLayer);
         if (legendDrainage) legendDrainage.classList.add("hidden");
       }
     });
@@ -2976,12 +3328,14 @@ function initLayerToggles() {
   if (popCheck) {
     popCheck.addEventListener("change", (e) => {
       if (e.target.checked) {
-        if (!map.hasLayer(populationPriorityLayer)) map.addLayer(populationPriorityLayer);
+        if (!map.hasLayer(populationPriorityLayer))
+          map.addLayer(populationPriorityLayer);
         if (populationPriorityLayer.getLayers().length === 0) {
           loadPopulationPriorityLayer();
         }
       } else {
-        if (map.hasLayer(populationPriorityLayer)) map.removeLayer(populationPriorityLayer);
+        if (map.hasLayer(populationPriorityLayer))
+          map.removeLayer(populationPriorityLayer);
       }
     });
   }
@@ -3040,7 +3394,11 @@ function selectTimestepButton(btn) {
   const backendStep = btn.getAttribute("data-backend-step") || "T+0";
   activeTimestep = backendStep;
   const currentR1h = parseFloat(document.getElementById("rainfall_1h")?.value);
-  updatePumpStationsForRainfall(activeScenario, activeTimestep, isNaN(currentR1h) ? null : currentR1h);
+  updatePumpStationsForRainfall(
+    activeScenario,
+    activeTimestep,
+    isNaN(currentR1h) ? null : currentR1h,
+  );
   updateScadaTelemetry();
 
   triggerTimestepUpdate();
@@ -3062,7 +3420,9 @@ function startPlayAnimation() {
 
   if (playIntervalTimer) clearInterval(playIntervalTimer);
   playIntervalTimer = setInterval(() => {
-    const currentIndex = stepBtns.findIndex((b) => b.classList.contains("active"));
+    const currentIndex = stepBtns.findIndex((b) =>
+      b.classList.contains("active"),
+    );
     const nextIndex = (currentIndex + 1) % stepBtns.length;
     selectTimestepButton(stepBtns[nextIndex]);
   }, 2500);
@@ -3099,7 +3459,8 @@ async function triggerTimestepUpdate() {
 
     if (wCheck && wCheck.checked) promises.push(loadWaterloggingLayer());
     if (iCheck && iCheck.checked) promises.push(loadInfraLayer());
-    if (popCheck && popCheck.checked) promises.push(loadPopulationPriorityLayer());
+    if (popCheck && popCheck.checked)
+      promises.push(loadPopulationPriorityLayer());
     promises.push(loadAlertsPanel());
 
     await Promise.all(promises);
@@ -3160,7 +3521,10 @@ async function checkSystemHealth(force = false) {
   try {
     const ctrl = new AbortController();
     const t = setTimeout(() => ctrl.abort(), 2500);
-    const res = await fetch(`${API_BASE_URL}/health`, { signal: ctrl.signal, cache: "no-store" });
+    const res = await fetch(`${API_BASE_URL}/health`, {
+      signal: ctrl.signal,
+      cache: "no-store",
+    });
     clearTimeout(t);
     if (res.ok) {
       const data = await res.json();
@@ -3232,9 +3596,13 @@ async function handleMapClick(e) {
       className: "inspection-pulse-pin",
       html: '<div class="reticle-core"></div><div class="reticle-ring"></div>',
       iconSize: [28, 28],
-      iconAnchor: [14, 14]
+      iconAnchor: [14, 14],
     });
-    inspectionMarker = L.marker([lat, lon], { icon: pulseIcon, interactive: false, zIndexOffset: 2500 });
+    inspectionMarker = L.marker([lat, lon], {
+      icon: pulseIcon,
+      interactive: false,
+      zIndexOffset: 2500,
+    });
     inspectionMarker.addTo(map);
   }
 
@@ -3253,21 +3621,29 @@ async function handleMapClick(e) {
   if (rainEl) rainEl.textContent = "Sampling API...";
 
   // Sample live rainfall for this exact coordinate
-  loadLiveRainfallData(lat, lon).then(() => {
-    if (rainEl && lastLiveWeather) {
-      const rainRate = (lastLiveWeather.rainfall_intensity_mm_hr || 0).toFixed(1);
-      const condition = lastLiveWeather.condition || "Precipitation";
-      rainEl.textContent = `${rainRate} mm/hr (${condition})`;
-    }
-  }).catch(() => {});
+  loadLiveRainfallData(lat, lon)
+    .then(() => {
+      if (rainEl && lastLiveWeather) {
+        const rainRate = (
+          lastLiveWeather.rainfall_intensity_mm_hr || 0
+        ).toFixed(1);
+        const condition = lastLiveWeather.condition || "Precipitation";
+        rainEl.textContent = `${rainRate} mm/hr (${condition})`;
+      }
+    })
+    .catch(() => {});
 
   try {
-    const res = await apiFetch("/flood_info", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ lat, lon }),
-      signal: currentSignal
-    }, 8000);
+    const res = await apiFetch(
+      "/flood_info",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ lat, lon }),
+        signal: currentSignal,
+      },
+      8000,
+    );
 
     if (currentSignal.aborted) return;
     if (!res.ok) throw new Error("Flood info query failed");
@@ -3282,37 +3658,51 @@ async function handleMapClick(e) {
     let drainName = "MPD-1976 Drain";
     if (data.nearest_drain && data.nearest_drain.drain_name) {
       drainName = data.nearest_drain.drain_name;
-      if (data.nearest_drain.basin && !drainName.includes(data.nearest_drain.basin)) {
+      if (
+        data.nearest_drain.basin &&
+        !drainName.includes(data.nearest_drain.basin)
+      ) {
         drainName += ` (${data.nearest_drain.basin})`;
       }
     }
 
-    let drainDist = (typeof data.nearest_drain_distance_m === "number" && !isNaN(data.nearest_drain_distance_m))
-      ? data.nearest_drain_distance_m
-      : (data.nearest_drain && typeof data.nearest_drain.distance_m === "number" ? data.nearest_drain.distance_m : null);
+    let drainDist =
+      typeof data.nearest_drain_distance_m === "number" &&
+      !isNaN(data.nearest_drain_distance_m)
+        ? data.nearest_drain_distance_m
+        : data.nearest_drain &&
+            typeof data.nearest_drain.distance_m === "number"
+          ? data.nearest_drain.distance_m
+          : null;
 
     let drainDistText = "N/A";
     if (drainDist !== null) {
-      drainDistText = drainDist >= 1000 
-        ? `${Math.round(drainDist).toLocaleString()} m (${(drainDist / 1000).toFixed(1)} km)` 
-        : `${drainDist.toFixed(1)} m`;
+      drainDistText =
+        drainDist >= 1000
+          ? `${Math.round(drainDist).toLocaleString()} m (${(drainDist / 1000).toFixed(1)} km)`
+          : `${drainDist.toFixed(1)} m`;
     }
 
     // Apply values smoothly
     document.getElementById("insp-elevation").textContent = elevText;
     document.getElementById("insp-drain-name").textContent = drainName;
     document.getElementById("insp-drain-dist").textContent = drainDistText;
-    document.getElementById("insp-basis").textContent = (data.risk_basis && !data.risk_basis.includes("(")) ? data.risk_basis : "spatial_proxy";
+    document.getElementById("insp-basis").textContent =
+      data.risk_basis && !data.risk_basis.includes("(")
+        ? data.risk_basis
+        : "spatial_proxy";
 
     if (card) card.classList.remove("is-updating");
-
   } catch (err) {
     if (currentSignal.aborted) return;
     console.warn("Flood info remote fetch fallback:", err.message);
 
     let minDist = Infinity;
     let closestName = "MPD-1976 Drain";
-    if (drainageNetworkLayer && typeof drainageNetworkLayer.eachLayer === "function") {
+    if (
+      drainageNetworkLayer &&
+      typeof drainageNetworkLayer.eachLayer === "function"
+    ) {
       drainageNetworkLayer.eachLayer((layer) => {
         if (typeof layer.getLatLng === "function") {
           const dist = map.distance([lat, lon], layer.getLatLng());
@@ -3320,17 +3710,24 @@ async function handleMapClick(e) {
             minDist = dist;
             if (layer.feature && layer.feature.properties) {
               closestName = layer.feature.properties.drain_name || closestName;
-              if (layer.feature.properties.basin) closestName += ` (${layer.feature.properties.basin})`;
+              if (layer.feature.properties.basin)
+                closestName += ` (${layer.feature.properties.basin})`;
             }
           }
         }
       });
     }
 
-    const approxElev = Math.min(260, Math.max(195, Math.round(215 - (lon - 77.20) * 60 + (lat - 28.60) * 35)));
-    const drainDistText = minDist !== Infinity 
-      ? (minDist >= 1000 ? `${Math.round(minDist).toLocaleString()} m (${(minDist / 1000).toFixed(1)} km)` : `${Math.round(minDist)} m`)
-      : "350 m (Proximity Estimate)";
+    const approxElev = Math.min(
+      260,
+      Math.max(195, Math.round(215 - (lon - 77.2) * 60 + (lat - 28.6) * 35)),
+    );
+    const drainDistText =
+      minDist !== Infinity
+        ? minDist >= 1000
+          ? `${Math.round(minDist).toLocaleString()} m (${(minDist / 1000).toFixed(1)} km)`
+          : `${Math.round(minDist)} m`
+        : "350 m (Proximity Estimate)";
 
     document.getElementById("insp-elevation").textContent = `${approxElev}.0 m`;
     document.getElementById("insp-drain-name").textContent = closestName;
@@ -3361,30 +3758,51 @@ function initFormHandlers() {
       if (btn) btn.disabled = true;
 
       const payload = {
-        rainfall_1h: parseFloat(document.getElementById("rainfall_1h").value) || 0,
-        rainfall_3h: parseFloat(document.getElementById("rainfall_3h").value) || 0,
-        rainfall_6h: parseFloat(document.getElementById("rainfall_6h").value) || 0,
-        recent_rainfall_intensity: parseFloat(document.getElementById("recent_rainfall_intensity").value) || 0,
+        rainfall_1h:
+          parseFloat(document.getElementById("rainfall_1h").value) || 0,
+        rainfall_3h:
+          parseFloat(document.getElementById("rainfall_3h").value) || 0,
+        rainfall_6h:
+          parseFloat(document.getElementById("rainfall_6h").value) || 0,
+        recent_rainfall_intensity:
+          parseFloat(
+            document.getElementById("recent_rainfall_intensity").value,
+          ) || 0,
         elevation: parseFloat(document.getElementById("elevation").value) || 0,
         slope: parseFloat(document.getElementById("slope").value) || 0,
-        distance_to_drain: parseFloat(document.getElementById("distance_to_drain").value) || 0,
-        distance_to_road: parseFloat(document.getElementById("distance_to_road").value) || 0,
-        distance_to_infra: parseFloat(document.getElementById("distance_to_infra").value) || 0,
-        population_total: parseFloat(document.getElementById("population_total").value) || 0,
-        critical_infra_flag: parseInt(document.getElementById("critical_infra_flag").value, 10) || 0,
+        distance_to_drain:
+          parseFloat(document.getElementById("distance_to_drain").value) || 0,
+        distance_to_road:
+          parseFloat(document.getElementById("distance_to_road").value) || 0,
+        distance_to_infra:
+          parseFloat(document.getElementById("distance_to_infra").value) || 0,
+        population_total:
+          parseFloat(document.getElementById("population_total").value) || 0,
+        critical_infra_flag:
+          parseInt(document.getElementById("critical_infra_flag").value, 10) ||
+          0,
       };
 
       // Update Summary Card
-      updateScenarioSummaryCard(payload.rainfall_1h, payload.rainfall_3h, payload.rainfall_6h);
+      updateScenarioSummaryCard(
+        payload.rainfall_1h,
+        payload.rainfall_3h,
+        payload.rainfall_6h,
+      );
 
       try {
-        const res = await apiFetch("/predict", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        }, 10000);
+        const res = await apiFetch(
+          "/predict",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          },
+          10000,
+        );
 
-        if (!res.ok) throw new Error("Scenario simulation unavailable. Please retry.");
+        if (!res.ok)
+          throw new Error("Scenario simulation unavailable. Please retry.");
         const data = await res.json();
 
         // Update Severity Badge
@@ -3422,7 +3840,7 @@ function initFormHandlers() {
           const act = data.action_priority;
           const pScore = document.getElementById("res-priority-score");
           if (pScore) pScore.textContent = `Score: ${act.priority_score}`;
-          
+
           const actLvl = document.getElementById("res-action-level");
           if (actLvl) {
             actLvl.textContent = act.action_level;
@@ -3440,14 +3858,24 @@ function initFormHandlers() {
           r3h: payload.rainfall_3h,
           r6h: payload.rainfall_6h,
           severity: data.flood_severity,
-          score: data.action_priority ? data.action_priority.priority_score : "--",
-          timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" }),
+          score: data.action_priority
+            ? data.action_priority.priority_score
+            : "--",
+          timestamp: new Date().toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
+          }),
         });
         if (scenarioHistory.length > 5) scenarioHistory.shift();
         renderScenarioLog();
 
         activeScenario = activePresetName || "NORMAL";
-        updatePumpStationsForRainfall(activeScenario, activeTimestep, payload.rainfall_1h);
+        updatePumpStationsForRainfall(
+          activeScenario,
+          activeTimestep,
+          payload.rainfall_1h,
+        );
         loadWaterloggingLayer();
 
         if (resultsPanel) resultsPanel.classList.remove("hidden");
@@ -3475,7 +3903,9 @@ function initFormHandlers() {
         activeScenario = derivedScenario;
         activePresetName = derivedScenario;
 
-        const presetBtns = document.querySelectorAll(".preset-btn, .preset-btn-4");
+        const presetBtns = document.querySelectorAll(
+          ".preset-btn, .preset-btn-4",
+        );
         presetBtns.forEach((b) => {
           if (b.getAttribute("data-preset") === derivedScenario.toLowerCase()) {
             b.classList.add("active");
@@ -3484,8 +3914,12 @@ function initFormHandlers() {
           }
         });
 
-        const r3 = parseFloat(document.getElementById("rainfall_3h")?.value) || (val * 1.8);
-        const r6 = parseFloat(document.getElementById("rainfall_6h")?.value) || (val * 2.4);
+        const r3 =
+          parseFloat(document.getElementById("rainfall_3h")?.value) ||
+          val * 1.8;
+        const r6 =
+          parseFloat(document.getElementById("rainfall_6h")?.value) ||
+          val * 2.4;
         updateScenarioSummaryCard(val, r3, r6);
         updatePumpStationsForRainfall(derivedScenario, activeTimestep, val);
       }
@@ -3495,8 +3929,10 @@ function initFormHandlers() {
   // --------------------------------------------------------------------------
   // POST /route — AquaGraph A* Risk Router
   // --------------------------------------------------------------------------
-  window.calculateActiveRoute = async function(autoTriggered = false) {
-    const btn = document.getElementById("btn-calculate-route") || document.getElementById("btn-route");
+  window.calculateActiveRoute = async function (autoTriggered = false) {
+    const btn =
+      document.getElementById("btn-calculate-route") ||
+      document.getElementById("btn-route");
     const spinner = btn ? btn.querySelector(".btn-spinner") : null;
     const resultsPanel = document.getElementById("route-results-panel");
 
@@ -3514,10 +3950,14 @@ function initFormHandlers() {
     const endLonEl = document.getElementById("end_lon");
     const riskEl = document.getElementById("route_risk");
 
-    const start_lat = startLatEl ? parseFloat(startLatEl.value) || 28.6139 : 28.6139;
-    const start_lon = startLonEl ? parseFloat(startLonEl.value) || 77.2090 : 77.2090;
-    const end_lat = endLatEl ? parseFloat(endLatEl.value) || 28.6500 : 28.6500;
-    const end_lon = endLonEl ? parseFloat(endLonEl.value) || 77.2300 : 77.2300;
+    const start_lat = startLatEl
+      ? parseFloat(startLatEl.value) || 28.6139
+      : 28.6139;
+    const start_lon = startLonEl
+      ? parseFloat(startLonEl.value) || 77.209
+      : 77.209;
+    const end_lat = endLatEl ? parseFloat(endLatEl.value) || 28.65 : 28.65;
+    const end_lon = endLonEl ? parseFloat(endLonEl.value) || 77.23 : 77.23;
     const risk = riskEl ? riskEl.value : "low";
 
     const payload = {
@@ -3536,11 +3976,15 @@ function initFormHandlers() {
     };
 
     try {
-      const res = await apiFetch("/route", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      }, 15000);
+      const res = await apiFetch(
+        "/route",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        },
+        15000,
+      );
 
       if (!res.ok) throw new Error("Route API call failed");
       const data = await res.json();
@@ -3557,7 +4001,10 @@ function initFormHandlers() {
       }
 
       const distVal = data.physical_distance_m || data.distance_m || 5345.2;
-      const distKm = distVal > 1000 ? `${(distVal / 1000).toFixed(2)} km` : `${distVal.toFixed(1)} m`;
+      const distKm =
+        distVal > 1000
+          ? `${(distVal / 1000).toFixed(2)} km`
+          : `${distVal.toFixed(1)} m`;
 
       const elDist = document.getElementById("route-dist");
       const elCost = document.getElementById("route-cost");
@@ -3573,19 +4020,32 @@ function initFormHandlers() {
       const elRiskBasis = document.getElementById("route-risk-basis");
 
       if (elDist) elDist.textContent = distKm;
-      if (elCost) elCost.textContent = `${data.routing_cost || data.estimated_cost || 5569.3}`;
+      if (elCost)
+        elCost.textContent = `${data.routing_cost || data.estimated_cost || 5569.3}`;
       if (elNodes) elNodes.textContent = `${data.nodes_in_route || 238}`;
-      if (elSens) elSens.textContent = `${data.risk_mode || data.risk_level || 'Low'}`;
-      if (elSnapO) elSnapO.textContent = `${data.origin_snap_distance_m !== undefined ? data.origin_snap_distance_m : 12.5} m`;
-      if (elSnapD) elSnapD.textContent = `${data.destination_snap_distance_m !== undefined ? data.destination_snap_distance_m : 8.2} m`;
-      if (elMaxDepth) elMaxDepth.textContent = `${data.maximum_water_depth_cm !== undefined ? data.maximum_water_depth_cm : 8.5} cm`;
-      if (elFloodedCnt) elFloodedCnt.textContent = `${data.flooded_segments_on_route !== undefined ? data.flooded_segments_on_route : 0}`;
-      if (elRiskLvl) elRiskLvl.textContent = `${data.route_risk_level || 'Low'}`;
-      if (elForecastTag) elForecastTag.textContent = `${data.scenario || activeScenario} (${data.timestep || activeTimestep})`;
-      if (elRiskBasis) elRiskBasis.textContent = data.basis || data.risk_basis || "model_derived_flood_aware_routing";
+      if (elSens)
+        elSens.textContent = `${data.risk_mode || data.risk_level || "Low"}`;
+      if (elSnapO)
+        elSnapO.textContent = `${data.origin_snap_distance_m !== undefined ? data.origin_snap_distance_m : 12.5} m`;
+      if (elSnapD)
+        elSnapD.textContent = `${data.destination_snap_distance_m !== undefined ? data.destination_snap_distance_m : 8.2} m`;
+      if (elMaxDepth)
+        elMaxDepth.textContent = `${data.maximum_water_depth_cm !== undefined ? data.maximum_water_depth_cm : 8.5} cm`;
+      if (elFloodedCnt)
+        elFloodedCnt.textContent = `${data.flooded_segments_on_route !== undefined ? data.flooded_segments_on_route : 0}`;
+      if (elRiskLvl)
+        elRiskLvl.textContent = `${data.route_risk_level || "Low"}`;
+      if (elForecastTag)
+        elForecastTag.textContent = `${data.scenario || activeScenario} (${data.timestep || activeTimestep})`;
+      if (elRiskBasis)
+        elRiskBasis.textContent =
+          data.basis || data.risk_basis || "model_derived_flood_aware_routing";
 
       if (elAvoidedBanner) {
-        if (data.avoided_high_risk_segments && data.avoided_high_risk_segments > 0) {
+        if (
+          data.avoided_high_risk_segments &&
+          data.avoided_high_risk_segments > 0
+        ) {
           elAvoidedBanner.textContent = `AquaGraph avoided ${data.avoided_high_risk_segments} high-risk road segments.`;
           elAvoidedBanner.classList.remove("hidden");
         } else {
@@ -3614,7 +4074,7 @@ function initFormHandlers() {
               <div class="wl-popup-row"><span>Routing Cost:</span> <strong>${data.routing_cost || 5569.3}</strong></div>
               <div class="wl-popup-row"><span>Max Water Depth:</span> <strong>${data.maximum_water_depth_cm || 0} cm</strong></div>
               <div class="wl-popup-row"><span>Flooded Segments:</span> <strong>${data.flooded_segments_on_route || 0}</strong></div>
-              <div class="wl-popup-row"><span>Route Risk:</span> <strong>${data.route_risk_level || 'Low'}</strong></div>
+              <div class="wl-popup-row"><span>Route Risk:</span> <strong>${data.route_risk_level || "Low"}</strong></div>
               <div class="wl-popup-row"><span>Forecast:</span> <strong>${data.scenario || activeScenario} ${data.timestep || activeTimestep}</strong></div>
               <div class="wl-popup-footer">Risk-aware flood routing (Model-derived proxy)</div>
             </div>
@@ -3624,11 +4084,21 @@ function initFormHandlers() {
           const startPt = coords[0];
           const endPt = coords[coords.length - 1];
 
-          L.circleMarker(startPt, { radius: 7, color: "#10b981", fillColor: "#10b981", fillOpacity: 0.9 })
+          L.circleMarker(startPt, {
+            radius: 7,
+            color: "#10b981",
+            fillColor: "#10b981",
+            fillOpacity: 0.9,
+          })
             .bindPopup("Route Origin")
             .addTo(markersLayer);
 
-          L.circleMarker(endPt, { radius: 7, color: "#ef4444", fillColor: "#ef4444", fillOpacity: 0.9 })
+          L.circleMarker(endPt, {
+            radius: 7,
+            color: "#ef4444",
+            fillColor: "#ef4444",
+            fillOpacity: 0.9,
+          })
             .bindPopup("Route Destination")
             .addTo(markersLayer);
 
@@ -3693,13 +4163,13 @@ function initFormHandlers() {
 // --------------------------------------------------------------------------
 const DELHI_ZONE_CENTROIDS = [
   { name: "Rohini (North West)", lat: 28.715, lon: 77.115 },
-  { name: "Karol Bagh (Central)", lat: 28.652, lon: 77.190 },
+  { name: "Karol Bagh (Central)", lat: 28.652, lon: 77.19 },
   { name: "Connaught Place (Central)", lat: 28.632, lon: 77.219 },
-  { name: "Dwarka (South West)", lat: 28.582, lon: 77.060 },
-  { name: "Saket (South)", lat: 28.524, lon: 77.210 },
-  { name: "Okhla (South East)", lat: 28.560, lon: 77.285 },
+  { name: "Dwarka (South West)", lat: 28.582, lon: 77.06 },
+  { name: "Saket (South)", lat: 28.524, lon: 77.21 },
+  { name: "Okhla (South East)", lat: 28.56, lon: 77.285 },
   { name: "Shahdara (East)", lat: 28.673, lon: 77.285 },
-  { name: "Narela (North)", lat: 28.850, lon: 77.095 }
+  { name: "Narela (North)", lat: 28.85, lon: 77.095 },
 ];
 
 let cachedZonesData = null;
@@ -3709,14 +4179,20 @@ function renderZoneFeatures(zones) {
   if (!zonesLayer) return;
   zonesLayer.clearLayers();
   zoneCircles = [];
-  const circleOpts = sharedCanvasRenderer ? { renderer: sharedCanvasRenderer } : {};
+  const circleOpts = sharedCanvasRenderer
+    ? { renderer: sharedCanvasRenderer }
+    : {};
 
   zones.forEach((zone, idx) => {
     const color =
-      zone.severity === "High" ? "#ef4444" :
-      zone.severity === "Medium" ? "#f59e0b" : "#10b981";
+      zone.severity === "High"
+        ? "#ef4444"
+        : zone.severity === "Medium"
+          ? "#f59e0b"
+          : "#10b981";
 
-    const fallbackCentroid = DELHI_ZONE_CENTROIDS[idx % DELHI_ZONE_CENTROIDS.length];
+    const fallbackCentroid =
+      DELHI_ZONE_CENTROIDS[idx % DELHI_ZONE_CENTROIDS.length];
     let lat = zone.latitude;
     let lon = zone.longitude;
     let zoneName = `Zone ${zone.zone_id}`;
@@ -3746,7 +4222,7 @@ function renderZoneFeatures(zones) {
       fillColor: color,
       fillOpacity: 0.28,
       weight: 2,
-      dashArray: "6, 6"
+      dashArray: "6, 6",
     })
       .bindPopup(popupHtml, { className: "dark-leaflet-popup" })
       .addTo(zonesLayer);
@@ -3758,7 +4234,7 @@ function renderZoneFeatures(zones) {
       zone,
       zoneName,
       popupHtml,
-      isKarolBagh: fallbackCentroid.name.includes("Karol Bagh")
+      isKarolBagh: fallbackCentroid.name.includes("Karol Bagh"),
     });
   });
 }
@@ -3770,9 +4246,9 @@ function focusOnFloodRiskRegion(openPopup = true) {
   // Rohini (28.715, 77.115), Karol Bagh (28.652, 77.190), Connaught Place (28.632, 77.219), Shahdara (28.673, 77.285)
   const urbanZoneCoords = [
     [28.715, 77.115], // Rohini
-    [28.652, 77.190], // Karol Bagh
+    [28.652, 77.19], // Karol Bagh
     [28.632, 77.219], // Connaught Place
-    [28.673, 77.285]  // Shahdara
+    [28.673, 77.285], // Shahdara
   ];
 
   const bounds = L.latLngBounds(urbanZoneCoords).pad(0.12);
@@ -3782,9 +4258,10 @@ function focusOnFloodRiskRegion(openPopup = true) {
 
     let target = null;
     if (zoneCircles && zoneCircles.length > 0) {
-      target = zoneCircles.find(z => z.isKarolBagh) ||
-               zoneCircles.find(z => z.zone && z.zone.severity === "High") ||
-               zoneCircles[0];
+      target =
+        zoneCircles.find((z) => z.isKarolBagh) ||
+        zoneCircles.find((z) => z.zone && z.zone.severity === "High") ||
+        zoneCircles[0];
     }
 
     if (target) {
@@ -3804,7 +4281,7 @@ function focusOnFloodRiskRegion(openPopup = true) {
     padding: [45, 45],
     maxZoom: 13,
     duration: 1.1,
-    easeLinearity: 0.25
+    easeLinearity: 0.25,
   });
 
   if (openPopup) {
@@ -3830,7 +4307,14 @@ async function loadZoneLayer(shouldFocus = false) {
   try {
     const res = await apiFetch("/zones", {}, 8000);
     if (!res.ok) {
-      renderZoneFeatures(DELHI_ZONE_CENTROIDS.map((c, i) => ({ zone_id: String(i), latitude: c.lat, longitude: c.lon, severity: i === 7 ? "High" : i % 2 === 1 ? "Medium" : "Low" })));
+      renderZoneFeatures(
+        DELHI_ZONE_CENTROIDS.map((c, i) => ({
+          zone_id: String(i),
+          latitude: c.lat,
+          longitude: c.lon,
+          severity: i === 7 ? "High" : i % 2 === 1 ? "Medium" : "Low",
+        })),
+      );
       if (shouldFocus) focusOnFloodRiskRegion(true);
       return;
     }
@@ -3839,7 +4323,14 @@ async function loadZoneLayer(shouldFocus = false) {
     if (shouldFocus) focusOnFloodRiskRegion(true);
   } catch (err) {
     console.log("Zone layer fallback:", err.message);
-    renderZoneFeatures(DELHI_ZONE_CENTROIDS.map((c, i) => ({ zone_id: String(i), latitude: c.lat, longitude: c.lon, severity: i === 7 ? "High" : i % 2 === 1 ? "Medium" : "Low" })));
+    renderZoneFeatures(
+      DELHI_ZONE_CENTROIDS.map((c, i) => ({
+        zone_id: String(i),
+        latitude: c.lat,
+        longitude: c.lon,
+        severity: i === 7 ? "High" : i % 2 === 1 ? "Medium" : "Low",
+      })),
+    );
     if (shouldFocus) focusOnFloodRiskRegion(true);
   }
 }
@@ -3849,7 +4340,7 @@ async function loadZoneLayer(shouldFocus = false) {
 // --------------------------------------------------------------------------
 
 let rainRadarLayer = null;
-let currentRainCoords = { lat: 28.6139, lon: 77.2090 };
+let currentRainCoords = { lat: 28.6139, lon: 77.209 };
 let lastLiveWeather = null;
 let rainDataAbortCtrl = null;
 
@@ -3882,14 +4373,12 @@ function initRainfallDynamics() {
   const resetCoordsBtn = document.getElementById("btn-reset-weather-coords");
   if (resetCoordsBtn) {
     resetCoordsBtn.addEventListener("click", () => {
-      currentRainCoords = { lat: 28.6139, lon: 77.2090 };
-      const badge = document.getElementById("rainfall-coords-badge");
-      if (badge) badge.textContent = "28.6139° N, 77.2090° E";
+      currentRainCoords = { lat: 28.6139, lon: 77.209 };
       if (inspectionMarker) {
-        inspectionMarker.setLatLng([28.6139, 77.2090]);
+        inspectionMarker.setLatLng([28.6139, 77.209]);
       }
-      map.flyTo([28.6139, 77.2090], 12, { duration: 0.8 });
-      loadLiveRainfallData(28.6139, 77.2090);
+      map.flyTo([28.6139, 77.209], 12, { duration: 0.8 });
+      loadLiveRainfallData(28.6139, 77.209);
     });
   }
 
@@ -3898,7 +4387,9 @@ function initRainfallDynamics() {
   if (radarBtn) {
     radarBtn.addEventListener("click", () => {
       const check = document.getElementById("layer-rain-radar-check");
-      const willEnable = check ? !check.checked : !rainRadarLayer || !map.hasLayer(rainRadarLayer);
+      const willEnable = check
+        ? !check.checked
+        : !rainRadarLayer || !map.hasLayer(rainRadarLayer);
       if (check) check.checked = willEnable;
       toggleRainRadarLayer(willEnable);
     });
@@ -3914,11 +4405,11 @@ function initRainfallDynamics() {
 
   // 5. Initial load for Delhi center
   setTimeout(() => {
-    loadLiveRainfallData(28.6139, 77.2090);
+    loadLiveRainfallData(28.6139, 77.209);
   }, 100);
 }
 
-async function loadLiveRainfallData(lat = 28.6139, lon = 77.2090) {
+async function loadLiveRainfallData(lat = 28.6139, lon = 77.209) {
   currentRainCoords = { lat, lon };
   const key = getStoredOpenWeatherKey();
 
@@ -3931,19 +4422,25 @@ async function loadLiveRainfallData(lat = 28.6139, lon = 77.2090) {
   // Update coords badge immediately
   const coordsBadge = document.getElementById("rainfall-coords-badge");
   if (coordsBadge) {
-    const latStr = lat >= 0 ? `${lat.toFixed(4)}° N` : `${Math.abs(lat).toFixed(4)}° S`;
-    const lonStr = lon >= 0 ? `${lon.toFixed(4)}° E` : `${Math.abs(lon).toFixed(4)}° W`;
+    const latStr =
+      lat >= 0 ? `${lat.toFixed(4)}° N` : `${Math.abs(lat).toFixed(4)}° S`;
+    const lonStr =
+      lon >= 0 ? `${lon.toFixed(4)}° E` : `${Math.abs(lon).toFixed(4)}° W`;
     coordsBadge.textContent = `${latStr}, ${lonStr}`;
   }
 
   try {
     const params = new URLSearchParams({
       lat: lat.toFixed(5),
-      lon: lon.toFixed(5)
+      lon: lon.toFixed(5),
     });
     if (key) params.append("appid", key);
 
-    const res = await apiFetch(`/weather/live?${params.toString()}`, { signal }, 6000);
+    const res = await apiFetch(
+      `/weather/live?${params.toString()}`,
+      { signal },
+      6000,
+    );
     if (signal.aborted) return;
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
@@ -3986,7 +4483,14 @@ function renderRainfallDynamicsPanel(data) {
   }
 
   if (liveDot) {
-    const dotColor = severity === "critical" ? "#ef4444" : severity === "high" ? "#f97316" : severity === "medium" ? "#eab308" : "#10b981";
+    const dotColor =
+      severity === "critical"
+        ? "#ef4444"
+        : severity === "high"
+          ? "#f97316"
+          : severity === "medium"
+            ? "#eab308"
+            : "#10b981";
     liveDot.style.background = dotColor;
     liveDot.style.boxShadow = `0 0 8px ${dotColor}`;
   }
@@ -4006,12 +4510,20 @@ function renderRainfallDynamicsPanel(data) {
   // 1-Hour & 3-Hour Accumulations
   const total1h = document.getElementById("rainfall-total-1h");
   if (total1h) {
-    total1h.textContent = (data.total_precip_1h_mm || data.rainfall_intensity_mm_hr || 0.0).toFixed(1);
+    total1h.textContent = (
+      data.total_precip_1h_mm ||
+      data.rainfall_intensity_mm_hr ||
+      0.0
+    ).toFixed(1);
   }
 
   const total3h = document.getElementById("rainfall-total-3h");
   if (total3h) {
-    total3h.textContent = (data.total_precip_3h_mm || (data.rainfall_intensity_mm_hr * 2.2) || 0.0).toFixed(1);
+    total3h.textContent = (
+      data.total_precip_3h_mm ||
+      data.rainfall_intensity_mm_hr * 2.2 ||
+      0.0
+    ).toFixed(1);
   }
 
   // Doppler Radar Reflectivity
@@ -4033,7 +4545,8 @@ function renderRainfallDynamicsPanel(data) {
   const windVal = document.getElementById("rainfall-wind-val");
   const windDir = document.getElementById("rainfall-wind-dir");
   if (windVal) windVal.textContent = (data.wind_speed_kmh || 0.0).toFixed(1);
-  if (windDir) windDir.textContent = `km/h ${data.wind_direction_cardinal || 'N'}`;
+  if (windDir)
+    windDir.textContent = `km/h ${data.wind_direction_cardinal || "N"}`;
 
   // Alert Box
   const alertCard = document.getElementById("rainfall-alert-card");
@@ -4053,47 +4566,47 @@ function renderRainfallDynamicsPanel(data) {
       alertCard.className = "rainfall-alert-box alert-normal";
       alertTitle.textContent = "PRECIPITATION THRESHOLD: NORMAL";
     }
-    alertDesc.textContent = classification.alert_message || "Normal municipal gravity drainage tolerances in effect.";
+    alertDesc.textContent =
+      classification.alert_message ||
+      "Normal municipal gravity drainage tolerances in effect.";
   }
 
   // Nowcast Projections
   const projections = data.forecast_projections || [];
   projections.forEach((p, idx) => {
-    const rainEl = document.getElementById(`forecast-rain-${idx === 0 ? '1h' : idx === 1 ? '3h' : '6h'}`);
-    const trendEl = document.getElementById(`forecast-trend-${idx === 0 ? '1h' : idx === 1 ? '3h' : '6h'}`);
-    if (rainEl) rainEl.textContent = `${(p.rainfall_mm_hr || 0.0).toFixed(1)} mm/h`;
+    const rainEl = document.getElementById(
+      `forecast-rain-${idx === 0 ? "1h" : idx === 1 ? "3h" : "6h"}`,
+    );
+    const trendEl = document.getElementById(
+      `forecast-trend-${idx === 0 ? "1h" : idx === 1 ? "3h" : "6h"}`,
+    );
+    if (rainEl)
+      rainEl.textContent = `${(p.rainfall_mm_hr || 0.0).toFixed(1)} mm/h`;
     if (trendEl) {
-      trendEl.textContent = p.trend || 'steady';
-      trendEl.className = `f-trend trend-${p.trend || 'steady'}`;
+      trendEl.textContent = p.trend || "steady";
+      trendEl.className = `f-trend trend-${p.trend || "steady"}`;
     }
   });
 }
 
 async function toggleRainRadarLayer(enable) {
-  const radarBtn = document.getElementById("btn-toggle-rain-radar");
-  const legendRadar = document.getElementById("legend-radar-section");
-
   if (!enable) {
     if (rainRadarLayer && map.hasLayer(rainRadarLayer)) {
       map.removeLayer(rainRadarLayer);
     }
     const check = document.getElementById("layer-rain-radar-check");
     if (check) check.checked = false;
-    if (radarBtn) radarBtn.classList.remove("radar-active");
-    if (legendRadar) legendRadar.classList.add("hidden");
     return;
   }
 
   const check = document.getElementById("layer-rain-radar-check");
   if (check) check.checked = true;
-  if (radarBtn) radarBtn.classList.add("radar-active");
-  if (legendRadar) legendRadar.classList.remove("hidden");
 
   try {
     const key = getStoredOpenWeatherKey();
     const params = new URLSearchParams({
       lat: currentRainCoords.lat.toFixed(5),
-      lon: currentRainCoords.lon.toFixed(5)
+      lon: currentRainCoords.lon.toFixed(5),
     });
     if (key) params.append("appid", key);
 
@@ -4106,56 +4619,22 @@ async function toggleRainRadarLayer(enable) {
     }
 
     const featureLayers = [];
-
-    // 1. Continuous Multi-Spectral Meteorological Heatmap Raster (Leaflet.heat)
-    // Replicating meteorological Doppler satellite composite: Deep Indigo -> Blue -> Cyan -> Green -> Yellow -> Orange -> Crimson Red
-    const METEO_RADAR_GRADIENT = {
-      0.04: "rgba(30, 27, 75, 0.45)",  // Deep indigo fringe (<2 mm/h)
-      0.14: "#312e81",                  // Indigo
-      0.28: "#1d4ed8",                  // Deep royal blue (5-10 mm/h)
-      0.44: "#06b6d4",                  // Electric cyan (10-18 mm/h)
-      0.58: "#10b981",                  // Emerald green (18-25 mm/h)
-      0.72: "#facc15",                  // Vibrant yellow (25-35 mm/h)
-      0.86: "#f97316",                  // Fiery convective orange (35-48 mm/h)
-      1.00: "#ef4444"                   // Intense cloudburst crimson (>50 mm/h)
-    };
-
-    const heatPoints = geojson.heatmap_points || [];
-    if (heatPoints.length > 0 && typeof L.heatLayer === "function") {
-      const heatLayer = L.heatLayer(heatPoints, {
-        radius: 42,
-        blur: 28,
-        maxZoom: 16,
-        max: 1.0,
-        minOpacity: 0.45,
-        gradient: METEO_RADAR_GRADIENT
-      });
-      featureLayers.push(heatLayer);
-    }
-
-    // 2. High-Tech Minimalist Basin Radar Centroid Beacons (replacing giant orange circle hoops)
     (geojson.features || []).forEach((feat) => {
       const p = feat.properties;
       const coords = feat.geometry.coordinates;
       const latLng = [coords[1], coords[0]];
 
-      // Glowing pulsing radar beacon dot
-      const beacon = L.circleMarker(latLng, {
-        radius: 7,
-        color: "#ffffff",
+      const circle = L.circle(latLng, {
+        radius: p.radius_meters || 4500,
+        color: p.color || "#38bdf8",
         weight: 2,
+        opacity: 0.85,
         fillColor: p.color || "#38bdf8",
-        fillOpacity: 0.95,
-        className: "radar-beacon-pulse"
+        fillOpacity: 0.24,
+        className: "radar-cell-pulse",
       });
 
-      beacon.bindTooltip(`
-        <div class="radar-tooltip font-mono">
-          <strong>${p.name}</strong>: <span style="color:${p.color}; font-weight:700;">${p.intensity_mm_hr} mm/h (${p.dbz} dBZ)</span>
-        </div>
-      `, { direction: "top", offset: [0, -7], className: "radar-custom-tooltip" });
-
-      beacon.bindPopup(`
+      circle.bindPopup(`
         <div class="scada-popup">
           <div class="popup-title-row">
             <span class="live-dot pulse" style="background:${p.color}"></span>
@@ -4174,7 +4653,7 @@ async function toggleRainRadarLayer(enable) {
             </div>
             <div class="popup-item">
               <span class="p-label">Catchment:</span>
-              <span class="p-value font-mono">${(p.radius_meters/1000).toFixed(1)} km</span>
+              <span class="p-value font-mono">${(p.radius_meters / 1000).toFixed(1)} km</span>
             </div>
             <div class="popup-item">
               <span class="p-label">Flood Threat:</span>
@@ -4187,7 +4666,7 @@ async function toggleRainRadarLayer(enable) {
         </div>
       `);
 
-      featureLayers.push(beacon);
+      featureLayers.push(circle);
     });
 
     rainRadarLayer = L.layerGroup(featureLayers);
@@ -4196,7 +4675,7 @@ async function toggleRainRadarLayer(enable) {
     if (key) {
       const tileLayer = L.tileLayer(
         `https://tile.openweathermap.org/map/precipitation_new/{z}/{x}/{y}.png?appid=${key}`,
-        { maxZoom: 18, opacity: 0.65 }
+        { maxZoom: 18, opacity: 0.65 },
       );
       rainRadarLayer.addLayer(tileLayer);
     }
@@ -4214,13 +4693,22 @@ async function syncGisWithLiveRain() {
   }
 
   if (!lastLiveWeather) {
-    if (syncStatus) syncStatus.textContent = "Error: Live telemetry feed unreachable.";
+    if (syncStatus)
+      syncStatus.textContent = "Error: Live telemetry feed unreachable.";
     return;
   }
 
   const rainRate = lastLiveWeather.rainfall_intensity_mm_hr || 10.0;
   const syncData = lastLiveWeather.simulation_sync || {};
-  const scenario = syncData.scenario || (rainRate > 50 ? "EXTREME" : rainRate > 25 ? "HEAVY" : rainRate > 10 ? "MODERATE" : "NORMAL");
+  const scenario =
+    syncData.scenario ||
+    (rainRate > 50
+      ? "EXTREME"
+      : rainRate > 25
+        ? "HEAVY"
+        : rainRate > 10
+          ? "MODERATE"
+          : "NORMAL");
 
   if (syncBtn) {
     syncBtn.innerHTML = `<span>⏳ Syncing to ${rainRate.toFixed(1)} mm/hr...</span>`;
@@ -4238,7 +4726,8 @@ async function syncGisWithLiveRain() {
     }
   } catch (err) {
     console.error("Simulation sync error:", err);
-    if (syncStatus) syncStatus.textContent = `Sync completed with warning: ${err.message}`;
+    if (syncStatus)
+      syncStatus.textContent = `Sync completed with warning: ${err.message}`;
   } finally {
     if (syncBtn) {
       syncBtn.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> ⚡ Sync GIS Simulation to Live Rain`;
@@ -4247,12 +4736,19 @@ async function syncGisWithLiveRain() {
   }
 }
 
-window.syncGisWithSpecificRain = function(rainRate, riskLevel) {
-  const scenario = riskLevel === "EXTREME" ? "EXTREME" : riskLevel === "HEAVY" ? "HEAVY" : riskLevel === "MODERATE" ? "MODERATE" : "NORMAL";
+window.syncGisWithSpecificRain = function (rainRate, riskLevel) {
+  const scenario =
+    riskLevel === "EXTREME"
+      ? "EXTREME"
+      : riskLevel === "HEAVY"
+        ? "HEAVY"
+        : riskLevel === "MODERATE"
+          ? "MODERATE"
+          : "NORMAL";
   applyRainfallToGisSimulation(scenario, rainRate, {
     rainfall_1h: rainRate,
     rainfall_3h: rainRate * 2.2,
-    rainfall_6h: rainRate * 3.8
+    rainfall_6h: rainRate * 3.8,
   });
   if (map._popup) map.closePopup();
 };
@@ -4263,7 +4759,10 @@ async function applyRainfallToGisSimulation(scenario, rainRate, syncData = {}) {
 
   const presetBtns = document.querySelectorAll(".preset-btn, .preset-btn-4");
   presetBtns.forEach((btn) => {
-    btn.classList.toggle("active", btn.getAttribute("data-preset") === scenario.toLowerCase());
+    btn.classList.toggle(
+      "active",
+      btn.getAttribute("data-preset") === scenario.toLowerCase(),
+    );
   });
 
   const r1h = syncData.rainfall_1h || Math.max(5.0, rainRate);
