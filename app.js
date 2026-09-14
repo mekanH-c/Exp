@@ -5018,6 +5018,10 @@ async function toggleRainRadarLayer(enable) {
     geojson = generateClientRadarData(currentRainCoords.lat, currentRainCoords.lon);
   }
 
+  if (rainRadarLayer && map.hasLayer(rainRadarLayer)) {
+    map.removeLayer(rainRadarLayer);
+  }
+
   const featureLayers = [];
   (geojson.features || []).forEach((feat) => {
     const p = feat.properties;
@@ -5071,17 +5075,6 @@ async function toggleRainRadarLayer(enable) {
 
   rainRadarLayer = L.layerGroup(featureLayers);
   rainRadarLayer.addTo(map);
-
-  const key = getStoredOpenWeatherKey();
-  if (key) {
-    try {
-      const tileLayer = L.tileLayer(
-        `https://tile.openweathermap.org/map/precipitation_new/{z}/{x}/{y}.png?appid=${key}`,
-        { maxZoom: 18, opacity: 0.65 },
-      );
-      rainRadarLayer.addLayer(tileLayer);
-    } catch (_) {}
-  }
 }
 
 async function syncGisWithLiveRain() {
