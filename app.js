@@ -1233,6 +1233,167 @@ function bindDrainPopupContent(p) {
   `;
 }
 
+const MASTER_DRAINAGE_CHANNELS = [
+  {
+    drain_name: "Najafgarh Drain (Trunk Arterial Canal)",
+    basin: "Najafgarh Basin",
+    length_km: 57.2,
+    capacity_cusecs: 15000,
+    flow_direction: "SW to NE -> Yamuna Outfall (Wazirabad)",
+    status: "Active Primary Stormwater Trunk",
+    source: "Delhi Master Plan for Drainage / I&FC Dept",
+    drain_type: "Primary Arterial Trunk",
+    color: "#00f3ff",
+    weight: 5.0,
+    coordinates: [
+      [76.8655, 28.5632], [76.885, 28.558], [76.902, 28.557],
+      [76.923, 28.562], [76.945, 28.572], [76.965, 28.587],
+      [76.985, 28.601], [77.005, 28.611], [77.022, 28.618],
+      [77.036, 28.625], [77.048, 28.632], [77.065, 28.6385],
+      [77.085, 28.647], [77.102, 28.6535], [77.121, 28.662],
+      [77.135, 28.669], [77.148, 28.677], [77.162, 28.683],
+      [77.175, 28.691], [77.188, 28.699], [77.202, 28.706],
+      [77.215, 28.7115], [77.224, 28.714], [77.2325, 28.7155]
+    ]
+  },
+  {
+    drain_name: "Supplementary Drain",
+    basin: "Najafgarh / Rohini Basin",
+    length_km: 34.0,
+    capacity_cusecs: 8000,
+    flow_direction: "South to North-East -> Yamuna",
+    status: "Active Auxiliary Flood Carrier",
+    source: "Delhi Master Plan for Drainage / I&FC Dept",
+    drain_type: "Secondary Arterial Channel",
+    color: "#38bdf8",
+    weight: 4.0,
+    coordinates: [
+      [77.036, 28.625], [77.041, 28.648], [77.046, 28.672],
+      [77.051, 28.688], [77.058, 28.702], [77.07, 28.716],
+      [77.088, 28.729], [77.112, 28.7365], [77.132, 28.739],
+      [77.155, 28.738], [77.178, 28.734], [77.195, 28.729],
+      [77.212, 28.724], [77.2305, 28.7215]
+    ]
+  },
+  {
+    drain_name: "Barapullah Drain System",
+    basin: "Barapullah Basin (South Delhi)",
+    length_km: 16.4,
+    capacity_cusecs: 4500,
+    flow_direction: "SW to NE -> Yamuna (Sarai Kale Khan)",
+    status: "Active Natural Stormwater Carrier",
+    source: "Delhi Master Plan for Drainage / I&FC Dept",
+    drain_type: "Primary Arterial Trunk",
+    color: "#00f3ff",
+    weight: 4.5,
+    coordinates: [
+      [77.188, 28.525], [77.205, 28.534], [77.221, 28.544],
+      [77.228, 28.555], [77.226, 28.568], [77.238, 28.578],
+      [77.25, 28.585], [77.26, 28.589], [77.268, 28.5915]
+    ]
+  },
+  {
+    drain_name: "Kushak Nallah (Barapullah Tributary)",
+    basin: "Barapullah Basin / New Delhi",
+    length_km: 7.5,
+    capacity_cusecs: 2200,
+    flow_direction: "NW to SE -> Barapullah Confluence",
+    status: "Active Urban Storm Trunk",
+    source: "Delhi Master Plan for Drainage / NDMC",
+    drain_type: "Secondary Tributary Drain",
+    color: "#38bdf8",
+    weight: 3.5,
+    coordinates: [
+      [77.182, 28.598], [77.195, 28.588], [77.208, 28.582],
+      [77.218, 28.5785], [77.228, 28.5775], [77.238, 28.578]
+    ]
+  },
+  {
+    drain_name: "Shahdara Outfall Drain",
+    basin: "Shahdara Basin (Trans-Yamuna)",
+    length_km: 26.2,
+    capacity_cusecs: 6500,
+    flow_direction: "North to South -> Yamuna",
+    status: "Active Primary Trans-Yamuna Carrier",
+    source: "Delhi Master Plan for Drainage / I&FC Dept",
+    drain_type: "Primary Arterial Trunk",
+    color: "#00f3ff",
+    weight: 4.5,
+    coordinates: [
+      [77.302, 28.718], [77.295, 28.698], [77.288, 28.678],
+      [77.282, 28.665], [77.286, 28.651], [77.292, 28.64],
+      [77.302, 28.628], [77.318, 28.608], [77.324, 28.588],
+      [77.318, 28.572], [77.311, 28.562], [77.305, 28.555]
+    ]
+  },
+  {
+    drain_name: "Mungeshpur Drain",
+    basin: "Khanjhawala / Bawana Basin",
+    length_km: 22.1,
+    capacity_cusecs: 3500,
+    flow_direction: "NW to SE -> Supplementary Confluence",
+    status: "Active Stormwater & Rural Drain",
+    source: "Delhi Master Plan for Drainage / I&FC Dept",
+    drain_type: "Secondary Arterial Channel",
+    color: "#38bdf8",
+    weight: 3.5,
+    coordinates: [
+      [76.995, 28.825], [77.01, 28.815], [77.025, 28.802],
+      [77.028, 28.765], [77.032, 28.735], [77.037, 28.712],
+      [77.044, 28.685], [77.051, 28.688]
+    ]
+  },
+  {
+    drain_name: "Yamuna River (Stormwater Receiving Spine)",
+    basin: "Yamuna River Corridor",
+    length_km: 35.5,
+    capacity_cusecs: 350000,
+    flow_direction: "North to South-East (NCT River Spine)",
+    status: "Natural Master Hydrological Receiving Body",
+    source: "Delhi Master Plan for Drainage / CWC",
+    drain_type: "Major River Corridor",
+    color: "#0284c7",
+    weight: 5.5,
+    coordinates: [
+      [77.21, 28.82], [77.22, 28.765], [77.233, 28.715],
+      [77.235, 28.69], [77.238, 28.668], [77.245, 28.65],
+      [77.253, 28.627], [77.258, 28.61], [77.266, 28.59],
+      [77.28, 28.575], [77.31, 28.545]
+    ]
+  },
+  {
+    drain_name: "Palam Drain",
+    basin: "Najafgarh Basin (Dwarka/Palam Sub-basin)",
+    length_km: 8.2,
+    capacity_cusecs: 1800,
+    flow_direction: "South to North -> Najafgarh Drain",
+    status: "Active Sub-arterial Storm Carrier",
+    source: "Delhi Master Plan for Drainage / DDA",
+    drain_type: "Secondary Tributary Drain",
+    color: "#38bdf8",
+    weight: 3.0,
+    coordinates: [
+      [77.075, 28.58], [77.085, 28.602], [77.095, 28.62],
+      [77.102, 28.6535]
+    ]
+  },
+  {
+    drain_name: "Ghazipur Link Drain",
+    basin: "Shahdara Basin",
+    length_km: 6.1,
+    capacity_cusecs: 1400,
+    flow_direction: "West to East -> Shahdara Drain",
+    status: "Active Industrial/Storm Carrier",
+    source: "Delhi Master Plan for Drainage / EDMC",
+    drain_type: "Secondary Tributary Drain",
+    color: "#38bdf8",
+    weight: 3.0,
+    coordinates: [
+      [77.3, 28.63], [77.308, 28.62], [77.318, 28.608]
+    ]
+  }
+];
+
 async function loadDrainageNetworkLayer(signal) {
   const dCheck = document.getElementById("layer-drains-check");
   const legendDrainage =
@@ -1262,7 +1423,42 @@ async function loadDrainageNetworkLayer(signal) {
     if (!drainageNetworkLayer) return;
     drainageNetworkLayer.clearLayers();
 
-    const features = geojson.features || [];
+    let features = geojson.features || [];
+
+    // Ensure Master Plan Drainage Channels (LineStrings) are always present
+    const hasLineStrings = features.some(
+      (f) => f.geometry && f.geometry.type === "LineString"
+    );
+    if (!hasLineStrings) {
+      const minLon = bbox[0], minLat = bbox[1], maxLon = bbox[2], maxLat = bbox[3];
+      const channelFeatures = MASTER_DRAINAGE_CHANNELS.filter((ch) => {
+        const lons = ch.coordinates.map((c) => c[0]);
+        const lats = ch.coordinates.map((c) => c[1]);
+        const chMinLon = Math.min(...lons), chMaxLon = Math.max(...lons);
+        const chMinLat = Math.min(...lats), chMaxLat = Math.max(...lats);
+        return !(chMaxLon < minLon || chMinLon > maxLon || chMaxLat < minLat || chMinLat > maxLat);
+      }).map((ch) => ({
+        type: "Feature",
+        geometry: {
+          type: "LineString",
+          coordinates: ch.coordinates,
+        },
+        properties: {
+          drain_name: ch.drain_name,
+          basin: ch.basin,
+          length_km: ch.length_km,
+          capacity_cusecs: ch.capacity_cusecs,
+          flow_direction: ch.flow_direction,
+          status: ch.status,
+          source: ch.source,
+          geometry_type: "LineString",
+          drain_type: ch.drain_type,
+          color: ch.color,
+          weight: ch.weight,
+        },
+      }));
+      features = [...channelFeatures, ...features];
+    }
     let renderedFeatureCount = 0;
     const lineOpts = sharedCanvasRenderer
       ? { renderer: sharedCanvasRenderer }
