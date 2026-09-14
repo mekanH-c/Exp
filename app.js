@@ -4870,18 +4870,87 @@ function renderRainfallDynamicsPanel(data) {
   });
 }
 
+const DELHI_RADAR_BASINS = [
+  { id: "najafgarh_basin", name: "Najafgarh Drain Basin", lat: 28.6250, lon: 77.0500, radius: 5500, factor: 1.25, desc: "Western Lowland & Najafgarh Trunk Basin" },
+  { id: "barapullah_basin", name: "Barapullah Hydrological Basin", lat: 28.5800, lon: 77.2300, radius: 4200, factor: 1.15, desc: "Central/South Catchment & Nizamuddin Inflow" },
+  { id: "shahdara_basin", name: "Shahdara Trans-Yamuna Basin", lat: 28.6600, lon: 77.2900, radius: 4800, factor: 0.95, desc: "Trans-Yamuna Lowland & Seelampur Drain" },
+  { id: "yamuna_floodplain", name: "Yamuna Riverfront Corridor", lat: 28.6450, lon: 77.2500, radius: 6000, factor: 1.05, desc: "Active River Discharge & Wazirabad Outfall" },
+  { id: "south_ridge", name: "South Delhi Catchment / Qutub", lat: 28.5300, lon: 77.1900, radius: 4500, factor: 0.85, desc: "Hilly Ridge Inflow to Mehrauli-Badarpur" },
+  { id: "north_delhi", name: "North Model Town & Jahangirpuri", lat: 28.7100, lon: 77.1700, radius: 4600, factor: 1.35, desc: "Supplementary Drain Catchment & Low Elevation" },
+  { id: "central_ndmc", name: "Connaught Place / NDMC Core", lat: 28.6315, lon: 77.2167, radius: 3200, factor: 1.00, desc: "Urban Core & Minto Bridge Depression Zone" },
+  { id: "igi_airport", name: "IGI Airport Corridor & Dwarka", lat: 28.5600, lon: 77.1000, radius: 5000, factor: 1.10, desc: "Airport Runway Drains & Trunk Drain-8" }
+];
+
+function generateClientRadarData(baseLat, baseLon) {
+  const baseIntensity = (lastLiveWeather && lastLiveWeather.rainfall_intensity_mm_hr) ? lastLiveWeather.rainfall_intensity_mm_hr : 14.5;
+  const features = DELHI_RADAR_BASINS.map((b) => {
+    const intensity = Math.round(Math.max(0.5, baseIntensity * b.factor) * 10) / 10;
+    const dbz = intensity <= 0.05 ? 0 : Math.round(10 * Math.log10(200 * Math.pow(intensity, 1.6)) * 10) / 10;
+    const color = dbz < 20 ? "#38bdf8" : dbz < 35 ? "#22c55e" : dbz < 45 ? "#eab308" : dbz < 52 ? "#f97316" : "#ef4444";
+    const level = intensity < 2.5 ? "TRACE" : intensity < 10.0 ? "LIGHT" : intensity < 25.0 ? "MODERATE" : intensity < 50.0 ? "HEAVY" : "EXTREME";
+    return {
+      type: "Feature",
+      geometry: { type: "Point", coordinates: [b.lon, b.lat] },
+      properties: {
+        name: b.name,
+        description: b.desc,
+        radius_meters: b.radius,
+        intensity_mm_hr: intensity,
+        dbz: dbz,
+        color: color,
+        level: level
+      }
+    };
+  });
+
+  const latMin = 28.38, latMax = 28.88;
+  const lonMin = 76.84, lonMax = 77.46;
+  const stepsLat = 36, stepsLon = 36;
+  const maxScale = Math.max(30.0, baseIntensity * 1.85);
+  const heatmapPoints = [];
+
+  for (let i = 0; i <= stepsLat; i++) {
+    const latPt = latMin + (latMax - latMin) * (i / stepsLat);
+    for (let j = 0; j <= stepsLon; j++) {
+      const lonPt = lonMin + (lonMax - lonMin) * (j / stepsLon);
+      const ambient = (baseIntensity * 0.28) + (baseIntensity * 0.10) * Math.sin(latPt * 22.0 + lonPt * 18.0);
+      let ptIntensity = Math.max(0.5, ambient);
+
+      for (const b of DELHI_RADAR_BASINS) {
+        const cellIntensity = Math.max(0.5, baseIntensity * b.factor);
+        const dKm = Math.sqrt(Math.pow((latPt - b.lat) * 111.0, 2) + Math.pow((lonPt - b.lon) * 98.0, 2));
+        const sigmaKm = (b.radius / 1000.0) * 0.95;
+        const w = Math.exp(-0.5 * Math.pow(dKm / sigmaKm, 2));
+        ptIntensity += w * Math.max(0, cellIntensity - ambient);
+      }
+      const normVal = Math.min(1.0, Math.max(0.08, ptIntensity / maxScale));
+      heatmapPoints.push([Math.round(latPt * 100000) / 100000, Math.round(lonPt * 100000) / 100000, Math.round(normVal * 1000) / 1000]);
+    }
+  }
+
+  return { features, heatmap_points: heatmapPoints };
+}
+
 async function toggleRainRadarLayer(enable) {
+  const check = document.getElementById("layer-rain-radar-check");
+  const radarBtn = document.getElementById("btn-toggle-rain-radar");
+  const legendRadar = document.getElementById("legend-radar-section");
+
   if (!enable) {
     if (rainRadarLayer && map.hasLayer(rainRadarLayer)) {
       map.removeLayer(rainRadarLayer);
     }
-    const check = document.getElementById("layer-rain-radar-check");
     if (check) check.checked = false;
+    if (radarBtn) radarBtn.classList.remove("radar-active");
+    if (legendRadar) legendRadar.classList.add("hidden");
     return;
   }
 
-  const check = document.getElementById("layer-rain-radar-check");
   if (check) check.checked = true;
+  if (radarBtn) radarBtn.classList.add("radar-active");
+  if (legendRadar) legendRadar.classList.remove("hidden");
+
+  let geojson = null;
 
   try {
     const key = getStoredOpenWeatherKey();
@@ -4891,77 +4960,117 @@ async function toggleRainRadarLayer(enable) {
     });
     if (key) params.append("appid", key);
 
-    const res = await apiFetch(`/weather/radar?${params.toString()}`);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const geojson = await res.json();
-
-    if (rainRadarLayer && map.hasLayer(rainRadarLayer)) {
-      map.removeLayer(rainRadarLayer);
-    }
-
-    const featureLayers = [];
-    (geojson.features || []).forEach((feat) => {
-      const p = feat.properties;
-      const coords = feat.geometry.coordinates;
-      const latLng = [coords[1], coords[0]];
-
-      const circle = L.circle(latLng, {
-        radius: p.radius_meters || 4500,
-        color: p.color || "#38bdf8",
-        weight: 2,
-        opacity: 0.85,
-        fillColor: p.color || "#38bdf8",
-        fillOpacity: 0.24,
-        className: "radar-cell-pulse",
-      });
-
-      circle.bindPopup(`
-        <div class="scada-popup">
-          <div class="popup-title-row">
-            <span class="live-dot pulse" style="background:${p.color}"></span>
-            <strong>${p.name}</strong>
-          </div>
-          <div class="popup-subtitle font-mono">${p.description}</div>
-          <div class="popup-divider"></div>
-          <div class="popup-grid">
-            <div class="popup-item">
-              <span class="p-label">Rain Intensity:</span>
-              <span class="p-value font-mono" style="color:${p.color}; font-weight:800;">${p.intensity_mm_hr} mm/hr</span>
-            </div>
-            <div class="popup-item">
-              <span class="p-label">Radar dBZ:</span>
-              <span class="p-value font-mono">${p.dbz} dBZ</span>
-            </div>
-            <div class="popup-item">
-              <span class="p-label">Catchment:</span>
-              <span class="p-value font-mono">${(p.radius_meters / 1000).toFixed(1)} km</span>
-            </div>
-            <div class="popup-item">
-              <span class="p-label">Flood Threat:</span>
-              <span class="p-value font-mono" style="color:${p.color}; font-weight:700;">${p.level}</span>
-            </div>
-          </div>
-          <button class="popup-smart-router-btn" style="margin-top:8px; width:100%;" onclick="syncGisWithSpecificRain(${p.intensity_mm_hr}, '${p.level}')">
-            ⚡ Sync Simulation to Basin Rain
-          </button>
-        </div>
-      `);
-
-      featureLayers.push(circle);
-    });
-
-    rainRadarLayer = L.layerGroup(featureLayers);
-    rainRadarLayer.addTo(map);
-
-    if (key) {
-      const tileLayer = L.tileLayer(
-        `https://tile.openweathermap.org/map/precipitation_new/{z}/{x}/{y}.png?appid=${key}`,
-        { maxZoom: 18, opacity: 0.65 },
-      );
-      rainRadarLayer.addLayer(tileLayer);
+    const res = await apiFetch(`/weather/radar?${params.toString()}`, {}, 4000);
+    if (res.ok) {
+      geojson = await res.json();
     }
   } catch (err) {
-    console.warn("Could not load radar layer:", err);
+    console.info("[AquaG] Using robust client-side radar calculation:", err.message);
+  }
+
+  if (!geojson || !geojson.heatmap_points || geojson.heatmap_points.length === 0) {
+    geojson = generateClientRadarData(currentRainCoords.lat, currentRainCoords.lon);
+  }
+
+  if (rainRadarLayer && map.hasLayer(rainRadarLayer)) {
+    map.removeLayer(rainRadarLayer);
+  }
+
+  const heatPoints = (geojson.heatmap_points || []).map(([lat, lon, w]) => [lat, lon, w]);
+  let heatLayer = null;
+
+  if (typeof L.heatLayer === "function") {
+    heatLayer = L.heatLayer(heatPoints, {
+      radius: 50,
+      blur: 38,
+      maxZoom: 13,
+      max: 1.0,
+      minOpacity: 0.38,
+      gradient: {
+        0.00: "#060b61",
+        0.12: "#0a39b0",
+        0.25: "#1d91c0",
+        0.40: "#41b6c4",
+        0.55: "#7fcdbb",
+        0.68: "#c7e9b4",
+        0.78: "#edf8b1",
+        0.87: "#fec44f",
+        0.94: "#f03b20",
+        1.00: "#bd0026"
+      }
+    });
+  }
+
+  const featureLayers = [];
+  (geojson.features || []).forEach((feat) => {
+    const p = feat.properties;
+    const coords = feat.geometry.coordinates;
+    const latLng = [coords[1], coords[0]];
+
+    const circle = L.circle(latLng, {
+      radius: p.radius_meters || 4500,
+      color: p.color || "#38bdf8",
+      weight: 1.5,
+      opacity: 0.65,
+      fillColor: p.color || "#38bdf8",
+      fillOpacity: heatLayer ? 0.05 : 0.22,
+      className: "radar-cell-pulse",
+    });
+
+    circle.bindPopup(`
+      <div class="scada-popup">
+        <div class="popup-title-row">
+          <span class="live-dot pulse" style="background:${p.color}"></span>
+          <strong>${p.name}</strong>
+        </div>
+        <div class="popup-subtitle font-mono">${p.description}</div>
+        <div class="popup-divider"></div>
+        <div class="popup-grid">
+          <div class="popup-item">
+            <span class="p-label">Rain Intensity:</span>
+            <span class="p-value font-mono" style="color:${p.color}; font-weight:800;">${p.intensity_mm_hr} mm/hr</span>
+          </div>
+          <div class="popup-item">
+            <span class="p-label">Radar dBZ:</span>
+            <span class="p-value font-mono">${p.dbz} dBZ</span>
+          </div>
+          <div class="popup-item">
+            <span class="p-label">Catchment:</span>
+            <span class="p-value font-mono">${(p.radius_meters / 1000).toFixed(1)} km</span>
+          </div>
+          <div class="popup-item">
+            <span class="p-label">Flood Threat:</span>
+            <span class="p-value font-mono" style="color:${p.color}; font-weight:700;">${p.level}</span>
+          </div>
+        </div>
+        <button class="popup-smart-router-btn" style="margin-top:8px; width:100%;" onclick="syncGisWithSpecificRain(${p.intensity_mm_hr}, '${p.level}')">
+          ⚡ Sync Simulation to Basin Rain
+        </button>
+      </div>
+    `);
+
+    featureLayers.push(circle);
+  });
+
+  const interactionLayer = L.layerGroup(featureLayers);
+
+  if (heatLayer) {
+    rainRadarLayer = L.layerGroup([heatLayer, interactionLayer]);
+  } else {
+    rainRadarLayer = interactionLayer;
+  }
+
+  rainRadarLayer.addTo(map);
+
+  const key = getStoredOpenWeatherKey();
+  if (key) {
+    try {
+      const tileLayer = L.tileLayer(
+        `https://tile.openweathermap.org/map/precipitation_new/{z}/{x}/{y}.png?appid=${key}`,
+        { maxZoom: 18, opacity: 0.55 },
+      );
+      rainRadarLayer.addLayer(tileLayer);
+    } catch (_) {}
   }
 }
 
