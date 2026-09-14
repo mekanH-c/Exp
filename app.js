@@ -65,19 +65,24 @@ async function apiFetch(endpoint, options = {}, timeoutMs = null) {
   const effectiveTimeout = timeoutMs || (isCloudBackend ? 45000 : 12000);
   const maxRetries = isCloudBackend ? 3 : 2;
 
+  // If caller already aborted before we even start, bail immediately
+  if (options.signal && options.signal.aborted) {
+    throw new DOMException("Aborted", "AbortError");
+  }
+
   let lastError = null;
 
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), effectiveTimeout);
+    const isTimeoutAbort = { value: false }; // track whether OUR timeout triggered the abort
+    const timer = setTimeout(() => { isTimeoutAbort.value = true; controller.abort(); }, effectiveTimeout);
 
     // Propagate caller abort signal
     if (options.signal) {
-      if (options.signal.aborted) { clearTimeout(timer); throw new DOMException("Aborted", "AbortError"); }
       options.signal.addEventListener("abort", () => {
         clearTimeout(timer);
         controller.abort();
-      });
+      }, { once: true });
     }
 
     const fetchOpts = {
@@ -100,24 +105,34 @@ async function apiFetch(endpoint, options = {}, timeoutMs = null) {
       clearTimeout(timer);
       lastError = err;
 
-      // If caller explicitly aborted, don't retry
-      if (options.signal && options.signal.aborted) throw err;
+      // AbortError from CALLER (user navigated away / switched feature) — NOT a backend failure
+      // Rethrow immediately without retrying or marking backend offline
+      if (err.name === "AbortError" && !isTimeoutAbort.value) {
+        throw err;
+      }
 
-      // Log and retry after backoff
-      const backoffMs = Math.min(1000 * Math.pow(2, attempt), 8000);
-      console.warn(`[AquaG] API fetch attempt ${attempt + 1}/${maxRetries} failed for ${endpoint}:`, err.message, `— retrying in ${backoffMs}ms`);
-
+      // AbortError from OUR timeout = genuine timeout → retry
+      // Other network errors → retry
       if (attempt < maxRetries - 1) {
-        await new Promise(r => setTimeout(r, backoffMs));
+        const backoffMs = Math.min(1000 * Math.pow(2, attempt), 8000);
+        console.warn(`[AquaG] API attempt ${attempt + 1}/${maxRetries} failed for ${endpoint}:`, err.message, `— retrying in ${backoffMs}ms`);
+
+        // But if caller aborted during backoff wait, bail out
+        await new Promise((resolve) => {
+          const t = setTimeout(resolve, backoffMs);
+          if (options.signal) {
+            options.signal.addEventListener("abort", () => { clearTimeout(t); resolve(); }, { once: true });
+          }
+        });
+        if (options.signal && options.signal.aborted) throw new DOMException("Aborted", "AbortError");
       }
     }
   }
 
-  // All retries exhausted — trigger background re-probe and throw
+  // All retries exhausted on genuine timeouts/network errors — trigger reconnect
   if (isBackendOnline) {
     isBackendOnline = false;
     updateHealthBadge(false, "Reconnecting...");
-    // Background re-probe to find working backend
     setTimeout(() => probeAndSelectBackend(), 500);
   }
 
