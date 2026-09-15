@@ -60,10 +60,10 @@ async function apiFetch(endpoint, options = {}, timeoutMs = null) {
     ? endpoint
     : `${API_BASE_URL}${endpoint.startsWith("/") ? "" : "/"}${endpoint}`;
 
-  // Render cold starts can take 30-60s — use longer timeouts for cloud backend
+  // Responsive timeout: if backend is still connecting/waking, fail fast to client fallback
   const isCloudBackend = API_BASE_URL.includes("onrender.com");
-  const effectiveTimeout = timeoutMs || (isCloudBackend ? 45000 : 12000);
-  const maxRetries = isCloudBackend ? 3 : 2;
+  const effectiveTimeout = timeoutMs || (isBackendOnline ? (isCloudBackend ? 20000 : 10000) : 6000);
+  const maxRetries = isBackendOnline ? (isCloudBackend ? 2 : 1) : 1;
 
   // If caller already aborted before we even start, bail immediately
   if (options.signal && options.signal.aborted) {
@@ -166,8 +166,29 @@ function updateHealthBadge(online, text, data = null) {
   }
 }
 
-async function probeAndSelectBackend() {
-  if (isProbingBackend) return API_BASE_URL;
+async function probeSingleCandidate(c, timeoutMs = 3500) {
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), timeoutMs);
+  try {
+    const res = await fetch(`${c.url}/health`, {
+      signal: ctrl.signal,
+      cache: "no-store",
+    });
+    clearTimeout(t);
+    if (res.ok) {
+      const data = await res.json();
+      if (data && data.status === "ok") {
+        return { success: true, url: c.url, label: c.label, data };
+      }
+    }
+  } catch (_) {
+    clearTimeout(t);
+  }
+  return null;
+}
+
+async function probeAndSelectBackend(force = false) {
+  if (isProbingBackend && !force) return API_BASE_URL;
   isProbingBackend = true;
 
   const isLocalHost =
@@ -178,13 +199,17 @@ async function probeAndSelectBackend() {
       window.location.hostname === "::1" ||
       window.location.protocol === "file:");
 
-  const candidates = [];
-  // If hosted on a unified backend host (not static hosting like github.io/netlify), probe same-origin first
-  const isStaticHost = typeof window !== "undefined" && window.location &&
+  const isStaticHost =
+    typeof window !== "undefined" &&
+    window.location &&
     (window.location.hostname.includes("github.io") ||
-     window.location.hostname.includes("netlify.app") ||
-     window.location.hostname.includes("vercel.app") ||
-     window.location.hostname.includes("pages.dev"));
+      window.location.hostname.includes("netlify.app") ||
+      window.location.hostname.includes("vercel.app") ||
+      window.location.hostname.includes("pages.dev"));
+
+  const localCandidates = [];
+  const cloudCandidates = [];
+
   if (
     typeof window !== "undefined" &&
     window.location &&
@@ -192,103 +217,122 @@ async function probeAndSelectBackend() {
     !isLocalHost &&
     !isStaticHost
   ) {
-    candidates.push({
+    cloudCandidates.push({
       url: window.location.origin,
       label: "Cloud Host (Same Origin)",
     });
   }
+
   if (isLocalHost) {
-    candidates.push({
+    localCandidates.push({
       url: "http://127.0.0.1:8001",
       label: "Local (Port 8001)",
     });
-    candidates.push({
+    localCandidates.push({
       url: "http://127.0.0.1:8000",
       label: "Local (Port 8000)",
     });
   }
-  if (
-    window.AQUAG_API_URL &&
-    !candidates.some((c) => c.url === window.AQUAG_API_URL)
-  ) {
-    candidates.push({ url: window.AQUAG_API_URL, label: "Configured API" });
+
+  if (window.AQUAG_API_URL) {
+    const isLocal =
+      window.AQUAG_API_URL.includes("localhost") ||
+      window.AQUAG_API_URL.includes("127.0.0.1");
+    (isLocal ? localCandidates : cloudCandidates).push({
+      url: window.AQUAG_API_URL,
+      label: "Configured API",
+    });
   }
-  if (
-    window.AQUAG_CLOUD_API_URL &&
-    !candidates.some((c) => c.url === window.AQUAG_CLOUD_API_URL)
-  ) {
-    candidates.push({ url: window.AQUAG_CLOUD_API_URL, label: "Cloud API" });
+
+  if (window.AQUAG_CLOUD_API_URL) {
+    cloudCandidates.push({
+      url: window.AQUAG_CLOUD_API_URL,
+      label: "Cloud API",
+    });
   }
-  candidates.push({
+
+  cloudCandidates.push({
     url: "https://aquag.onrender.com",
     label: "Cloud (Render)",
   });
 
-  let selectedUrl = null;
-  let healthPayload = null;
+  updateHealthBadge(
+    false,
+    isLocalHost ? "Detecting Backend..." : "Connecting to Cloud (Render)...",
+  );
 
-  for (const c of candidates) {
-    try {
-      const ctrl = new AbortController();
-      // Render free-tier cold-starts can take 30-60s — give it enough time
-      const probeTimeout = c.url.includes("onrender.com") ? 45000 : 3000;
-      const t = setTimeout(() => ctrl.abort(), probeTimeout);
-      updateHealthBadge(false, `Connecting to ${c.label}...`);
-      const res = await fetch(`${c.url}/health`, {
-        signal: ctrl.signal,
-        cache: "no-store",
-      });
-      clearTimeout(t);
-      if (res.ok) {
-        const data = await res.json();
-        if (data && data.status === "ok") {
-          selectedUrl = c.url;
-          lastKnownBackendSource = c.label;
-          healthPayload = data;
-          break;
-        }
-      }
-    } catch (_) {
-      // Continue probing
+  // Phase 1: Fast Parallel Probe — check all local candidates (1500ms) and initial cloud ping (3500ms) simultaneously
+  const fastProbes = [
+    ...localCandidates.map((c) => probeSingleCandidate(c, 1500)),
+    ...cloudCandidates.map((c) => probeSingleCandidate(c, 3500)),
+  ];
+
+  const initialResults = await Promise.allSettled(fastProbes);
+  for (const r of initialResults) {
+    if (r.status === "fulfilled" && r.value && r.value.success) {
+      const match = r.value;
+      API_BASE_URL = match.url;
+      isBackendOnline = true;
+      lastKnownBackendSource = match.label;
+      updateHealthBadge(true, `Online (${match.label})`, match.data);
+      console.log(`[AquaG] Active backend established: ${match.url} (${match.label})`);
+      isProbingBackend = false;
+      return API_BASE_URL;
     }
   }
 
-  if (selectedUrl) {
-    API_BASE_URL = selectedUrl;
-    isBackendOnline = true;
-    updateHealthBadge(
-      true,
-      `Online (${lastKnownBackendSource})`,
-      healthPayload,
-    );
-    console.log(`[AquaG] Active backend established: ${selectedUrl}`);
-  } else {
-    isBackendOnline = false;
-    API_BASE_URL = candidates[candidates.length - 1].url;
-    updateHealthBadge(false, "Connecting to Backend...");
+  // Phase 2: If immediate probe didn't succeed, Render might be cold-starting
+  // Progressive heartbeat every 2.0s instead of hanging for 45 seconds
+  const primaryCloud = cloudCandidates[cloudCandidates.length - 1];
+  console.info("[AquaG] Cold start or network latency detected. Entering progressive cloud wake-up...");
+
+  const maxAttempts = 12;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    updateHealthBadge(false, "Connecting to Cloud (Render)...");
+    const probeRes = await probeSingleCandidate(primaryCloud, 4000);
+    if (probeRes && probeRes.success) {
+      API_BASE_URL = probeRes.url;
+      isBackendOnline = true;
+      lastKnownBackendSource = probeRes.label;
+      updateHealthBadge(true, `Online (${probeRes.label})`, probeRes.data);
+      console.log(`[AquaG] Cloud backend woke up on attempt ${attempt}: ${probeRes.url}`);
+      isProbingBackend = false;
+      return API_BASE_URL;
+    }
+    if (attempt < maxAttempts) {
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+    }
   }
 
+  // If still not responding after wake-up window, mark fallback and retry on faster 6s interval
+  isBackendOnline = false;
+  API_BASE_URL = primaryCloud.url;
+  updateHealthBadge(false, "Connecting to Backend...");
   isProbingBackend = false;
   return API_BASE_URL;
 }
 
-// Render Anti-Spindown Keepalive (Every 4 minutes — Render sleeps after ~5 min idle)
+// Render Anti-Spindown Keepalive (Every 3 minutes — prevents Render free-tier sleep while tab is active)
 setInterval(
   async () => {
     if (API_BASE_URL && API_BASE_URL.includes("onrender.com")) {
       try {
         const ctrl = new AbortController();
-        const t = setTimeout(() => ctrl.abort(), 10000);
-        const res = await fetch(`${API_BASE_URL}/health`, { cache: "no-store", signal: ctrl.signal });
+        const t = setTimeout(() => ctrl.abort(), 6000);
+        const res = await fetch(`${API_BASE_URL}/health`, {
+          cache: "no-store",
+          signal: ctrl.signal,
+        });
         clearTimeout(t);
         if (res.ok && !isBackendOnline) {
           isBackendOnline = true;
-          updateHealthBadge(true, `Online (${lastKnownBackendSource || "Cloud (Render)"})`);
+          updateHealthBadge(
+            true,
+            `Online (${lastKnownBackendSource || "Cloud (Render)"})`,
+          );
           console.log("[AquaG] Backend reconnected via keepalive.");
         }
-        console.log("[AquaG] Keep-alive heartbeat delivered to cloud backend.");
       } catch (_) {
-        // If keepalive fails and we were online, trigger reconnect
         if (isBackendOnline) {
           isBackendOnline = false;
           updateHealthBadge(false, "Reconnecting...");
@@ -297,18 +341,18 @@ setInterval(
       }
     }
   },
-  4 * 60 * 1000,
+  3 * 60 * 1000,
 );
 
-// Periodic reconnect check — if offline, re-probe every 30 seconds
+// Fast Reconnect Poller — if offline, check every 6 seconds (was 30 seconds!)
 setInterval(
   async () => {
-    if (!isBackendOnline) {
-      console.log("[AquaG] Backend offline — attempting reconnect...");
+    if (!isBackendOnline && !isProbingBackend) {
+      console.log("[AquaG] Backend offline — attempting fast reconnect...");
       await probeAndSelectBackend();
     }
   },
-  30 * 1000,
+  6 * 1000,
 );
 
 // Global State Variables
@@ -526,15 +570,21 @@ document.addEventListener("DOMContentLoaded", async () => {
   initSmartRouterState();
   initRainfallDynamics();
 
-  // 1. Asynchronously probe & select fastest operational backend (Local 8001 / Cloud Render)
-  await probeAndSelectBackend();
+  // 1. Asynchronously probe & select fastest operational backend in background (non-blocking)
+  probeAndSelectBackend().then(() => {
+    if (isBackendOnline) {
+      loadWaterloggingLayer();
+      loadAlertsPanel();
+      updateScadaTelemetry();
+    }
+  });
 
-  // 2. Load layers in a micro-staggered sequence to prevent thread/network stalls
+  // 2. Load layers immediately in a micro-staggered sequence so map is 100% interactive instantly
   loadWaterloggingLayer();
   setTimeout(() => {
     loadDrainageNetworkLayer();
     loadInfraLayer();
-  }, 60);
+  }, 40);
   setTimeout(() => {
     loadPopulationPriorityLayer();
     loadZoneLayer();
@@ -549,7 +599,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (typeof calculateActiveRoute === "function") {
       calculateActiveRoute(true);
     }
-  }, 120);
+  }, 80);
 });
 
 // --------------------------------------------------------------------------
@@ -3345,6 +3395,18 @@ function initTopNavModuleButtons() {
       setTimeout(() => {
         loadLiveRainfallData();
       }, 35);
+    });
+  }
+
+  // Clickable Health Status Pill — tap to force instant reconnect/re-ping
+  const healthBadge = document.getElementById("status-health-badge");
+  if (healthBadge) {
+    healthBadge.style.cursor = "pointer";
+    healthBadge.title = "Click to re-ping backend connection";
+    healthBadge.addEventListener("click", () => {
+      console.log("[AquaG] User clicked status pill — initiating manual fast backend probe...");
+      updateHealthBadge(false, "Connecting to Cloud (Render)...");
+      probeAndSelectBackend(true);
     });
   }
 }
