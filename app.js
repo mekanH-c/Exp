@@ -5180,42 +5180,13 @@ async function toggleRainRadarLayer(enable) {
     });
 
     circle.on("click", (e) => {
-      L.DomEvent.stopPropagation(e);
-      circle.openPopup();
-    });
-
-    // Permanent visible region badge in the center of the catchment circle
-    const labelIcon = L.divIcon({
-      className: "radar-basin-label",
-      html: `
-        <div class="radar-basin-label-inner">
-          <span class="radar-basin-title">${p.name.replace(/ Drain Basin| Hydrological Basin| Trans-Yamuna Basin| Riverfront Corridor/i, "")}</span>
-          <span class="radar-basin-sub">${p.intensity_mm_hr} mm/h</span>
-        </div>
-      `,
-      iconSize: null,
-      iconAnchor: [45, 12],
-    });
-
-    const labelMarker = L.marker(latLng, {
-      icon: labelIcon,
-      interactive: true,
-      zIndexOffset: 1200,
-    });
-
-    labelMarker.bindPopup(popupHtml, {
-      className: "dark-leaflet-popup",
-      closeButton: true,
-      autoPan: true,
-    });
-
-    labelMarker.on("click", (e) => {
-      L.DomEvent.stopPropagation(e);
-      labelMarker.openPopup();
+      if (e && e.originalEvent) {
+        L.DomEvent.stopPropagation(e);
+      }
+      circle.openPopup(e.latlng || latLng);
     });
 
     featureLayers.push(circle);
-    featureLayers.push(labelMarker);
   });
 
   rainRadarLayer = L.layerGroup(featureLayers);
