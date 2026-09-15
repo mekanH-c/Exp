@@ -29,7 +29,7 @@
     />
 
     <!-- Main Operational UI Stylesheet -->
-    <link rel="stylesheet" href="index.css?v=2.4.0_basin_sync" />
+    <link rel="stylesheet" href="index.css?v=2.4.0_sync_scenarios" />
   </head>
   <body class="theme-dark">
     <div id="app-container">
@@ -1194,21 +1194,14 @@
 
             <!-- ACTIVE SCENARIO SUMMARY CARD -->
             <div class="scenario-summary-card">
-              <div class="sim-card-header" id="sim-card-header">
-                <span>CURRENT SIMULATED SCENARIO</span>
-                <span id="sim-scenario-badge" class="scenario-pill-badge moderate">MODERATE</span>
-              </div>
-              <div id="sim-sync-origin-badge" class="sim-sync-origin-badge hidden">
-                <span class="sync-dot pulse" style="background:#f97316; width:6px; height:6px; border-radius:50%; display:inline-block;"></span>
-                <span id="sim-sync-origin-text">Live Synced from Basin</span>
-              </div>
+              <div class="sim-card-header">CURRENT SIMULATED SCENARIO</div>
               <div class="sim-metrics-row">
                 <span><b>1h:</b> <span id="sim-sum-1h">45.0</span> mm</span>
                 <span><b>3h:</b> <span id="sim-sum-3h">85.0</span> mm</span>
                 <span><b>6h:</b> <span id="sim-sum-6h">130.0</span> mm</span>
               </div>
               <div class="sim-card-note">
-                Simulation scenario calibrated to basin micro-catchment rainfall & XGBoost nowcasting.
+                Simulation scenario only — not an official rainfall forecast.
               </div>
             </div>
 
@@ -1853,6 +1846,6 @@
       }
     </script>
     <!-- Main Frontend Controller -->
-    <script src="app.js?v=2.4.0_basin_sync"></script>
+    <script src="app.js?v=2.4.0_sync_scenarios"></script>
   </body>
 </html>

@@ -3505,7 +3505,7 @@ function initPresetButtons() {
   });
 }
 
-function updateScenarioSummaryCard(r1h, r3h, r6h, originInfo = null) {
+function updateScenarioSummaryCard(r1h, r3h, r6h) {
   const sum1h = document.getElementById("sim-sum-1h");
   const sum3h = document.getElementById("sim-sum-3h");
   const sum6h = document.getElementById("sim-sum-6h");
@@ -3513,24 +3513,6 @@ function updateScenarioSummaryCard(r1h, r3h, r6h, originInfo = null) {
   if (sum1h) sum1h.textContent = typeof r1h === "number" ? r1h.toFixed(1) : r1h;
   if (sum3h) sum3h.textContent = typeof r3h === "number" ? r3h.toFixed(1) : r3h;
   if (sum6h) sum6h.textContent = typeof r6h === "number" ? r6h.toFixed(1) : r6h;
-
-  const badge = document.getElementById("sim-scenario-badge");
-  if (badge) {
-    const sc = (activeScenario || "MODERATE").toUpperCase();
-    badge.textContent = sc;
-    badge.className = `scenario-pill-badge ${sc.toLowerCase()}`;
-  }
-
-  const originBadge = document.getElementById("sim-sync-origin-badge");
-  const originText = document.getElementById("sim-sync-origin-text");
-  if (originBadge && originText) {
-    if (originInfo && originInfo.name) {
-      originBadge.classList.remove("hidden");
-      originText.innerHTML = `Live Synced: <strong>${originInfo.name}</strong> • ${originInfo.rate} mm/h radar`;
-    } else {
-      originBadge.classList.add("hidden");
-    }
-  }
 }
 
 function renderScenarioLog() {
@@ -4154,172 +4136,6 @@ async function handleMapClick(e) {
 // --------------------------------------------------------------------------
 // POST /predict — Model V2 & Action Priority Engine
 // --------------------------------------------------------------------------
-function getScenarioFromIntensity(intensity) {
-  if (intensity >= 23.0) return "EXTREME";
-  if (intensity >= 18.0) return "HEAVY";
-  if (intensity >= 12.0) return "MODERATE";
-  return "NORMAL";
-}
-
-window.runSimulationPrediction = async function (customPayload = null) {
-  const btn = document.getElementById("btn-predict");
-  const spinner = btn ? btn.querySelector(".btn-spinner") : null;
-  const btnText = btn ? btn.querySelector("span:not(.btn-spinner)") : null;
-  const resultsPanel = document.getElementById("predict-results-panel");
-
-  if (spinner) spinner.classList.remove("hidden");
-  if (btnText) btnText.textContent = "Running scenario...";
-  if (btn) btn.disabled = true;
-
-  const payload = customPayload || {
-    rainfall_1h:
-      parseFloat(document.getElementById("rainfall_1h").value) || 0,
-    rainfall_3h:
-      parseFloat(document.getElementById("rainfall_3h").value) || 0,
-    rainfall_6h:
-      parseFloat(document.getElementById("rainfall_6h").value) || 0,
-    recent_rainfall_intensity:
-      parseFloat(
-        document.getElementById("recent_rainfall_intensity").value,
-      ) || 0,
-    elevation: parseFloat(document.getElementById("elevation").value) || 208.5,
-    slope: parseFloat(document.getElementById("slope").value) || 1.8,
-    distance_to_drain:
-      parseFloat(document.getElementById("distance_to_drain").value) || 45.0,
-    distance_to_road:
-      parseFloat(document.getElementById("distance_to_road").value) || 20.0,
-    distance_to_infra:
-      parseFloat(document.getElementById("distance_to_infra").value) || 150.0,
-    population_total:
-      parseFloat(document.getElementById("population_total").value) || 120000,
-    critical_infra_flag:
-      parseInt(document.getElementById("critical_infra_flag").value, 10) || 1,
-  };
-
-  try {
-    let data = null;
-    try {
-      const res = await apiFetch(
-        "/predict",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        },
-        5000,
-      );
-      if (res && res.ok) {
-        data = await res.json();
-      }
-    } catch (netErr) {
-      console.warn("Using client-side XGBoost Model V2 heuristic:", netErr);
-    }
-
-    // Client-side nowcasting fallback if backend is offline or sleeping
-    if (!data) {
-      const r1 = payload.rainfall_1h;
-      const severity = r1 >= 23 ? "High" : r1 >= 18 ? "Medium" : r1 >= 12 ? "Medium" : "Low";
-      const pHigh = Math.min(0.95, Math.max(0.05, r1 >= 23 ? 0.70 : r1 >= 18 ? 0.40 : 0.15));
-      const pMed = Math.min(0.90, Math.max(0.10, r1 >= 18 ? 0.50 : 0.65));
-      const pLow = Math.max(0.05, 1.0 - (pHigh + pMed * 0.5));
-      const score = Math.round(Math.min(98, r1 * 2.8 + (payload.critical_infra_flag ? 15 : 0)));
-      data = {
-        flood_severity: severity,
-        probabilities: { Low: pLow, Medium: pMed, High: pHigh },
-        action_priority: {
-          priority_score: score,
-          action_level: severity === "High" ? "CRITICAL" : severity === "Medium" ? "ELEVATED" : "STANDARD",
-          recommended_action:
-            severity === "High"
-              ? "Deploy emergency mobile sump pumps and divert traffic around underpasses."
-              : severity === "Medium"
-                ? "Activate secondary storm pumps and issue advisory for low-lying roads."
-                : "Continuous monitoring of gravity drain outfalls. Nominal discharge.",
-        },
-      };
-    }
-
-    // Update Severity Badge
-    const sevBadge = document.getElementById("res-severity-badge");
-    if (sevBadge) {
-      sevBadge.textContent = data.flood_severity;
-      sevBadge.className = `sev-badge ${data.flood_severity.toLowerCase()}`;
-    }
-
-    // Update Probabilities Distribution
-    if (data.probabilities) {
-      const probs = data.probabilities;
-      const lowP = Math.round((probs.Low || 0) * 100);
-      const medP = Math.round((probs.Medium || 0) * 100);
-      const highP = Math.round((probs.High || 0) * 100);
-
-      const bLow = document.getElementById("p-bar-low");
-      const vLow = document.getElementById("p-val-low");
-      if (bLow) bLow.style.width = `${lowP}%`;
-      if (vLow) vLow.textContent = `${lowP}%`;
-
-      const bMed = document.getElementById("p-bar-medium");
-      const vMed = document.getElementById("p-val-medium");
-      if (bMed) bMed.style.width = `${medP}%`;
-      if (vMed) vMed.textContent = `${medP}%`;
-
-      const bHigh = document.getElementById("p-bar-high");
-      const vHigh = document.getElementById("p-val-high");
-      if (bHigh) bHigh.style.width = `${highP}%`;
-      if (vHigh) vHigh.textContent = `${highP}%`;
-    }
-
-    // Update Action Priority Engine Outcome
-    if (data.action_priority) {
-      const act = data.action_priority;
-      const pScore = document.getElementById("res-priority-score");
-      if (pScore) pScore.textContent = `Score: ${act.priority_score}`;
-
-      const actLvl = document.getElementById("res-action-level");
-      if (actLvl) {
-        actLvl.textContent = act.action_level;
-        actLvl.className = `act-level ${act.action_level.toLowerCase().replace(" ", "-")}`;
-      }
-
-      const actDesc = document.getElementById("res-action-desc");
-      if (actDesc) actDesc.textContent = act.recommended_action;
-    }
-
-    // Add to Scenario Comparison Log
-    scenarioHistory.push({
-      preset: activePresetName,
-      r1h: payload.rainfall_1h,
-      r3h: payload.rainfall_3h,
-      r6h: payload.rainfall_6h,
-      severity: data.flood_severity,
-      score: data.action_priority ? data.action_priority.priority_score : "--",
-      timestamp: new Date().toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit",
-      }),
-    });
-    if (scenarioHistory.length > 5) scenarioHistory.shift();
-    renderScenarioLog();
-
-    activeScenario = activePresetName || "NORMAL";
-    updatePumpStationsForRainfall(
-      activeScenario,
-      activeTimestep,
-      payload.rainfall_1h,
-    );
-    loadWaterloggingLayer();
-
-    if (resultsPanel) resultsPanel.classList.remove("hidden");
-  } catch (err) {
-    console.error("Scenario Simulation Error:", err);
-  } finally {
-    if (spinner) spinner.classList.add("hidden");
-    if (btnText) btnText.textContent = "RUN SCENARIO SIMULATION";
-    if (btn) btn.disabled = false;
-  }
-};
-
 function initFormHandlers() {
   const predictForm = document.getElementById("predict-form");
   const routeForm = document.getElementById("route-form");
@@ -4327,7 +4143,144 @@ function initFormHandlers() {
   if (predictForm) {
     predictForm.addEventListener("submit", async (e) => {
       e.preventDefault();
-      await window.runSimulationPrediction();
+      const btn = document.getElementById("btn-predict");
+      const spinner = btn ? btn.querySelector(".btn-spinner") : null;
+      const btnText = btn ? btn.querySelector("span:not(.btn-spinner)") : null;
+      const resultsPanel = document.getElementById("predict-results-panel");
+
+      if (spinner) spinner.classList.remove("hidden");
+      if (btnText) btnText.textContent = "Running scenario...";
+      if (btn) btn.disabled = true;
+
+      const payload = {
+        rainfall_1h:
+          parseFloat(document.getElementById("rainfall_1h").value) || 0,
+        rainfall_3h:
+          parseFloat(document.getElementById("rainfall_3h").value) || 0,
+        rainfall_6h:
+          parseFloat(document.getElementById("rainfall_6h").value) || 0,
+        recent_rainfall_intensity:
+          parseFloat(
+            document.getElementById("recent_rainfall_intensity").value,
+          ) || 0,
+        elevation: parseFloat(document.getElementById("elevation").value) || 0,
+        slope: parseFloat(document.getElementById("slope").value) || 0,
+        distance_to_drain:
+          parseFloat(document.getElementById("distance_to_drain").value) || 0,
+        distance_to_road:
+          parseFloat(document.getElementById("distance_to_road").value) || 0,
+        distance_to_infra:
+          parseFloat(document.getElementById("distance_to_infra").value) || 0,
+        population_total:
+          parseFloat(document.getElementById("population_total").value) || 0,
+        critical_infra_flag:
+          parseInt(document.getElementById("critical_infra_flag").value, 10) ||
+          0,
+      };
+
+      // Update Summary Card
+      updateScenarioSummaryCard(
+        payload.rainfall_1h,
+        payload.rainfall_3h,
+        payload.rainfall_6h,
+      );
+
+      try {
+        const res = await apiFetch(
+          "/predict",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          },
+          10000,
+        );
+
+        if (!res.ok)
+          throw new Error("Scenario simulation unavailable. Please retry.");
+        const data = await res.json();
+
+        // Update Severity Badge
+        const sevBadge = document.getElementById("res-severity-badge");
+        if (sevBadge) {
+          sevBadge.textContent = data.flood_severity;
+          sevBadge.className = `sev-badge ${data.flood_severity.toLowerCase()}`;
+        }
+
+        // Update Probabilities Distribution
+        if (data.probabilities) {
+          const probs = data.probabilities;
+          const lowP = Math.round((probs.Low || 0) * 100);
+          const medP = Math.round((probs.Medium || 0) * 100);
+          const highP = Math.round((probs.High || 0) * 100);
+
+          const bLow = document.getElementById("p-bar-low");
+          const vLow = document.getElementById("p-val-low");
+          if (bLow) bLow.style.width = `${lowP}%`;
+          if (vLow) vLow.textContent = `${lowP}%`;
+
+          const bMed = document.getElementById("p-bar-medium");
+          const vMed = document.getElementById("p-val-medium");
+          if (bMed) bMed.style.width = `${medP}%`;
+          if (vMed) vMed.textContent = `${medP}%`;
+
+          const bHigh = document.getElementById("p-bar-high");
+          const vHigh = document.getElementById("p-val-high");
+          if (bHigh) bHigh.style.width = `${highP}%`;
+          if (vHigh) vHigh.textContent = `${highP}%`;
+        }
+
+        // Update Action Priority Engine Outcome
+        if (data.action_priority) {
+          const act = data.action_priority;
+          const pScore = document.getElementById("res-priority-score");
+          if (pScore) pScore.textContent = `Score: ${act.priority_score}`;
+
+          const actLvl = document.getElementById("res-action-level");
+          if (actLvl) {
+            actLvl.textContent = act.action_level;
+            actLvl.className = `act-level ${act.action_level.toLowerCase().replace(" ", "-")}`;
+          }
+
+          const actDesc = document.getElementById("res-action-desc");
+          if (actDesc) actDesc.textContent = act.recommended_action;
+        }
+
+        // Add to Scenario Comparison Log
+        scenarioHistory.push({
+          preset: activePresetName,
+          r1h: payload.rainfall_1h,
+          r3h: payload.rainfall_3h,
+          r6h: payload.rainfall_6h,
+          severity: data.flood_severity,
+          score: data.action_priority
+            ? data.action_priority.priority_score
+            : "--",
+          timestamp: new Date().toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
+          }),
+        });
+        if (scenarioHistory.length > 5) scenarioHistory.shift();
+        renderScenarioLog();
+
+        activeScenario = activePresetName || "NORMAL";
+        updatePumpStationsForRainfall(
+          activeScenario,
+          activeTimestep,
+          payload.rainfall_1h,
+        );
+        loadWaterloggingLayer();
+
+        if (resultsPanel) resultsPanel.classList.remove("hidden");
+      } catch (err) {
+        alert(`Scenario Simulation Failed: ${err.message}`);
+      } finally {
+        if (spinner) spinner.classList.add("hidden");
+        if (btnText) btnText.textContent = "RUN SCENARIO SIMULATION";
+        if (btn) btn.disabled = false;
+      }
     });
   }
 
@@ -4336,7 +4289,11 @@ function initFormHandlers() {
     r1hInput.addEventListener("input", (e) => {
       const val = parseFloat(e.target.value);
       if (!isNaN(val) && val >= 0) {
-        const derivedScenario = getScenarioFromIntensity(val);
+        let derivedScenario = activeScenario;
+        if (val < 25) derivedScenario = "NORMAL";
+        else if (val < 60) derivedScenario = "MODERATE";
+        else if (val < 95) derivedScenario = "HEAVY";
+        else derivedScenario = "EXTREME";
 
         activeScenario = derivedScenario;
         activePresetName = derivedScenario;
@@ -4354,10 +4311,10 @@ function initFormHandlers() {
 
         const r3 =
           parseFloat(document.getElementById("rainfall_3h")?.value) ||
-          Math.round(val * 2.2 * 10) / 10;
+          val * 1.8;
         const r6 =
           parseFloat(document.getElementById("rainfall_6h")?.value) ||
-          Math.round(val * 3.8 * 10) / 10;
+          val * 2.4;
         updateScenarioSummaryCard(val, r3, r6);
         updatePumpStationsForRainfall(derivedScenario, activeTimestep, val);
       }
@@ -5074,14 +5031,14 @@ function renderRainfallDynamicsPanel(data) {
 }
 
 const DELHI_RADAR_BASINS = [
-  { id: "najafgarh_basin", name: "Najafgarh Drain Basin", lat: 28.6250, lon: 77.0500, radius: 5500, factor: 1.25, desc: "Western Lowland & Najafgarh Trunk Basin" },
-  { id: "barapullah_basin", name: "Barapullah Hydrological Basin", lat: 28.5800, lon: 77.2300, radius: 4200, factor: 1.15, desc: "Central/South Catchment & Nizamuddin Inflow" },
-  { id: "shahdara_basin", name: "Shahdara Trans-Yamuna Basin", lat: 28.6600, lon: 77.2900, radius: 4800, factor: 0.95, desc: "Trans-Yamuna Lowland & Seelampur Drain" },
-  { id: "yamuna_floodplain", name: "Yamuna Riverfront Corridor", lat: 28.6450, lon: 77.2500, radius: 6000, factor: 1.05, desc: "Active River Discharge & Wazirabad Outfall" },
-  { id: "south_ridge", name: "South Delhi Catchment / Qutub", lat: 28.5300, lon: 77.1900, radius: 4500, factor: 0.85, desc: "Hilly Ridge Inflow to Mehrauli-Badarpur" },
-  { id: "north_delhi", name: "North Model Town & Jahangirpuri", lat: 28.7100, lon: 77.1700, radius: 4600, factor: 1.35, desc: "Supplementary Drain Catchment & Low Elevation" },
-  { id: "central_ndmc", name: "Connaught Place / NDMC Core", lat: 28.6315, lon: 77.2167, radius: 3200, factor: 1.00, desc: "Urban Core & Minto Bridge Depression Zone" },
-  { id: "igi_airport", name: "IGI Airport Corridor & Dwarka", lat: 28.5600, lon: 77.1000, radius: 5000, factor: 1.10, desc: "Airport Runway Drains & Trunk Drain-8" }
+  { id: "south_ridge", name: "South Delhi Catchment / Qutub", lat: 28.5300, lon: 77.1900, radius: 4500, factor: 0.45, desc: "Hilly Ridge Inflow to Mehrauli-Badarpur (Normal Precipitation)" },
+  { id: "shahdara_basin", name: "Shahdara Trans-Yamuna Basin", lat: 28.6600, lon: 77.2900, radius: 4800, factor: 0.58, desc: "Trans-Yamuna Lowland & Seelampur Drain (Normal Precipitation)" },
+  { id: "central_ndmc", name: "Connaught Place / NDMC Core", lat: 28.6315, lon: 77.2167, radius: 3200, factor: 1.15, desc: "Urban Core & Minto Bridge Depression Zone (Moderate Inflow)" },
+  { id: "yamuna_floodplain", name: "Yamuna Riverfront Corridor", lat: 28.6450, lon: 77.2500, radius: 6000, factor: 1.35, desc: "Active River Discharge & Wazirabad Outfall (Moderate Flow)" },
+  { id: "barapullah_basin", name: "Barapullah Hydrological Basin", lat: 28.5800, lon: 77.2300, radius: 4200, factor: 2.25, desc: "Central/South Catchment & Nizamuddin Inflow (Heavy Runoff)" },
+  { id: "igi_airport", name: "IGI Airport Corridor & Dwarka", lat: 28.5600, lon: 77.1000, radius: 5000, factor: 2.65, desc: "Airport Runway Drains & Trunk Drain-8 (Heavy Inundation Risk)" },
+  { id: "najafgarh_basin", name: "Najafgarh Drain Basin", lat: 28.6250, lon: 77.0500, radius: 5500, factor: 3.10, desc: "Western Lowland & Najafgarh Trunk Basin (Heavy Flash Surge)" },
+  { id: "north_delhi", name: "North Model Town & Jahangirpuri", lat: 28.7100, lon: 77.1700, radius: 4600, factor: 4.40, desc: "Supplementary Drain Catchment & Low Elevation (Extreme Cloudburst Cell)" }
 ];
 
 function generateClientRadarData(baseLat, baseLon) {
@@ -5090,7 +5047,7 @@ function generateClientRadarData(baseLat, baseLon) {
     const intensity = Math.round(Math.max(0.5, baseIntensity * b.factor) * 10) / 10;
     const dbz = intensity <= 0.05 ? 0 : Math.round(10 * Math.log10(200 * Math.pow(intensity, 1.6)) * 10) / 10;
     const color = dbz < 20 ? "#38bdf8" : dbz < 35 ? "#22c55e" : dbz < 45 ? "#eab308" : dbz < 52 ? "#f97316" : "#ef4444";
-    const level = getScenarioFromIntensity(intensity);
+    const level = intensity < 10.0 ? "NORMAL" : intensity < 25.0 ? "MODERATE" : intensity < 50.0 ? "HEAVY" : "EXTREME";
     return {
       type: "Feature",
       geometry: { type: "Point", coordinates: [b.lon, b.lat] },
@@ -5145,7 +5102,7 @@ async function toggleRainRadarLayer(enable) {
     }
     if (check) check.checked = false;
     if (radarBtn) radarBtn.classList.remove("radar-active");
-    if (legendRadar) legendRadar.classList.remove("hidden");
+    if (legendRadar) legendRadar.classList.add("hidden");
     return;
   }
 
@@ -5199,29 +5156,47 @@ async function toggleRainRadarLayer(enable) {
       .trim()
       .toUpperCase();
 
-    const scenario = getScenarioFromIntensity(p.intensity_mm_hr);
     const riskColor =
-      scenario === "EXTREME"
+      p.intensity_mm_hr >= 25 ? "#ef4444" : p.intensity_mm_hr >= 12 ? "#f97316" : "#10b981";
+    const riskText =
+      p.intensity_mm_hr >= 45
+        ? "BACKFLOW"
+        : p.intensity_mm_hr >= 25
+        ? "SURCHARGE"
+        : p.intensity_mm_hr >= 12
+        ? "ACTIVE"
+        : "NOMINAL";
+
+    const levelColor =
+      p.level === "EXTREME"
         ? "#ef4444"
-        : scenario === "HEAVY"
-          ? "#f97316"
-          : scenario === "MODERATE"
-            ? "#38bdf8"
-            : "#10b981";
+        : p.level === "HEAVY"
+        ? "#f97316"
+        : p.level === "MODERATE"
+        ? "#38bdf8"
+        : "#10b981";
 
     const popupHtml = `
       <div class="radar-popup-box">
         <div class="radar-popup-title">${cleanTitle}</div>
-        <div class="radar-popup-sub">${p.intensity_mm_hr} mm/h</div>
+        <div class="radar-popup-sub">${p.intensity_mm_hr} mm/h • <span style="color:${levelColor}; font-weight:800;">${p.level}</span></div>
         <div class="radar-popup-meta">
           <span>${p.dbz} dBZ</span>
           <span class="meta-dot">•</span>
           <span>${(p.radius_meters / 1000).toFixed(1)} km</span>
           <span class="meta-dot">•</span>
-          <span style="color:${riskColor}; font-weight:800;">${scenario}</span>
+          <span style="color:${riskColor}; font-weight:800;">${riskText}</span>
         </div>
-        <button class="radar-popup-sync-btn" onclick="syncGisWithSpecificRain('${cleanTitle}', ${p.intensity_mm_hr}, event)">
-          ⚡ Sync Simulation to Basin Rain
+
+        <div class="radar-sync-pill-row">
+          <button class="radar-sync-pill ${p.level === 'NORMAL' ? 'active-target' : ''}" onclick="syncGisWithSpecificRain(7.5, 'NORMAL')">NORMAL</button>
+          <button class="radar-sync-pill ${p.level === 'MODERATE' ? 'active-target' : ''}" onclick="syncGisWithSpecificRain(18.5, 'MODERATE')">MODERATE</button>
+          <button class="radar-sync-pill ${p.level === 'HEAVY' ? 'active-target' : ''}" onclick="syncGisWithSpecificRain(37.5, 'HEAVY')">HEAVY</button>
+          <button class="radar-sync-pill ${p.level === 'EXTREME' ? 'active-target' : ''}" onclick="syncGisWithSpecificRain(65.0, 'EXTREME')">EXTREME</button>
+        </div>
+
+        <button class="radar-popup-sync-btn" onclick="syncGisWithSpecificRain(${p.intensity_mm_hr}, '${p.level}')">
+          ⚡ Sync Simulation to Basin Rain (${p.level})
         </button>
       </div>
     `;
@@ -5298,46 +5273,39 @@ async function syncGisWithLiveRain() {
   }
 }
 
-window.syncGisWithSpecificRain = async function (basinName, rainRate, clickEvent) {
-  const scenario = getScenarioFromIntensity(rainRate);
+window.syncGisWithSpecificRain = function (rainRate, riskLevel) {
+  let scenario = "NORMAL";
+  const r = parseFloat(rainRate) || 0;
+  if (riskLevel === "EXTREME" || r >= 50.0) {
+    scenario = "EXTREME";
+  } else if (riskLevel === "HEAVY" || r >= 25.0) {
+    scenario = "HEAVY";
+  } else if (riskLevel === "MODERATE" || r >= 10.0) {
+    scenario = "MODERATE";
+  } else {
+    scenario = "NORMAL";
+  }
 
-  // 1. Calculate dynamic cumulative rainfall scaled realistically from the basin's live rain rate
-  const r1h = Math.round(rainRate * 10) / 10;
-  const r3h = Math.round(rainRate * 2.2 * 10) / 10;
-  const r6h = Math.round(rainRate * 3.8 * 10) / 10;
+  const presetDefaults = {
+    NORMAL: { r1h: 15.0, r3h: 35.0, r6h: 60.0, int: Math.min(9.5, r > 0 ? r : 7.5) },
+    MODERATE: { r1h: 45.0, r3h: 85.0, r6h: 130.0, int: Math.max(10.0, Math.min(24.5, r > 0 ? r : 18.5)) },
+    HEAVY: { r1h: 75.0, r3h: 130.0, r6h: 180.0, int: Math.max(25.0, Math.min(49.5, r > 0 ? r : 37.5)) },
+    EXTREME: { r1h: 110.0, r3h: 180.0, r6h: 250.0, int: Math.max(50.0, r > 0 ? r : 65.0) },
+  };
 
-  // 2. Switch to simulator tab so user immediately sees the direct impact
-  switchActiveTab("tab-simulator");
+  const pData = presetDefaults[scenario] || presetDefaults.MODERATE;
 
-  // 3. Apply to GIS simulation & activate corresponding preset button
-  await applyRainfallToGisSimulation(scenario, rainRate, {
-    rainfall_1h: r1h,
-    rainfall_3h: r3h,
-    rainfall_6h: r6h,
-    origin_name: basinName,
+  if (typeof switchActiveTab === "function") {
+    switchActiveTab("tab-simulator");
+  }
+
+  applyRainfallToGisSimulation(scenario, pData.int, {
+    rainfall_1h: pData.r1h,
+    rainfall_3h: pData.r3h,
+    rainfall_6h: pData.r6h,
   });
 
-  // 4. Automatically run ML prediction for this synced basin scenario
-  if (typeof window.runSimulationPrediction === "function") {
-    window.runSimulationPrediction({
-      rainfall_1h: r1h,
-      rainfall_3h: r3h,
-      rainfall_6h: r6h,
-      recent_rainfall_intensity: rainRate,
-    });
-  }
-
-  // 5. Visual confirmation inside the radar popup button
-  const btn = (clickEvent && clickEvent.target) ? clickEvent.target.closest("button") : null;
-  if (btn) {
-    btn.innerHTML = `✓ Synced: ${scenario} (${r1h} mm/h)`;
-    btn.style.background = "linear-gradient(135deg, rgba(16, 185, 129, 0.45), rgba(5, 150, 105, 0.65))";
-    btn.style.borderColor = "#10b981";
-  }
-
-  setTimeout(() => {
-    if (map && map._popup) map.closePopup();
-  }, 1200);
+  if (map && map.closePopup) map.closePopup();
 };
 
 async function applyRainfallToGisSimulation(scenario, rainRate, syncData = {}) {
@@ -5366,10 +5334,8 @@ async function applyRainfallToGisSimulation(scenario, rainRate, syncData = {}) {
   if (el6h) el6h.value = r6h.toFixed(1);
   if (elInt) elInt.value = rainRate.toFixed(1);
 
-  const originInfo = syncData.origin_name ? { name: syncData.origin_name, rate: rainRate.toFixed(1) } : null;
-
   if (typeof updateScenarioSummaryCard === "function") {
-    updateScenarioSummaryCard(r1h, r3h, r6h, originInfo);
+    updateScenarioSummaryCard(r1h, r3h, r6h);
   }
 
   if (typeof updatePumpStationsForRainfall === "function") {

@@ -2580,61 +2580,6 @@ canvas.leaflet-zoom-animated {
   letter-spacing: 0.08em;
   color: var(--accent-cyan-bright);
   text-transform: uppercase;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.scenario-pill-badge {
-  font-family: var(--font-mono, monospace);
-  font-size: 9.5px;
-  font-weight: 800;
-  padding: 1px 7px;
-  border-radius: 4px;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.scenario-pill-badge.normal {
-  background: rgba(16, 185, 129, 0.2);
-  border: 1px solid rgba(16, 185, 129, 0.6);
-  color: #34d399;
-}
-
-.scenario-pill-badge.moderate {
-  background: rgba(56, 189, 248, 0.2);
-  border: 1px solid rgba(56, 189, 248, 0.6);
-  color: #38bdf8;
-}
-
-.scenario-pill-badge.heavy {
-  background: rgba(249, 115, 22, 0.2);
-  border: 1px solid rgba(249, 115, 22, 0.6);
-  color: #fb923c;
-}
-
-.scenario-pill-badge.extreme {
-  background: rgba(239, 68, 68, 0.25);
-  border: 1px solid rgba(239, 68, 68, 0.7);
-  color: #f87171;
-}
-
-.sim-sync-origin-badge {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  background: rgba(15, 23, 42, 0.85);
-  border: 1px solid rgba(249, 115, 22, 0.5);
-  border-radius: 4px;
-  padding: 3px 6px;
-  font-family: var(--font-mono, monospace);
-  font-size: 9.5px;
-  color: #ffedd5;
-  margin: 3px 0;
-}
-
-.sim-sync-origin-badge strong {
-  color: #fb923c;
 }
 
 .sim-metrics-row {
@@ -4333,6 +4278,41 @@ body.theme-bright .weather-api-caption {
   border-color: #f97316;
   box-shadow: 0 0 10px rgba(249, 115, 22, 0.5);
   transform: translateY(-1px);
+}
+
+.radar-sync-pill-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 3px;
+  width: 100%;
+  margin-top: 5px;
+}
+
+.radar-sync-pill {
+  background: rgba(30, 41, 59, 0.7);
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  border-radius: 4px;
+  color: #94a3b8;
+  font-family: var(--font-mono, monospace, ui-monospace);
+  font-size: 8px;
+  font-weight: 700;
+  padding: 3px 0;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-align: center;
+}
+
+.radar-sync-pill:hover {
+  border-color: #f97316;
+  color: #ffedd5;
+  background: rgba(249, 115, 22, 0.25);
+}
+
+.radar-sync-pill.active-target {
+  border-color: #38bdf8;
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.2);
+  box-shadow: 0 0 6px rgba(56, 189, 248, 0.3);
 }
 
 /* Bright mode adaptations */
