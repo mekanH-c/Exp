@@ -129,13 +129,7 @@ async function apiFetch(endpoint, options = {}, timeoutMs = null) {
     }
   }
 
-  // All retries exhausted on genuine timeouts/network errors — trigger reconnect
-  if (isBackendOnline) {
-    isBackendOnline = false;
-    updateHealthBadge(false, "Reconnecting...");
-    setTimeout(() => probeAndSelectBackend(), 500);
-  }
-
+  console.warn(`[AquaG] API call notice for ${endpoint}:`, lastError.message);
   throw lastError;
 }
 
@@ -3558,7 +3552,9 @@ function initLayerToggles() {
     wCheck.addEventListener("change", (e) => {
       if (e.target.checked) {
         if (!map.hasLayer(waterloggingLayer)) map.addLayer(waterloggingLayer);
-        loadWaterloggingLayer();
+        if (!lastLoadedWaterloggingGeojson || (waterloggingLayer.getLayers && waterloggingLayer.getLayers().length === 0)) {
+          loadWaterloggingLayer();
+        }
       } else {
         if (map.hasLayer(waterloggingLayer)) map.removeLayer(waterloggingLayer);
       }
@@ -3570,7 +3566,9 @@ function initLayerToggles() {
     iCheck.addEventListener("change", (e) => {
       if (e.target.checked) {
         if (!map.hasLayer(infraLayer)) map.addLayer(infraLayer);
-        loadInfraLayer();
+        if (!infraLayer.getLayers || infraLayer.getLayers().length === 0) {
+          loadInfraLayer();
+        }
       } else {
         if (map.hasLayer(infraLayer)) map.removeLayer(infraLayer);
       }
@@ -3637,7 +3635,9 @@ function initLayerToggles() {
       if (e.target.checked) {
         if (!map.hasLayer(drainageNetworkLayer))
           map.addLayer(drainageNetworkLayer);
-        loadDrainageNetworkLayer();
+        if (!drainageNetworkLayer.getLayers || drainageNetworkLayer.getLayers().length === 0) {
+          loadDrainageNetworkLayer();
+        }
         if (legendDrainage) legendDrainage.classList.remove("hidden");
       } else {
         if (map.hasLayer(drainageNetworkLayer))
@@ -5110,27 +5110,14 @@ async function toggleRainRadarLayer(enable) {
   if (radarBtn) radarBtn.classList.add("radar-active");
   if (legendRadar) legendRadar.classList.remove("hidden");
 
-  let geojson = null;
-
-  try {
-    const key = getStoredOpenWeatherKey();
-    const params = new URLSearchParams({
-      lat: currentRainCoords.lat.toFixed(5),
-      lon: currentRainCoords.lon.toFixed(5),
-    });
-    if (key) params.append("appid", key);
-
-    const res = await apiFetch(`/weather/radar?${params.toString()}`, {}, 4000);
-    if (res.ok) {
-      geojson = await res.json();
-    }
-  } catch (err) {
-    console.info("[AquaG] Using robust client-side radar calculation:", err.message);
+  // Instant 0ms toggle: if layer is already built, simply add to map
+  if (rainRadarLayer && rainRadarLayer.getLayers && rainRadarLayer.getLayers().length > 0) {
+    if (!map.hasLayer(rainRadarLayer)) map.addLayer(rainRadarLayer);
+    return;
   }
 
-  if (!geojson || !geojson.heatmap_points || geojson.heatmap_points.length === 0) {
-    geojson = generateClientRadarData(currentRainCoords.lat, currentRainCoords.lon);
-  }
+  // Instant client-side radar calculation (0ms, zero network latency)
+  const geojson = generateClientRadarData(currentRainCoords.lat, currentRainCoords.lon);
 
   if (rainRadarLayer && map.hasLayer(rainRadarLayer)) {
     map.removeLayer(rainRadarLayer);
