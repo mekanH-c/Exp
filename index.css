@@ -4154,47 +4154,19 @@ body.theme-bright .weather-api-caption {
   100% { opacity: 0.35; transform: scale(0.98); }
 }
 
-/* Radar Basin Region Text Label (Permanent / Click Responsive) */
+/* Radar Basin Region Text Label (Suppressed - Region names only show on click popup) */
 .radar-basin-label {
-  background: rgba(15, 23, 42, 0.82) !important;
-  border: 1px solid rgba(249, 115, 22, 0.55) !important;
-  border-radius: 6px !important;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45), 0 0 8px rgba(249, 115, 22, 0.25) !important;
-  backdrop-filter: blur(8px) !important;
-  -webkit-backdrop-filter: blur(8px) !important;
-  padding: 3px 8px !important;
-  cursor: pointer !important;
-  pointer-events: auto !important;
-}
-
-.radar-basin-label::before {
   display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
 }
 
-.radar-basin-label-inner {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1px;
-}
-
-.radar-basin-title {
-  color: #ffedd5;
-  font-family: monospace, ui-monospace, sans-serif;
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
-  white-space: nowrap;
-}
-
+.radar-basin-label::before,
+.radar-basin-label-inner,
+.radar-basin-title,
 .radar-basin-sub {
-  color: #fb923c;
-  font-family: monospace, ui-monospace, sans-serif;
-  font-size: 9.5px;
-  font-weight: 700;
-  white-space: nowrap;
+  display: none !important;
 }
 
 

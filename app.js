@@ -5110,8 +5110,18 @@ async function toggleRainRadarLayer(enable) {
   if (radarBtn) radarBtn.classList.add("radar-active");
   if (legendRadar) legendRadar.classList.remove("hidden");
 
-  // Instant 0ms toggle: if layer is already built, simply add to map
+  // Purge any residual label DOM nodes
+  document.querySelectorAll(".radar-basin-label").forEach((el) => el.remove());
+
+  // Instant 0ms toggle: if layer is already built, strip any legacy markers and add to map
   if (rainRadarLayer && rainRadarLayer.getLayers && rainRadarLayer.getLayers().length > 0) {
+    if (rainRadarLayer.eachLayer) {
+      rainRadarLayer.eachLayer((l) => {
+        if (l instanceof L.Marker) {
+          rainRadarLayer.removeLayer(l);
+        }
+      });
+    }
     if (!map.hasLayer(rainRadarLayer)) map.addLayer(rainRadarLayer);
     return;
   }
