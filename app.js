@@ -5151,40 +5151,41 @@ async function toggleRainRadarLayer(enable) {
       bubbles: false,
     });
 
+    const cleanTitle = (p.name || "")
+      .replace(/ Drain Basin| Hydrological Basin| Trans-Yamuna Basin| Riverfront Corridor/i, "")
+      .trim()
+      .toUpperCase();
+
+    const riskColor =
+      p.intensity_mm_hr >= 25 ? "#ef4444" : p.intensity_mm_hr >= 12 ? "#f97316" : "#10b981";
+    const riskText =
+      p.intensity_mm_hr >= 45
+        ? "BACKFLOW"
+        : p.intensity_mm_hr >= 25
+        ? "SURCHARGE"
+        : p.intensity_mm_hr >= 12
+        ? "ACTIVE"
+        : "NOMINAL";
+
     const popupHtml = `
-      <div class="scada-popup">
-        <div class="popup-title-row">
-          <span class="live-dot pulse" style="background:#f97316"></span>
-          <strong>${p.name}</strong>
+      <div class="radar-popup-box">
+        <div class="radar-popup-title">${cleanTitle}</div>
+        <div class="radar-popup-sub">${p.intensity_mm_hr} mm/h</div>
+        <div class="radar-popup-meta">
+          <span>${p.dbz} dBZ</span>
+          <span class="meta-dot">•</span>
+          <span>${(p.radius_meters / 1000).toFixed(1)} km</span>
+          <span class="meta-dot">•</span>
+          <span style="color:${riskColor}; font-weight:800;">${riskText}</span>
         </div>
-        <div class="popup-subtitle font-mono">DWR Doppler Radar • ${p.description}</div>
-        <div class="popup-divider"></div>
-        <div class="popup-grid">
-          <div class="popup-item">
-            <span class="p-label">Rain Intensity:</span>
-            <span class="p-value font-mono" style="color:#f97316; font-weight:800;">${p.intensity_mm_hr} mm/hr</span>
-          </div>
-          <div class="popup-item">
-            <span class="p-label">Radar dBZ:</span>
-            <span class="p-value font-mono">${p.dbz} dBZ</span>
-          </div>
-          <div class="popup-item">
-            <span class="p-label">Catchment:</span>
-            <span class="p-value font-mono">${(p.radius_meters / 1000).toFixed(1)} km</span>
-          </div>
-          <div class="popup-item">
-            <span class="p-label">Hydraulic Risk:</span>
-            <span class="p-value font-mono" style="color:${p.intensity_mm_hr >= 25 ? '#ef4444' : p.intensity_mm_hr >= 12 ? '#f97316' : '#10b981'}; font-weight:700;">${p.intensity_mm_hr >= 45 ? 'BACKFLOW (&gt;140%)' : p.intensity_mm_hr >= 25 ? 'SURCHARGE (115%)' : p.intensity_mm_hr >= 12 ? 'ACTIVE (75%)' : 'NOMINAL (35%)'}</span>
-          </div>
-        </div>
-        <button class="popup-smart-router-btn" style="margin-top:8px; width:100%;" onclick="syncGisWithSpecificRain(${p.intensity_mm_hr}, '${p.level}')">
+        <button class="radar-popup-sync-btn" onclick="syncGisWithSpecificRain(${p.intensity_mm_hr}, '${p.level}')">
           ⚡ Sync Simulation to Basin Rain
         </button>
       </div>
     `;
 
     circle.bindPopup(popupHtml, {
-      className: "dark-leaflet-popup",
+      className: "radar-leaflet-popup",
       closeButton: true,
       autoPan: true,
     });

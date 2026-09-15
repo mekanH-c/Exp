@@ -4169,5 +4169,144 @@ body.theme-bright .weather-api-caption {
   display: none !important;
 }
 
+/* --------------------------------------------------------------------------
+   RADAR BASIN CLICK POPUP (MATCHES FIRST IMAGE STYLE)
+   -------------------------------------------------------------------------- */
+.radar-leaflet-popup .leaflet-popup-content-wrapper {
+  background: rgba(15, 23, 42, 0.90) !important;
+  border: 1px solid rgba(249, 115, 22, 0.6) !important;
+  border-radius: 8px !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.65), 0 0 12px rgba(249, 115, 22, 0.3) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  color: #ffedd5 !important;
+  padding: 2px !important;
+}
+
+.radar-leaflet-popup .leaflet-popup-content {
+  margin: 8px 12px !important;
+  line-height: 1.4 !important;
+}
+
+.radar-leaflet-popup .leaflet-popup-tip {
+  background: rgba(15, 23, 42, 0.95) !important;
+  border: 1px solid rgba(249, 115, 22, 0.6) !important;
+  box-shadow: 0 0 8px rgba(249, 115, 22, 0.3) !important;
+}
+
+.radar-leaflet-popup .leaflet-popup-close-button {
+  color: #fb923c !important;
+  padding: 4px 6px 0 0 !important;
+  font-size: 16px !important;
+}
+
+.radar-leaflet-popup .leaflet-popup-close-button:hover {
+  color: #ffedd5 !important;
+}
+
+.radar-popup-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 3px;
+  min-width: 170px;
+  max-width: 250px;
+}
+
+.radar-popup-title {
+  color: #ffedd5;
+  font-family: var(--font-mono, monospace, ui-monospace);
+  font-size: 11.5px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+  white-space: normal;
+  line-height: 1.35;
+}
+
+.radar-popup-sub {
+  color: #fb923c;
+  font-family: var(--font-mono, monospace, ui-monospace);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  text-shadow: 0 0 8px rgba(249, 115, 22, 0.4);
+}
+
+.radar-popup-meta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-family: var(--font-mono, monospace, ui-monospace);
+  font-size: 9.5px;
+  color: #94a3b8;
+  margin-top: 3px;
+  padding-top: 5px;
+  border-top: 1px solid rgba(249, 115, 22, 0.25);
+  width: 100%;
+}
+
+.radar-popup-meta .meta-dot {
+  color: rgba(249, 115, 22, 0.6);
+}
+
+.radar-popup-sync-btn {
+  margin-top: 6px;
+  width: 100%;
+  background: linear-gradient(135deg, rgba(249, 115, 22, 0.22), rgba(234, 88, 12, 0.38));
+  border: 1px solid rgba(249, 115, 22, 0.55);
+  border-radius: 6px;
+  color: #ffedd5;
+  font-family: var(--font-mono, monospace, ui-monospace);
+  font-size: 10px;
+  font-weight: 700;
+  padding: 5px 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+}
+
+.radar-popup-sync-btn:hover {
+  background: linear-gradient(135deg, rgba(249, 115, 22, 0.45), rgba(234, 88, 12, 0.6));
+  border-color: #f97316;
+  box-shadow: 0 0 10px rgba(249, 115, 22, 0.5);
+  transform: translateY(-1px);
+}
+
+/* Bright mode adaptations */
+body.theme-bright .radar-leaflet-popup .leaflet-popup-content-wrapper {
+  background: rgba(248, 250, 252, 0.96) !important;
+  border: 1px solid rgba(234, 88, 12, 0.7) !important;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18), 0 0 12px rgba(249, 115, 22, 0.2) !important;
+  color: #0f172a !important;
+}
+
+body.theme-bright .radar-leaflet-popup .leaflet-popup-tip {
+  background: rgba(248, 250, 252, 0.98) !important;
+  border: 1px solid rgba(234, 88, 12, 0.7) !important;
+}
+
+body.theme-bright .radar-popup-title {
+  color: #0f172a !important;
+  text-shadow: none !important;
+}
+
+body.theme-bright .radar-popup-sub {
+  color: #ea580c !important;
+}
+
+body.theme-bright .radar-popup-sync-btn {
+  background: rgba(234, 88, 12, 0.12) !important;
+  border-color: rgba(234, 88, 12, 0.6) !important;
+  color: #c2410c !important;
+}
+
 
 
