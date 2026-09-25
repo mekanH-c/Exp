@@ -171,6 +171,12 @@ body.theme-bright .brand-icon {
   border-color: rgba(2, 132, 199, 0.35);
 }
 
+body.theme-bright .nav-github-link {
+  border-color: rgba(2, 132, 199, 0.35);
+  box-shadow: 0 2px 10px rgba(2, 132, 199, 0.25);
+  background: rgba(255, 255, 255, 0.6);
+}
+
 body.theme-bright .sih-badge {
   background: rgba(212, 234, 252, 0.8);
   backdrop-filter: blur(8px);
@@ -1378,6 +1384,37 @@ body, html {
   color: white;
   box-shadow: 0 0 15px rgba(6, 182, 212, 0.45);
   border: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+.nav-github-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  box-shadow: 0 0 12px rgba(6, 182, 212, 0.35);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  cursor: pointer;
+  text-decoration: none;
+  flex-shrink: 0;
+  margin-left: 6px;
+  background: rgba(15, 23, 42, 0.6);
+}
+
+.nav-github-link:hover {
+  transform: translateY(-1px) scale(1.06);
+  box-shadow: 0 0 18px rgba(56, 189, 248, 0.65);
+  border-color: rgba(56, 189, 248, 0.7);
+}
+
+.nav-github-logo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
 .app-name {
