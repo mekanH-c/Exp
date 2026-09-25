@@ -4739,29 +4739,19 @@ let currentRainCoords = { lat: 28.6139, lon: 77.209 };
 let lastLiveWeather = null;
 let rainDataAbortCtrl = null;
 
-const DEFAULT_OWM_API_KEY = "47b4c18dda84bef0ddf4284aee5d9a96";
-
+// Backend securely supplies the private OpenWeather API key server-side from .env
 function getStoredOpenWeatherKey() {
   try {
     const saved = localStorage.getItem("aquag_owm_api_key");
     if (saved !== null && saved !== undefined && saved.trim() !== "") {
       return saved.trim();
     }
-    return DEFAULT_OWM_API_KEY;
+    return "";
   } catch (e) {
-    return DEFAULT_OWM_API_KEY;
+    return "";
   }
 }
 
-function setStoredOpenWeatherKey(key) {
-  try {
-    if (key && key.trim()) {
-      localStorage.setItem("aquag_owm_api_key", key.trim());
-    } else {
-      localStorage.setItem("aquag_owm_api_key", "");
-    }
-  } catch (e) {}
-}
 
 function initRainfallDynamics() {
   // Reset coordinates button

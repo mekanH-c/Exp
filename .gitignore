@@ -5,3 +5,10 @@ openapi.txt
 scratch/
 *.log
 .DS_Store
+
+# Private Environment & API Keys
+.env
+.env.*
+*.env
+secrets/
+

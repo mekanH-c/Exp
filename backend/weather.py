@@ -21,7 +21,19 @@ import urllib.request
 import urllib.error
 from datetime import datetime, timezone
 import os
+from pathlib import Path
 from typing import Dict, Any, Optional, List
+
+try:
+    from dotenv import load_dotenv
+    _env_file = Path(__file__).resolve().parents[1] / ".env"
+    if _env_file.exists():
+        load_dotenv(dotenv_path=_env_file)
+    else:
+        load_dotenv()
+except Exception:
+    pass
+
 
 # Delhi Hydrological Basins for Radar / Heatmap Overlay
 DELHI_RAIN_CELLS = [
@@ -256,7 +268,9 @@ def get_calibrated_fallback_weather(lat: float, lon: float) -> Dict[str, Any]:
         ]
     }
 
-DEFAULT_OWM_KEY = os.environ.get("OPENWEATHER_API_KEY", "47b4c18dda84bef0ddf4284aee5d9a96").strip()
+def get_private_owm_key() -> str:
+    """Retrieves OpenWeatherMap API key securely from environment or private .env configuration."""
+    return os.environ.get("OPENWEATHER_API_KEY", "").strip()
 
 def fetch_live_weather(lat: float, lon: float, api_key: Optional[str] = None) -> Dict[str, Any]:
     """
@@ -268,7 +282,8 @@ def fetch_live_weather(lat: float, lon: float, api_key: Optional[str] = None) ->
     """
     key = (api_key or "").strip()
     if not key or key in ["YOUR_API_KEY", "YOUR_OPENWEATHERMAP_API_KEY", "demo", "undefined", "null"]:
-        key = DEFAULT_OWM_KEY
+        key = get_private_owm_key()
+
 
     is_dummy_key = not key or key in ["YOUR_API_KEY", "YOUR_OPENWEATHERMAP_API_KEY", "demo", "undefined", "null"]
 

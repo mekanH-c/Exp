@@ -184,8 +184,24 @@ def predict_severity(payload: FeatureInput) -> PredictResponse:
 # ---------------------------------------------------------------------------
 # API Endpoints
 # ---------------------------------------------------------------------------
-@app.get(
+from fastapi.responses import FileResponse
+
+@app.api_route(
+    "/",
+    methods=["GET", "HEAD"],
+    summary="Root Service Status / Frontend",
+    tags=["System"],
+)
+def root():
+    index_file = project_root / "index.html"
+    if index_file.exists():
+        return FileResponse(str(index_file))
+    return {"status": "ok", "service": "AquaG Flood Intelligence API"}
+
+
+@app.api_route(
     "/health",
+    methods=["GET", "HEAD"],
     response_model=HealthResponse,
     summary="Backend Health Check",
     tags=["System"],

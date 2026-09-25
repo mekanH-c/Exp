@@ -29,7 +29,7 @@
     />
 
     <!-- Main Operational UI Stylesheet -->
-    <link rel="stylesheet" href="index.css?v=2.4.0_sync_scenarios" />
+    <link rel="stylesheet" href="index.css?v=2.4.1_github_nav" />
   </head>
   <body class="theme-dark">
     <div id="app-container">
@@ -70,6 +70,8 @@
               src="github-logo.png"
               alt="GitHub Repository"
               class="nav-github-logo"
+              width="34"
+              height="34"
             />
           </a>
         </div>
@@ -1841,11 +1843,9 @@
     <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
     <!-- Leaflet Heatmap Plugin (Continuous Raster Meteorological Radar) -->
     <script src="leaflet-heat.js"></script>
-    <!-- Backend API Config for GitHub Pages deployment.
-       Replace the placeholder URL below with your deployed Render/FastAPI backend URL before publishing.
-       Example: https://aquag-backend.onrender.com -->
+    <!-- Backend API Config for GitHub Pages and unified cloud/local deployment -->
     <script>
-      window.AQUAG_API_URL = "https://YOUR_RENDER_APP.onrender.com";
+      window.AQUAG_API_URL = "https://aquag.onrender.com";
 
       const isLocalHost =
         location.hostname === "localhost" ||
@@ -1853,13 +1853,16 @@
         location.hostname === "::1" ||
         location.protocol === "file:";
       if (isLocalHost) {
-        window.AQUAG_LOCAL_API_URL = "http://127.0.0.1:8001";
+        window.AQUAG_LOCAL_API_URL =
+          location.port === "8000" || location.port === "8001"
+            ? location.origin
+            : "http://127.0.0.1:8000";
       }
       if (!window.AQUAG_CLOUD_API_URL) {
         window.AQUAG_CLOUD_API_URL = window.AQUAG_API_URL;
       }
     </script>
     <!-- Main Frontend Controller -->
-    <script src="app.js?v=2.4.0_sync_scenarios"></script>
+    <script src="app.js?v=2.4.1_github_nav"></script>
   </body>
 </html>
